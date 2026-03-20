@@ -1,0 +1,31 @@
+{
+  "year": 2026,
+  "microSocialRateBps": 2110,
+  "bncSocialRateBps": 2310,
+  "artistSocialRateBps": 1600,
+  "artistRetirementRateBps": 600,
+  "acreReductionRateBps": 5000,
+  "microAbatementRateServicesBps": 5000,
+  "microAbatementRateSalesBps": 7100,
+  "microAbatementRateLiberalBps": 3400,
+  "microFlatTaxRatesBps": {
+    "services": 170,
+    "sales": 100,
+    "liberal": 220
+  },
+  "defaultBncExpenseRateBps": 3400,
+  "incomeTaxBrackets": [
+    { "min": 0, "max": 1129400, "rateBps": 0 },
+    { "min": 1129400, "max": 2879700, "rateBps": 1100 },
+    { "min": 2879700, "max": 8234100, "rateBps": 3000 },
+    { "min": 8234100, "max": 17710600, "rateBps": 4100 },
+    { "min": 17710600, "max": null, "rateBps": 4500 }
+  ],
+  "cfeEstimateCents": 50000,
+  "tvaThresholdServicesCents": 3910000,
+  "projectionParams": {
+    "ewmaAlphaBps": 7000,
+    "volatilityCapBps": 3000,
+    "floorRatioBps": 8000
+  }
+}
