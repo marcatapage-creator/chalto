@@ -1,9 +1,14 @@
 {
   "year": 2026,
   "microSocialRateBps": 2110,
-  "bncSocialRateBps": 2310,
+  "bncSocialRateBps": 2200,
   "artistSocialRateBps": 1600,
-  "artistRetirementRateBps": 600,
+  "artistAssietteIncreaseRateBps": 1500,
+  "artistRetirementRateBps": 800,
+  "raapThresholdCents": 912000,
+  "raapReducedRateBps": 400,
+  "raapStandardRateBps": 800,
+  "raapCeilingCents": 16000000,
   "acreReductionRateBps": 5000,
   "microAbatementRateServicesBps": 5000,
   "microAbatementRateSalesBps": 7100,
@@ -23,9 +28,12 @@
   ],
   "cfeEstimateCents": 50000,
   "tvaThresholdServicesCents": 3910000,
+  "vatSimplifiedAdvanceJulyRateBps": 5500,
+  "vatSimplifiedAdvanceDecRateBps": 4000,
+  "familyQuotientCapCents": 175900,
   "projectionParams": {
-    "ewmaAlphaBps": 7000,
-    "volatilityCapBps": 3000,
+    "ewmaAlphaBps": 4000,
+    "volatilityCapBps": 2000,
     "floorRatioBps": 8000
   }
 }

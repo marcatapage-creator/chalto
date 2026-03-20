@@ -16,33 +16,41 @@ import { Info, TrendingUp, Landmark } from 'lucide-react';
 
 // Mock User for Demonstration
 const mockUser: UserProfile = {
-  fiscalStatus: 'micro',
+  fiscalStatus: 'artiste',
   activityType: 'services',
-  vatStatus: false,
-  treasuryCurrentCents: 1200000, // 12k€
-  revenueYTDCents: 3500000,    // 35k€ YTD
+  vatStatus: true,
+  vatRegime: 'simplifié',
+  priorYearVatDueCents: 500000, // 5k€ paid last year
+  isMarried: true,
+  numberOfChildren: 2,
+  
+  treasuryCurrentCents: 1500000, // 15k€
+  revenueYTDCents: 4500000,    // 45k€ YTD
   monthsElapsed: 6,
   incomePattern: 'variable',
   hasACRE: false,
   hasVersementLiberatoire: false,
-  taxHouseholdParts: 1,
+  taxHouseholdParts: 3, // Calculated from married + 2 children (0.5 + 0.5)
   safetyMarginBps: 9000,
+  raapReducedRateOption: false,
+  safetyMode: 'conservative',
 };
 
 export default function ChaltoDashboard() {
   // 1. Pipeline Execution
   const context = FiscalContextBuilder.build(mockUser, ruleset2026 as unknown as Ruleset);
   
-  // Projection (Mocking some monthly data for the engine)
+  // Projection
   const monthlyRevenue = [500000, 600000, 400000, 700000, 600000, 700000];
   const projection = RevenueProjectionEngine.execute(context, monthlyRevenue);
   
   // Fiscal & Scheduler
   const burden = FiscalCalculationEngine.execute(projection.annualProjectionCents || 0, context);
-  const scheduledLiabilities = LiabilityScheduler.scheduleFiscalBurden(burden, context.ruleset);
+  const vatBurden = FiscalCalculationEngine.calculateVat(projection.annualProjectionCents || 0, context.ruleset);
+  const scheduledLiabilities = LiabilityScheduler.scheduleFiscalBurden(burden, context.ruleset, vatBurden);
   
   // Future Inflows
-  const predictedInflows = InflowPredictor.predict(projection.annualProjectionCents || 0, context);
+  const predictedInflows = InflowPredictor.predict(projection.annualProjectionCents || 0, context, projection.confidence);
   
   // Final Simulation
   const simulation = SimulationEngine.execute(
@@ -82,6 +90,7 @@ export default function ChaltoDashboard() {
               amountCents={state.safeToSpendCents} 
               headline={state.headline}
               riskLevel={state.riskLevel}
+              confidenceScore={state.confidenceScore}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

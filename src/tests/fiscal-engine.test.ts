@@ -50,13 +50,46 @@ describe('FiscalCalculationEngine', () => {
   });
 
   it('calculates progressive income tax correctly', () => {
-    // 100k€ revenue -> 50k€ taxable after 50% abatement
-    // Brackets: 0% up to 11294, 11% up to 28797, 30% above
-    // (28797 - 11294) * 0.11 = 17503 * 0.11 = 1925.33 -> 192533
-    // (50000 - 28797) * 0.30 = 21203 * 0.30 = 6360.90 -> 636090
-    // Total: 192533 + 636090 = 828623
     const result = FiscalCalculationEngine.calculateMicroEngine(10000000, context);
     expect(result.incomeTaxEstimateAnnual).toBeGreaterThan(800000);
     expect(result.incomeTaxEstimateAnnual).toBeLessThan(850000);
+  });
+
+  describe('Artiste-Auteur & RAAP', () => {
+    const artistProfile: UserProfile = {
+      ...mockProfile,
+      fiscalStatus: 'artiste',
+      vatStatus: true,
+    };
+    const artistContext = FiscalContextBuilder.build(artistProfile, ruleset2026 as unknown as Ruleset);
+
+    it('applies +15% increase to URSSAF assiette for artists', () => {
+      // Revenue 100k -> Expenses (34%) -> 66k Profit
+      // Assiette = 66k * 1.15 = 75.9k
+      // Social Charges (16%) of 75.9k = 12,144 € -> 1,214,400 cents
+      const result = FiscalCalculationEngine.calculateArtistEngine(10000000, artistContext);
+      expect(result.socialChargesAnnual).toBe(1214400);
+    });
+
+    it('triggers RAAP above threshold and respects ceiling', () => {
+      // Case R1: Below threshold (9120€)
+      // Rev 10k -> Profit 6.6k -> Assiette 7.59k. Below 9.12k threshold.
+      const lowResult = FiscalCalculationEngine.calculateArtistEngine(1000000, artistContext);
+      expect(lowResult.retirementChargesAnnual).toBe(0);
+
+      // Case R3: High income (ceiling 160k)
+      // Rev 200k -> Profit 132k -> Assiette 151.8k. Below ceil but tests logic.
+      const highResult = FiscalCalculationEngine.calculateArtistEngine(20000000, artistContext);
+      // 151.8k * 8% = 12,144 €
+      expect(highResult.retirementChargesAnnual).toBe(1214400);
+    });
+
+    it('calculates VAT correctly', () => {
+      // 100k Rev -> 20k Collected
+      // Expenses 34k -> 6.8k Deductible (assuming 20% deductible rate)
+      // Net = 13.2k -> 1,320,000 cents
+      const result = FiscalCalculationEngine.calculateVat(10000000, artistContext.ruleset);
+      expect(result).toBe(1320000);
+    });
   });
 });

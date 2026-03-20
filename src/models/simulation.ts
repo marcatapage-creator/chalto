@@ -17,10 +17,23 @@ export interface RiskAnalysis {
   message: string;
 }
 
+export type ModelingStatus = 'fully' | 'partially' | 'not_modeled';
+
+export interface ModelingMatrix {
+  tva: ModelingStatus;
+  urssaf: ModelingStatus;
+  ircec: ModelingStatus;
+  ir: ModelingStatus;
+}
+
 export interface SimulationResult {
   timeline: TimelineEntry[];
   minBalanceCents: number;
   minBalanceDate: Date;
   safeToSpendCents: number;
   risk: RiskAnalysis;
+  
+  /** Production Hardening: Reliability metrics */
+  confidenceScore: number; // 0 to 100
+  modelingMatrix: ModelingMatrix;
 }

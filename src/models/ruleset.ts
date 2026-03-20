@@ -19,7 +19,14 @@ export interface Ruleset {
   microSocialRateBps: RateBps;
   bncSocialRateBps: RateBps;
   artistSocialRateBps: RateBps;
-  artistRetirementRateBps: RateBps;
+  artistAssietteIncreaseRateBps: RateBps;
+  artistRetirementRateBps: RateBps; // Deprecated in favor of RAAP specific below
+  
+  // RAAP (IRCEC)
+  raapThresholdCents: MoneyCents;
+  raapReducedRateBps: RateBps;
+  raapStandardRateBps: RateBps;
+  raapCeilingCents: MoneyCents;
 
   // Benefits
   acreReductionRateBps: RateBps;
@@ -43,6 +50,12 @@ export interface Ruleset {
   incomeTaxBrackets: TaxBracket[];
   cfeEstimateCents: MoneyCents;
   tvaThresholdServicesCents: MoneyCents;
+
+  // VAT Simplified Regime
+  vatSimplifiedAdvanceJulyRateBps: RateBps;
+  vatSimplifiedAdvanceDecRateBps: RateBps;
+
+  familyQuotientCapCents: MoneyCents; // e.g. 1759€ per half-part
 
   // Engine Parameters
   projectionParams: ProjectionParams;

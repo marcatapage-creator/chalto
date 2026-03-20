@@ -14,6 +14,7 @@ export interface DashboardState {
   next90DaysLiabilityCents: MoneyCents;
 
   annualProjectionCents: MoneyCents | null;
+  annualFiscalBurdenCents: MoneyCents;
   projectionLowCents: MoneyCents | null;
   projectionHighCents: MoneyCents | null;
 
@@ -25,6 +26,14 @@ export interface DashboardState {
   vatWarning: boolean;
   riskLevel: RiskLevelValue;
   
+  confidenceScore: number;
+  modelingMatrix: {
+    tva: string;
+    urssaf: string;
+    ircec: string;
+    ir: string;
+  };
+
   /** Natural language insights from Pedagogy Engine */
   headline: string;
   explanation: string;

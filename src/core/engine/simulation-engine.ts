@@ -62,13 +62,31 @@ export class SimulationEngine {
     // 5. Risk Analysis
     const risk = this.analyzeRisk(minBalance, minBalanceDate);
 
+    // 6. Production Hardening
+    const confidenceScore = this.calculateConfidenceScore(inflows.length > 0, liabilities.length > 0);
+    const modelingMatrix = {
+      tva: 'partially' as const, // advances modeled, regularization not yet
+      urssaf: 'fully' as const,
+      ircec: 'partially' as const, // standard/reduced rate modeled, call timing is approx
+      ir: 'partially' as const, // parts modeled, global caps/nuances partially
+    };
+
     return {
       timeline,
       minBalanceCents: minBalance,
       minBalanceDate,
       safeToSpendCents,
       risk,
+      confidenceScore,
+      modelingMatrix,
     };
+  }
+
+  private static calculateConfidenceScore(hasInflows: boolean, hasLiabilities: boolean): number {
+    let score = 100;
+    if (!hasInflows) score -= 20; // Uncertainty about revenue
+    if (!hasLiabilities) score -= 10;
+    return score;
   }
 
   private static analyzeRisk(minBalance: number, minBalanceDate: Date): RiskAnalysis {

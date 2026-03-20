@@ -1,4 +1,4 @@
-import { MoneyCents, divideWithRemainder } from '../../models/monetary';
+import { MoneyCents, applyRate, divideWithRemainder } from '../../models/monetary';
 import { Liability, LiabilityType } from '../../models/liability';
 import { FiscalBurdenResult } from './fiscal-engine';
 import { Ruleset } from '../../models/ruleset';
@@ -35,20 +35,51 @@ export class LiabilityScheduler {
     }));
   }
 
-  static scheduleFiscalBurden(burden: FiscalBurdenResult, ruleset: Ruleset): Liability[] {
+  static scheduleSimplifiedVat(totalVatCents: MoneyCents, ruleset: Ruleset): Liability[] {
+    if (totalVatCents <= 0) return [];
+
+    const julyAmount = applyRate(totalVatCents, ruleset.vatSimplifiedAdvanceJulyRateBps);
+    const decAmount = applyRate(totalVatCents, ruleset.vatSimplifiedAdvanceDecRateBps);
+
+    return [
+      {
+        id: `tva_advance_july_${ruleset.year}`,
+        date: new Date(ruleset.year, 6, 15), // July
+        type: 'tva',
+        label: 'Acompte TVA (Juillet)',
+        amountCents: julyAmount,
+        isConfirmed: false,
+      },
+      {
+        id: `tva_advance_dec_${ruleset.year}`,
+        date: new Date(ruleset.year, 11, 15), // December
+        type: 'tva',
+        label: 'Acompte TVA (Décembre)',
+        amountCents: decAmount,
+        isConfirmed: false,
+      }
+    ];
+  }
+
+  static scheduleFiscalBurden(burden: FiscalBurdenResult, ruleset: Ruleset, vatBurdenCents: MoneyCents = 0): Liability[] {
     const year = ruleset.year;
     const liabilities: Liability[] = [];
 
-    // 1. Social & Retirement (Combined or separate?)
+    // 1. Social & Retirement
     liabilities.push(...this.schedule(burden.socialChargesAnnual, 'social_charges', 'URSSAF', year));
     if (burden.retirementChargesAnnual > 0) {
-      liabilities.push(...this.schedule(burden.retirementChargesAnnual, 'retirement', 'Retraite', year));
+      liabilities.push(...this.schedule(burden.retirementChargesAnnual, 'retirement', 'Retraite (RAAP)', year));
     }
 
     // 2. Income Tax
     liabilities.push(...this.schedule(burden.incomeTaxEstimateAnnual, 'income_tax', 'Impôt sur le Revenu', year));
 
-    // 3. CFE (Fixed December payment)
+    // 3. VAT (Simplified)
+    if (vatBurdenCents > 0) {
+      liabilities.push(...this.scheduleSimplifiedVat(vatBurdenCents, ruleset));
+    }
+
+    // 4. CFE (Fixed December payment)
     if (ruleset.cfeEstimateCents > 0) {
       liabilities.push({
         id: `cfe_${year}`,

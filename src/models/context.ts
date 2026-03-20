@@ -6,6 +6,7 @@ export interface NormalizedValues {
   revenueYTD: MoneyCents;
   monthsElapsed: number;
   incomePattern: IncomePattern;
+  taxHouseholdParts: number;
 }
 
 export interface FiscalContext {

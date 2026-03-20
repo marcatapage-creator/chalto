@@ -5,9 +5,10 @@ interface HeroProps {
   amountCents: number;
   headline: string;
   riskLevel: 'safe' | 'warning' | 'danger';
+  confidenceScore: number;
 }
 
-export const Hero: React.FC<HeroProps> = ({ amountCents, headline, riskLevel }) => {
+export const Hero: React.FC<HeroProps> = ({ amountCents, headline, riskLevel, confidenceScore }) => {
   const amountFormatted = new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
@@ -35,9 +36,14 @@ export const Hero: React.FC<HeroProps> = ({ amountCents, headline, riskLevel }) 
         </div>
       </div>
 
-      <div className="mt-8 flex items-center gap-2 text-sm opacity-80">
-        <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-        Calculé en temps réel selon vos projections
+      <div className="mt-8 flex items-center justify-between gap-2 text-sm opacity-80">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+          Calculé en temps réel selon vos projections
+        </div>
+        <div className="px-3 py-1 rounded-full bg-white/10 text-xs font-bold border border-white/10">
+          {confidenceScore}% Fiabilité
+        </div>
       </div>
     </div>
   );
