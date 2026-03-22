@@ -20,8 +20,8 @@ export class RevenueProjectionEngine {
     if (monthsElapsed < 3) return 'NONE';
     if (monthsElapsed < 6) return 'MEDIUM';
     
-    // Confidence is capped at MEDIUM if revenueLastYear is absent
-    if (!hasRevenueLastYear) return 'MEDIUM';
+    // Confidence is capped at MEDIUM if revenueLastYear is absent or if it's very early
+    if (!hasRevenueLastYear || monthsElapsed < 6) return 'MEDIUM';
     
     return 'HIGH';
   }
@@ -29,10 +29,35 @@ export class RevenueProjectionEngine {
   static execute(context: FiscalContext, monthlyRevenue: MoneyCents[] = []): ProjectionResult {
     const { userProfile, ruleset, normalizedValues } = context;
     const { monthsElapsed, revenueYTD, incomePattern } = normalizedValues;
-    const { revenueLastYearCents } = userProfile;
+    const { revenueLastYearCents, incomeEstimationMethod, estimatedAnnualRevenueCents } = userProfile;
     const { projectionParams, tvaThresholdServicesCents } = ruleset;
 
-    // Guard: monthsElapsed < 3
+    const confidence = this.calculateConfidence(monthsElapsed, !!revenueLastYearCents);
+    let annualProjectionCents: MoneyCents | null = null;
+    let projectionLowCents: MoneyCents | null = null;
+    let projectionHighCents: MoneyCents | null = null;
+
+    // Handle initial onboarding-like estimation if monthsElapsed is low but we have a method
+    if (monthsElapsed < 3 && (incomeEstimationMethod || estimatedAnnualRevenueCents)) {
+      if (estimatedAnnualRevenueCents) {
+        annualProjectionCents = estimatedAnnualRevenueCents;
+      } else if (incomeEstimationMethod === 'known' || incomeEstimationMethod === 'estimate') {
+        annualProjectionCents = revenueYTD;
+      } else if (incomeEstimationMethod === 'last_year') {
+        annualProjectionCents = revenueLastYearCents || null;
+      }
+      
+      const resConfidence: ProjectionConfidence = incomeEstimationMethod === 'known' ? 'MEDIUM' : 'NONE';
+
+      return {
+        annualProjectionCents,
+        projectionLowCents: annualProjectionCents ? applyRate(annualProjectionCents, 9000) : null,
+        projectionHighCents: annualProjectionCents ? applyRate(annualProjectionCents, 11000) : null,
+        confidence: resConfidence,
+        vatWarning: annualProjectionCents ? annualProjectionCents > tvaThresholdServicesCents : false,
+      };
+    }
+
     if (monthsElapsed < 3) {
       return {
         annualProjectionCents: null,
@@ -42,11 +67,6 @@ export class RevenueProjectionEngine {
         vatWarning: false,
       };
     }
-
-    const confidence = this.calculateConfidence(monthsElapsed, !!revenueLastYearCents);
-    let annualProjectionCents: MoneyCents | null = null;
-    let projectionLowCents: MoneyCents | null = null;
-    let projectionHighCents: MoneyCents | null = null;
 
     const projectionYTD = Math.floor((revenueYTD / monthsElapsed) * 12);
 

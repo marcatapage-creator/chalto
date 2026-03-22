@@ -37,6 +37,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
+import { Navigation } from "@/components/Navigation";
+import { Header } from "@/components/Header";
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,10 +48,21 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300" suppressHydrationWarning>
+        <ThemeProvider>
+          <div className="relative min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1 pt-20 pb-32">
+              {children}
+            </main>
+            <Navigation />
+          </div>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

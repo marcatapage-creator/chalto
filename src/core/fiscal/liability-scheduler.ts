@@ -19,7 +19,9 @@ export class LiabilityScheduler {
 
     // French standard: 4 quarters (Feb, May, Aug, Nov)
     const quarterMonths = [1, 4, 7, 10]; // 0-indexed months
-    const remainingQuarters = quarterMonths.filter(m => m >= monthsAlreadyPaid);
+    const realCurrentMonth = new Date().getMonth();
+    const effectiveMonthsPaid = Math.max(monthsAlreadyPaid, realCurrentMonth);
+    const remainingQuarters = quarterMonths.filter(m => m >= effectiveMonthsPaid);
     
     if (remainingQuarters.length === 0) return [];
 
@@ -41,11 +43,14 @@ export class LiabilityScheduler {
     const julyAmount = applyRate(totalVatCents, ruleset.vatSimplifiedAdvanceJulyRateBps);
     const decAmount = applyRate(totalVatCents, ruleset.vatSimplifiedAdvanceDecRateBps);
 
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
     return [
       {
         id: `tva_advance_july_${ruleset.year}`,
         date: new Date(ruleset.year, 6, 15), // July
-        type: 'tva',
+        type: 'tva' as LiabilityType,
         label: 'Acompte TVA (Juillet)',
         amountCents: julyAmount,
         isConfirmed: false,
@@ -53,12 +58,12 @@ export class LiabilityScheduler {
       {
         id: `tva_advance_dec_${ruleset.year}`,
         date: new Date(ruleset.year, 11, 15), // December
-        type: 'tva',
+        type: 'tva' as LiabilityType,
         label: 'Acompte TVA (Décembre)',
         amountCents: decAmount,
         isConfirmed: false,
       }
-    ];
+    ].filter(l => l.date.getTime() >= todayStart);
   }
 
   static scheduleFiscalBurden(burden: FiscalBurdenResult, ruleset: Ruleset, vatBurdenCents: MoneyCents = 0): Liability[] {

@@ -6,6 +6,17 @@ export interface TaxBracket {
   rateBps: RateBps;
 }
 
+export interface CehrBracket {
+  thresholdCents: MoneyCents;
+  rateBps: RateBps;
+}
+
+export interface RaapBracket {
+  min: MoneyCents;
+  max: MoneyCents | null;
+  amountCents: MoneyCents;
+}
+
 export interface ProjectionParams {
   ewmaAlphaBps: RateBps;
   volatilityCapBps: RateBps;
@@ -27,6 +38,7 @@ export interface Ruleset {
   raapReducedRateBps: RateBps;
   raapStandardRateBps: RateBps;
   raapCeilingCents: MoneyCents;
+  raapBrackets?: RaapBracket[];
 
   // Benefits
   acreReductionRateBps: RateBps;
@@ -50,12 +62,14 @@ export interface Ruleset {
   incomeTaxBrackets: TaxBracket[];
   cfeEstimateCents: MoneyCents;
   tvaThresholdServicesCents: MoneyCents;
+  microThresholdServicesCents: MoneyCents;
 
   // VAT Simplified Regime
   vatSimplifiedAdvanceJulyRateBps: RateBps;
   vatSimplifiedAdvanceDecRateBps: RateBps;
 
   familyQuotientCapCents: MoneyCents; // e.g. 1759€ per half-part
+  cehrBrackets: CehrBracket[];
 
   // Engine Parameters
   projectionParams: ProjectionParams;

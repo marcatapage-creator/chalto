@@ -22,7 +22,7 @@ export function applyRate(amount: MoneyCents, rateBps: RateBps): MoneyCents {
  * The remainder is added to the last segment.
  */
 export function divideWithRemainder(amount: MoneyCents, segments: number): MoneyCents[] {
-  if (segments <= 0) return [];
+  if (segments <= 0 || !Number.isInteger(segments) || isNaN(segments)) return [];
   
   const baseAmount = Math.floor(amount / segments);
   const result = Array(segments).fill(baseAmount);
@@ -35,4 +35,12 @@ export function divideWithRemainder(amount: MoneyCents, segments: number): Money
   }
   
   return result;
+}
+
+/**
+ * Rounds a cent amount to the nearest Euro.
+ * Used for fiscal reporting and presentation.
+ */
+export function roundToEuro(cents: MoneyCents): number {
+  return Math.round(cents / 100);
 }

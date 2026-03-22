@@ -1,4 +1,4 @@
-import { MoneyCents } from '../../models/monetary';
+import { MoneyCents, RateBps, applyRate } from '../../models/monetary';
 import { Liability } from '../../models/liability';
 import { TimelineEntry, SimulationResult, RiskAnalysis } from '../../models/simulation';
 
@@ -14,7 +14,9 @@ export class SimulationEngine {
     currentCashCents: MoneyCents,
     inflows: Inflow[],
     liabilities: Liability[],
-    safetyFloorCents: MoneyCents = 0
+    safetyFloorCents: MoneyCents = 0,
+    baseConfidenceScore?: number,
+    pessimistBufferBps: RateBps = 0
   ): SimulationResult {
     const timeline: TimelineEntry[] = [];
     
@@ -29,19 +31,25 @@ export class SimulationEngine {
     });
 
     // 2. Merge and Sort Movements
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
     const movements = [
-      ...inflows.map(i => ({ date: i.date, amount: i.amountCents, label: i.label, type: 'inflow' as const })),
-      ...liabilities.map(l => ({ date: l.date, amount: -l.amountCents, label: l.label, type: 'liability' as const })),
-    ].sort((a, b) => a.date.getTime() - b.date.getTime());
+      ...inflows.map(i => ({ id: i.id, date: i.date, amount: i.amountCents, label: i.label, type: 'inflow' as const })),
+      ...liabilities.map(l => ({ id: l.id, date: l.date, amount: -l.amountCents, label: l.label, type: 'liability' as const })),
+    ]
+    .filter(m => m.date.getTime() >= todayStart) // Only process future or today's movements
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
     // 3. Simulate
     let minBalance = currentBalance;
-    let minBalanceDate = new Date();
+    let minBalanceDate = now;
 
     for (const move of movements) {
       currentBalance += move.amount;
       
       timeline.push({
+        id: move.id,
         date: move.date,
         amountCents: move.amount,
         balanceCents: currentBalance,
@@ -57,13 +65,15 @@ export class SimulationEngine {
 
     // 4. Derive Safe-to-Spend
     // Formula: safeToSpend = max(0, minProjectedBalance - safetyFloor)
-    const safeToSpendCents = Math.max(0, minBalance - safetyFloorCents);
+    // We apply an additional pessimist buffer if reliability is low
+    const adjustedSafetyFloor = safetyFloorCents + applyRate(minBalance > 0 ? minBalance : 0, pessimistBufferBps);
+    const safeToSpendCents = Math.max(0, minBalance - adjustedSafetyFloor);
 
     // 5. Risk Analysis
     const risk = this.analyzeRisk(minBalance, minBalanceDate);
 
     // 6. Production Hardening
-    const confidenceScore = this.calculateConfidenceScore(inflows.length > 0, liabilities.length > 0);
+    const confidenceScore = this.calculateConfidenceScore(inflows.length > 0, liabilities.length > 0, baseConfidenceScore);
     const modelingMatrix = {
       tva: 'partially' as const, // advances modeled, regularization not yet
       urssaf: 'fully' as const,
@@ -82,11 +92,11 @@ export class SimulationEngine {
     };
   }
 
-  private static calculateConfidenceScore(hasInflows: boolean, hasLiabilities: boolean): number {
-    let score = 100;
-    if (!hasInflows) score -= 20; // Uncertainty about revenue
-    if (!hasLiabilities) score -= 10;
-    return score;
+  private static calculateConfidenceScore(hasInflows: boolean, hasLiabilities: boolean, baseConfidenceScore?: number): number {
+    let score = baseConfidenceScore ?? 100;
+    if (!hasInflows) score = Math.max(0, score - 20); // Uncertainty about revenue
+    if (!hasLiabilities) score = Math.max(0, score - 10);
+    return Math.floor(score);
   }
 
   private static analyzeRisk(minBalance: number, minBalanceDate: Date): RiskAnalysis {

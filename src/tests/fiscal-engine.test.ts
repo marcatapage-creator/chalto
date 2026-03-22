@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { FiscalCalculationEngine } from '../core/fiscal/fiscal-engine';
 import { FiscalContextBuilder } from '../core/context/fiscal-context-builder';
-import { UserProfile } from '../models/user';
+import { UserProfile, USER_PROFILE_DEFAULTS } from '../models/user';
 import { Ruleset } from '../models/ruleset';
 import ruleset2026 from '../rulesets/ruleset_2026.json';
 
 describe('FiscalCalculationEngine', () => {
   const mockProfile: UserProfile = {
+    ...USER_PROFILE_DEFAULTS as UserProfile,
     fiscalStatus: 'micro',
     activityType: 'services',
     vatStatus: false,

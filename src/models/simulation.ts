@@ -1,11 +1,12 @@
 import { MoneyCents } from './monetary';
 
 export interface TimelineEntry {
+  id?: string;
   date: Date;
   amountCents: MoneyCents; // positive for inflow, negative for liability
   balanceCents: number;
   label: string;
-  type: 'inflow' | 'liability' | 'initial';
+  type: 'inflow' | 'liability' | 'initial' | 'social_contribution' | 'vat' | 'tax_payment' | 'personal_drawing';
 }
 
 export type RiskLevelValue = 'safe' | 'warning' | 'danger';

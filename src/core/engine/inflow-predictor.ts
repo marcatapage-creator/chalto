@@ -17,19 +17,24 @@ export class InflowPredictor {
     const year = ruleset.year;
 
     // Safety Policy: in conservative mode, only high-confidence inflows are cabled.
-    if (userProfile.safetyMode === 'conservative' && confidence !== 'HIGH') {
+    // Exception: Allow onboarding estimates (MEDIUM/NONE) if we are at the beginning of the year.
+    if (userProfile.safetyMode === 'conservative' && confidence !== 'HIGH' && monthsElapsed > 3) {
       return [];
     }
 
     const remainingRevenue = Math.max(0, annualProjectionCents - revenueYTD);
-    const remainingMonths = 12 - monthsElapsed;
-
-    if (remainingMonths <= 0 || remainingRevenue <= 0) return [];
-
+    
+    // Real-time synchronization: start from the later of user-set months or actual current month
+    const realCurrentMonth = new Date().getMonth();
+    const effectiveMonthsElapsed = Math.floor(Math.max(monthsElapsed || 0, realCurrentMonth));
+    const remainingMonths = 12 - effectiveMonthsElapsed;
+ 
+    if (isNaN(remainingMonths) || remainingMonths <= 0 || remainingRevenue <= 0) return [];
+ 
     const payments = divideWithRemainder(remainingRevenue, remainingMonths);
     
     return payments.map((amount, index) => {
-      const monthIndex = monthsElapsed + index; // 0-indexed month
+      const monthIndex = effectiveMonthsElapsed + index; // 0-indexed month
       return {
         id: `projected_inflow_${monthIndex}`,
         date: new Date(year, monthIndex, 25),

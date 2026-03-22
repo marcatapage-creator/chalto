@@ -15,7 +15,18 @@ export interface FiscalContext {
   normalizedValues: NormalizedValues;
 }
 
-export type LedgerEntryType = 'income' | 'expense' | 'tax_payment' | 'social_payment';
+export type LedgerEntryType = 
+  | 'revenue' 
+  | 'business_expense' 
+  | 'personal_expense' 
+  | 'personal_drawing' 
+  | 'tax_payment' 
+  | 'social_contribution' 
+  | 'vat' 
+  | 'treasury_adjustment';
+
+export type LedgerEntryOrigin = 'forecast' | 'user' | 'system';
+export type LedgerEntryStatus = 'planned' | 'realized' | 'cancelled';
 
 export interface LedgerEntry {
   id: string;
@@ -25,4 +36,17 @@ export interface LedgerEntry {
   category: string;
   source: string;
   immutable: boolean;
+  
+  /** Metadata for "Ma Réalité" */
+  origin: LedgerEntryOrigin;
+  status: LedgerEntryStatus;
+  /** YYYY-MM for grouping */
+  monthKey: string;
+  /** Link to original budget line if realized/split */
+  sourceForecastId?: string;
+  /** Derived helper: strictly origin === 'forecast' && status === 'planned' */
+  isForecast: boolean;
+
+  vatCents?: MoneyCents;
+  isTtc?: boolean;
 }

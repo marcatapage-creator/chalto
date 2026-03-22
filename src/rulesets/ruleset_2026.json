@@ -8,7 +8,17 @@
   "raapThresholdCents": 912000,
   "raapReducedRateBps": 400,
   "raapStandardRateBps": 800,
-  "raapCeilingCents": 16000000,
+  "raapCeilingCents": 14418000,
+  "raapBrackets": [
+    { "min": 0, "max": 912000, "amountCents": 0 },
+    { "min": 912000, "max": 2500000, "amountCents": 200000 },
+    { "min": 2500000, "max": 5000000, "amountCents": 400000 },
+    { "min": 5000000, "max": 7500000, "amountCents": 650000 },
+    { "min": 7500000, "max": 10000000, "amountCents": 900000 },
+    { "min": 10000000, "max": 12500000, "amountCents": 1250000 },
+    { "min": 12500000, "max": 14418000, "amountCents": 1380000 },
+    { "min": 14418000, "max": null, "amountCents": 1380000 }
+  ],
   "acreReductionRateBps": 5000,
   "microAbatementRateServicesBps": 5000,
   "microAbatementRateSalesBps": 7100,
@@ -28,9 +38,14 @@
   ],
   "cfeEstimateCents": 50000,
   "tvaThresholdServicesCents": 3910000,
+  "microThresholdServicesCents": 7770000,
   "vatSimplifiedAdvanceJulyRateBps": 5500,
   "vatSimplifiedAdvanceDecRateBps": 4000,
   "familyQuotientCapCents": 175900,
+  "cehrBrackets": [
+    { "thresholdCents": 25000000, "rateBps": 300 },
+    { "thresholdCents": 50000000, "rateBps": 400 }
+  ],
   "projectionParams": {
     "ewmaAlphaBps": 4000,
     "volatilityCapBps": 2000,
