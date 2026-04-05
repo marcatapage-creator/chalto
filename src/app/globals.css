@@ -41,6 +41,16 @@
   }
 }
 
+@keyframes pulse-subtle {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.015); opacity: 0.98; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
 body {
   color: var(--text-primary);
   background: var(--bg-main);

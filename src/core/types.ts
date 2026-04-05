@@ -25,7 +25,7 @@ export interface Document {
   url: string;
   versionNumber: number;
   isLatest: boolean;
-  fileHash?: string;
+  fileHash?: string; // SHA-256 for integrity
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
   visibility: UserRole[];
   uploadedBy: string;
@@ -41,12 +41,13 @@ export interface ValidationRequest {
   documentVersionNumber: number;
   status: ValidationStatus;
   requestedAt: string;
+  expiresAt: string; // Token-level expiration
   viewedAt?: string;
   respondedAt?: string;
   feedback?: string;
-  context?: string; // What this validation means (e.g. "Aménagement cuisine")
-  requestedBy: string; // projectMemberId
-  requestedTo: string; // projectMemberId (usually client)
+  context?: string; 
+  requestedBy: string; 
+  requestedTo: string; 
 }
 
 export type ActivityType = 'DOC_UPLOAD' | 'VALIDATION_REQ' | 'VALIDATION_RES' | 'STAGE_CHANGE' | 'COMMENT';
@@ -56,8 +57,8 @@ export interface ActivityLog {
   type: ActivityType;
   actorId: string;
   actorName: string;
-  action: string; // Technical log
-  humanLabel: string; // Storytelling label (FR)
+  action: string; 
+  humanLabel: string; 
   timestamp: string;
   visibility: UserRole[];
   metadata?: any;
@@ -72,8 +73,9 @@ export interface Project {
   members: ProjectMember[];
   nextActionOverride?: NextAction;
   nextActionOverrideSetAt?: string;
-  statusChangedAt: string; // For aging logic
+  statusChangedAt: string; 
   clientPortalToken?: string; 
+  portalTokenExpiresAt?: string; // Security: 30-day lifespan
   createdAt: string;
   updatedAt: string;
 }

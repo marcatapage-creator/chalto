@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Project, Document, ValidationRequest, ProjectStatus } from '@/core/types';
 import { SectionCard } from '@/components/ui/LayoutPrimitives';
-import { CheckCircle2, XCircle, FileText, Clock, ChevronRight, ShieldCheck, MessageCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, Clock, ChevronRight, ShieldCheck, MessageCircle, MoreHorizontal, Download, Eye, Trash2, Share2, Lock, Globe, PartyPopper } from 'lucide-react';
 
 // Mock Data for the Client Portal Experience
 const MOCK_PROJECT: Project = {
@@ -51,24 +51,26 @@ export default function ClientPortalPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
-  // 1. Smart Summary Status
+  // 1. Smart Summary & Progression
   const projectHealth = {
     status: 'NORMAL',
     label: 'Votre projet avance normalement.',
-    details: 'Nous sommes à l’étape "Étude de décision". Votre action est attendue sur l’esquisse.'
+    details: 'Nous sommes à l’étape "Étude de décision". Votre action est attendue sur l’esquisse.',
+    currentStep: 4,
+    totalSteps: 6
   };
 
   if (isDone) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-6 text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-          <CheckCircle2 size={40} />
+        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <PartyPopper size={48} />
         </div>
-        <h1 className="text-2xl font-black text-slate-900">Merci, Marc-Antoine !</h1>
-        <p className="mt-2 text-slate-600">Votre réponse a bien été transmise à Sophie Archi.</p>
+        <h1 className="text-3xl font-black text-slate-900">Validation reçue !</h1>
+        <p className="mt-4 max-w-sm text-slate-600">Merci Marc-Antoine. Votre validation a bien été transmise à Sophie Archi. Le projet passe à l'étape suivante.</p>
         <button 
           onClick={() => setIsDone(false)}
-          className="mt-8 text-sm font-bold text-blue-600 hover:underline"
+          className="mt-8 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800"
         >
           Retourner au projet
         </button>
@@ -88,14 +90,27 @@ export default function ClientPortalPage() {
             {MOCK_PROJECT.name}
           </h1>
           
-          {/* Smart Summary Block */}
-          <div className="mt-8 flex items-start gap-4 rounded-3xl bg-blue-50/50 p-6 border border-blue-100">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+          {/* Smart Summary Block with Progression Info */}
+          <div className="mt-8 flex items-start gap-4 rounded-3xl bg-blue-50/50 p-6 border border-blue-100 relative overflow-hidden group">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-200">
               <CheckCircle2 size={24} />
             </div>
-            <div>
-              <p className="text-lg font-black text-slate-900">{projectHealth.label}</p>
-              <p className="text-sm font-bold text-blue-600 opacity-80">{projectHealth.details}</p>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-lg font-black text-slate-900">{projectHealth.label}</p>
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-100/50 px-2 py-1 rounded-md">
+                  Étape {projectHealth.currentStep} / {projectHealth.totalSteps}
+                </span>
+              </div>
+              <p className="mt-1 text-sm font-bold text-blue-600/80">{projectHealth.details}</p>
+              
+              {/* Progress Bar (Visual reassurance) */}
+              <div className="mt-4 h-1.5 w-full bg-blue-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${(projectHealth.currentStep / projectHealth.totalSteps) * 100}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -124,12 +139,18 @@ export default function ClientPortalPage() {
                   </div>
                 </div>
 
-                <div className="mt-10 flex flex-wrap gap-4">
+                <div className="mt-8 flex flex-col gap-3">
+                  <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 mb-2">
+                    <p className="text-xs font-bold text-slate-500 leading-relaxed italic">
+                      "En validant ce document, vous donnez votre accord sur l'implantation générale. 
+                      Cette étape est nécessaire pour lancer la phase de devis entreprises."
+                    </p>
+                  </div>
                   <button 
                     onClick={() => setIsDone(true)}
-                    className="flex items-center gap-3 rounded-2xl bg-slate-900 px-8 py-4 text-base font-black text-white shadow-lg transition-all hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98]"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-900 px-8 py-5 text-lg font-black text-white shadow-2xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <CheckCircle2 size={20} className="text-emerald-400" /> VALIDER LE DOCUMENT
+                    <CheckCircle2 size={22} /> VALIDER LE PLAN
                   </button>
                   <button 
                     onClick={() => setShowFeedback(!showFeedback)}
