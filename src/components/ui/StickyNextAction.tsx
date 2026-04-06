@@ -1,5 +1,5 @@
 import React from 'react';
-import { NextAction, Priority } from '@/core/types';
+import { NextActionCandidate } from '@/core/models/v2/types';
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -11,13 +11,13 @@ import {
 } from 'lucide-react';
 
 interface StickyNextActionProps {
-  action: NextAction;
+  action: NextActionCandidate;
   onEdit?: () => void;
   onComplete?: () => void;
   onReset?: () => void;
 }
 
-const PRIORITY_STYLES: Record<Priority, { 
+const PRIORITY_STYLES: Record<string, { 
   bg: string; 
   text: string; 
   border: string; 
@@ -53,8 +53,7 @@ export const StickyNextAction: React.FC<StickyNextActionProps> = ({
   onComplete,
   onReset,
 }) => {
-  const isManual = action.type === 'MANUAL';
-  const style = PRIORITY_STYLES[action.priority || 'INFO'];
+  const style = PRIORITY_STYLES[action.priority] || PRIORITY_STYLES.INFO;
 
   return (
     <div className={`sticky top-0 z-30 w-full border-b-2 ${style.border} ${style.bg} shadow-sm transition-all duration-300`}>
@@ -66,26 +65,15 @@ export const StickyNextAction: React.FC<StickyNextActionProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${style.text}`}>
-                {isManual ? 'MANUEL' : action.type} • {style.label}
+                {action.type.replace(/_/g, ' ')} • {style.label}
               </span>
-              {isManual && (
-                <button 
-                  onClick={onReset}
-                  className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:underline"
-                  title="Revenir à la suggestion système"
-                >
-                  <RotateCcw size={10} /> RÉINITIALISER
-                </button>
-              )}
             </div>
             <h2 className="text-base font-black text-slate-900 line-clamp-1">
-              {action.label}
+              {action.reason}
             </h2>
-            {action.description && (
-              <p className="max-w-md text-xs font-medium text-slate-500 line-clamp-1">
-                {action.description}
-              </p>
-            )}
+            <p className="max-w-md text-xs font-medium text-slate-500 line-clamp-1">
+              Cible ID: {action.target.id}
+            </p>
           </div>
         </div>
 

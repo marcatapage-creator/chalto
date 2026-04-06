@@ -19,37 +19,53 @@ const MOCK_PROJECTS: (Project & { nextAction: NextAction })[] = [
   {
     id: 'prj-123',
     name: 'Rénovation Loft Bastille',
+    type: 'RENOVATION',
     clientName: 'Marc-Antoine Dupont',
+    clientId: 'cli-1',
     address: 'Paris 11ème',
     status: 'STUDY',
+    createdBy: 'arch-1',
     members: [],
+    phases: [],
     nextAction: { label: 'Attente validation client sur Esquisse V1', type: 'SYSTEM', priority: 'URGENT' },
+    statusChangedAt: '2026-03-20T10:00:00Z',
     createdAt: '2026-03-20T10:00:00Z',
     updatedAt: '2026-04-05T15:00:00Z',
   },
   {
     id: 'prj-456',
     name: 'Villa Cap Ferret',
+    type: 'CONSTRUCTION',
     clientName: 'Julie Lefebvre',
+    clientId: 'cli-2',
     address: 'Lège-Cap-Ferret',
     status: 'EXECUTION',
+    createdBy: 'arch-1',
     members: [],
+    phases: [],
     nextAction: { label: 'Appeler le client pour valider la cuisine', type: 'MANUAL', priority: 'IMPORTANT' },
+    statusChangedAt: '2026-02-15T09:00:00Z',
     createdAt: '2026-02-15T09:00:00Z',
     updatedAt: '2026-04-05T10:30:00Z',
   },
   {
     id: 'prj-789',
     name: 'Extension Meudon',
+    type: 'EXTENSION',
     clientName: 'Famille Bertrand',
+    clientId: 'cli-3',
     address: 'Meudon (92)',
     status: 'PROPOSAL',
+    createdBy: 'arch-1',
     members: [],
+    phases: [],
     nextAction: { label: 'Envoyer le devis final', type: 'SYSTEM', priority: 'IMPORTANT' },
+    statusChangedAt: '2026-01-10T14:00:00Z',
     createdAt: '2026-01-10T14:00:00Z',
     updatedAt: '2026-04-04T12:00:00Z',
   },
 ];
+
 
 export default function PortfolioPage() {
   return (
@@ -58,11 +74,15 @@ export default function PortfolioPage() {
         title="Portefeuille" 
         subtitle="Pilotez vos chantiers et priorisez vos actions."
         actions={
-          <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 shadow-md transition-all">
+          <Link 
+            href="/projects/new"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 shadow-md transition-all"
+          >
             <Plus size={18} /> CRÉER UN PROJET
-          </button>
+          </Link>
         }
       />
+
 
       {/* Stats Summary */}
       <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">

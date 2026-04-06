@@ -1,6 +1,9 @@
 export type UserRole = 'ARCHITECT' | 'CLIENT' | 'CONTRACTOR';
 
-export type ProjectStatus = 'REQUEST' | 'STUDY' | 'PROPOSAL' | 'VALIDATION' | 'EXECUTION' | 'CLOSURE';
+export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'REQUEST' | 'STUDY' | 'PROPOSAL' | 'VALIDATION' | 'EXECUTION' | 'CLOSURE';
+
+
+export type ProjectType = 'EXTENSION' | 'RENOVATION' | 'CONSTRUCTION' | 'AMENAGEMENT';
 
 export type Priority = 'URGENT' | 'IMPORTANT' | 'INFO' | 'WARNING';
 
@@ -10,6 +13,22 @@ export interface NextAction {
   priority: Priority;
   description?: string;
   dueDate?: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  incompleteProfile: boolean;
+  createdAt: string;
+}
+
+export interface Phase {
+  id: string;
+  projectId: string;
+  name: string;
+  order: number;
+  status: 'TODO' | 'DOING' | 'DONE';
 }
 
 export interface ProjectMember {
@@ -67,10 +86,14 @@ export interface ActivityLog {
 export interface Project {
   id: string;
   name: string;
-  clientName: string;
-  address: string;
+  type: ProjectType;
+  address?: string;
+  clientId: string;
+  clientName: string; // Re-denormalized for convenience
+  createdBy: string; // Architect ID
   status: ProjectStatus;
   members: ProjectMember[];
+  phases: Phase[];
   nextActionOverride?: NextAction;
   nextActionOverrideSetAt?: string;
   statusChangedAt: string; 
@@ -79,3 +102,4 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
