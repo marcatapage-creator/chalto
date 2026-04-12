@@ -21,7 +21,9 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen bg-background">
       <Sidebar profile={profile} />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden md:ml-0">
+        {/* Spacer mobile pour le header fixe */}
+        <div className="md:hidden h-14 shrink-0" />
         {children}
       </main>
     </div>

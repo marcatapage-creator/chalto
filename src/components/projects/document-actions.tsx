@@ -19,9 +19,8 @@ export function DocumentActions({ doc }: { doc: any }) {
   const router = useRouter()
   const supabase = createClient()
 
-  const validationUrl = `${window.location.origin}/validate/${doc.validation_token}`
-
   const handleCopyLink = () => {
+    const validationUrl = `${window.location.origin}/validate/${doc.validation_token}`
     navigator.clipboard.writeText(validationUrl)
     toast.success("Lien copié dans le presse-papiers")
   }

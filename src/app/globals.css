@@ -80,3 +80,28 @@ body {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
+
+/* Nav hover + active states */
+.nav-item {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.nav-item.active {
+  background-color: hsl(0 0% 9%);
+  color: hsl(0 0% 98%);
+}
+
+.dark .nav-item.active {
+  background-color: hsl(0 0% 98%);
+  color: hsl(0 0% 9%);
+}
+
+/* Hover générique sur éléments cliquables */
+.clickable:hover {
+  background-color: hsl(var(--muted) / 0.7);
+}

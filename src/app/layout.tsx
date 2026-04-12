@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Chalto Pro",
+  title: "Chalto",
   description: "Gérez vos projets et faites valider vos livrables simplement",
 }
 
@@ -22,6 +22,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
+          enableColorScheme={false}
           disableTransitionOnChange
         >
           {children}

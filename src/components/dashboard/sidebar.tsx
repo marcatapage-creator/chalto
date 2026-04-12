@@ -7,14 +7,18 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   LayoutDashboard,
   FolderOpen,
   Settings,
   LogOut,
   Building2,
+  Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SlideIn } from "@/components/ui/motion"
+import { useState } from "react"
 
 const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,7 +26,13 @@ const navigation = [
   { label: "Paramètres", href: "/settings", icon: Settings },
 ]
 
-export function Sidebar({ profile }: { profile: any }) {
+function SidebarContent({
+  profile,
+  onNavigate,
+}: {
+  profile: any
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -38,14 +48,14 @@ export function Sidebar({ profile }: { profile: any }) {
     : profile?.email?.slice(0, 2).toUpperCase()
 
   return (
-    <aside className="w-64 border-r bg-card flex flex-col h-full">
+    <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-6">
         <div className="flex items-center gap-2">
           <div className="bg-primary rounded-lg p-1.5">
             <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg">Chalto Pro</span>
+          <span className="font-bold text-lg">Chalto</span>
         </div>
         {profile?.professions && (
           <p className="text-xs text-muted-foreground mt-1 ml-9">
@@ -65,15 +75,19 @@ export function Sidebar({ profile }: { profile: any }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                "nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
                 isActive
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "active"
+                  : "text-muted-foreground"
               )}
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              <span>{item.label}</span>
+              {isActive && (
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground opacity-70" />
+              )}
             </Link>
           )
         })}
@@ -90,11 +104,9 @@ export function Sidebar({ profile }: { profile: any }) {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium truncate max-w-[120px]">
-                {profile?.full_name || profile?.email}
-              </span>
-            </div>
+            <span className="text-xs font-medium truncate max-w-30">
+              {profile?.full_name || profile?.email}
+            </span>
           </div>
           <ThemeToggle />
         </div>
@@ -108,6 +120,44 @@ export function Sidebar({ profile }: { profile: any }) {
           Déconnexion
         </Button>
       </div>
-    </aside>
+    </div>
+  )
+}
+
+export function Sidebar({ profile }: { profile: any }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 border-r bg-card flex-col h-full">
+        <SidebarContent profile={profile} />
+      </aside>
+
+      {/* Mobile header + burger */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary rounded-lg p-1">
+            <Building2 className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="font-bold">Chalto</span>
+        </div>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64">
+            <SlideIn className="h-full">
+              <SidebarContent
+                profile={profile}
+                onNavigate={() => setOpen(false)}
+              />
+            </SlideIn>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
   )
 }

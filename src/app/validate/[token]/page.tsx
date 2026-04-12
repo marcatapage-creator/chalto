@@ -22,7 +22,7 @@ export default async function ValidatePage({
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-bold">Chalto Pro</h1>
+          <h1 className="text-2xl font-bold">Chalto</h1>
           <p className="text-muted-foreground mt-1">Validation de document</p>
         </div>
         <ValidationClient document={document} />

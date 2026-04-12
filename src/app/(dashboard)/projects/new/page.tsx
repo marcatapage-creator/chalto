@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
+import { HoverButton } from "@/components/ui/motion"
 import Link from "next/link"
 
 export default function NewProjectPage() {
@@ -155,13 +156,15 @@ export default function NewProjectPage() {
           >
             <Link href="/projects">Annuler</Link>
           </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? "Création..." : "Créer le projet"}
-          </Button>
+          <HoverButton className="flex-1" disabled={loading}>
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Création..." : "Créer le projet"}
+            </Button>
+          </HoverButton>
         </div>
       </div>
     </div>
