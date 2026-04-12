@@ -3,10 +3,11 @@ import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, User, MapPin, Mail, FileText } from "lucide-react"
+import { ArrowLeft, User, MapPin, Mail, FileText, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { DocumentActions } from "@/components/projects/document-actions"
+import { DocumentThread } from "@/components/projects/document-thread"
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
@@ -15,38 +16,50 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   archived: { label: "Archivé", variant: "outline" },
 }
 
-const docStatusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+const docStatusMap: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+> = {
   draft: { label: "Brouillon", variant: "outline" },
   sent: { label: "Envoyé", variant: "secondary" },
   approved: { label: "Approuvé ✓", variant: "default" },
   rejected: { label: "Refusé", variant: "destructive" },
 }
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  const { data: project } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user!.id)
-    .single()
+  const [{ data: project }, { data: documents }, { data: profile }, { data: validations }] =
+    await Promise.all([
+      supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
+      supabase
+        .from("documents")
+        .select("*")
+        .eq("project_id", id)
+        .order("created_at", { ascending: false }),
+      supabase.from("profiles").select("full_name, email").eq("id", user!.id).single(),
+      supabase
+        .from("validations")
+        .select("document_id, status, comment, approved_at")
+        .in(
+          "document_id",
+          (await supabase.from("documents").select("id").eq("project_id", id)).data?.map(
+            (d) => d.id
+          ) ?? []
+        ),
+    ])
+
+  // Index validations par document_id
+  const validationByDoc = Object.fromEntries((validations ?? []).map((v) => [v.document_id, v]))
 
   if (!project) notFound()
 
-  const { data: documents } = await supabase
-    .from("documents")
-    .select("*")
-    .eq("project_id", id)
-    .order("created_at", { ascending: false })
-
   const status = statusMap[project.status] ?? statusMap.draft
+  const authorName = profile?.full_name ?? profile?.email ?? "Pro"
 
   return (
     <div className="flex-1 overflow-auto">
@@ -123,24 +136,58 @@ export default async function ProjectPage({
             </div>
 
             {documents && documents.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {documents.map((doc) => {
                   const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft
                   return (
                     <Card key={doc.id}>
-                      <CardContent className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">{doc.name}</p>
-                            <p className="text-xs text-muted-foreground">{doc.type}</p>
+                      <CardContent className="p-0">
+                        {/* Header document */}
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">{doc.type}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={docStatus.variant}>{docStatus.label}</Badge>
+                            <DocumentActions doc={doc} />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={docStatus.variant}>
-                            {docStatus.label}
-                          </Badge>
-                          <DocumentActions doc={doc} />
+
+                        {/* Commentaire de validation client */}
+                        {validationByDoc[doc.id]?.comment && (
+                          <div
+                            className={`mx-4 mb-3 rounded-lg px-3 py-2.5 text-sm flex gap-2 ${
+                              validationByDoc[doc.id].status === "approved"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-destructive/10 text-destructive"
+                            }`}
+                          >
+                            {validationByDoc[doc.id].status === "approved" ? (
+                              <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                            )}
+                            <div>
+                              <p className="font-medium text-xs mb-0.5">Commentaire client</p>
+                              <p>{validationByDoc[doc.id].comment}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fil de discussion */}
+                        <div className="border-t">
+                          <div className="px-4 py-2 bg-muted/30">
+                            <p className="text-xs font-medium text-muted-foreground">Discussion</p>
+                          </div>
+                          <DocumentThread
+                            documentId={doc.id}
+                            authorName={authorName}
+                            authorRole="pro"
+                          />
                         </div>
                       </CardContent>
                     </Card>
