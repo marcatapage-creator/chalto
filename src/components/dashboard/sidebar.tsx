@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { LayoutDashboard, FolderOpen, Settings, LogOut, Building2, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SlideIn } from "@/components/ui/motion"
@@ -47,7 +47,7 @@ function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6">
+      <div className="p-6 md:pb-8">
         <div className="flex items-center gap-2">
           <div className="bg-primary rounded-lg p-1.5">
             <Building2 className="h-5 w-5 text-primary-foreground" />
@@ -140,6 +140,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
+            <SheetTitle className="sr-only">Menu</SheetTitle>
             <SlideIn className="h-full">
               <SidebarContent profile={profile} onNavigate={() => setOpen(false)} />
             </SlideIn>

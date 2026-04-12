@@ -1,0 +1,244 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, User, MapPin, Mail, ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { ProjectDocuments } from "@/components/projects/project-documents"
+import { DocumentPanel } from "@/components/projects/document-panel"
+import { ProjectStepper } from "@/components/projects/project-stepper"
+
+interface Document {
+  id: string
+  name: string
+  type: string
+  status: string
+  version: number
+  validation_token: string
+  project_id: string
+  file_url?: string
+  file_name?: string
+  file_type?: string
+  file_size?: number
+  created_at: string
+}
+
+interface Project {
+  id: string
+  name: string
+  status: string
+  created_at: string
+  client_name?: string
+  client_email?: string
+  address?: string
+  description?: string
+}
+
+interface ProjectPageClientProps {
+  project: Project
+  documents: Document[]
+  userId: string
+  authorName: string
+  statusLabel: string
+  statusVariant: "default" | "secondary" | "outline"
+  phase: string
+}
+
+export function ProjectPageClient({
+  project,
+  documents,
+  userId,
+  authorName,
+  statusLabel,
+  statusVariant,
+  phase,
+}: ProjectPageClientProps) {
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)")
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* Contenu principal */}
+      <div className="flex-1 overflow-auto p-6 md:p-8 space-y-6 min-w-0">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/projects">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+              <Badge variant={statusVariant}>{statusLabel}</Badge>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 text-muted-foreground gap-1.5"
+            onClick={() => setDetailsOpen((v) => !v)}
+          >
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 transition-transform duration-200",
+                !detailsOpen && "-rotate-90"
+              )}
+            />
+            {detailsOpen ? "Réduire" : "Détails"}
+          </Button>
+        </div>
+
+        {/* Section full-bleed : client + phase */}
+        <div className="-mx-6 md:-mx-8 border-t">
+          <AnimatePresence initial={false}>
+            {detailsOpen && (
+              <motion.div
+                key="details"
+                initial={{ height: 0 }}
+                animate={{ height: "auto" }}
+                exit={{ height: 0 }}
+                transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col sm:flex-row border-b">
+                  {/* Infos client — hug content */}
+                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Client
+                    </p>
+                    {project.client_name && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span>{project.client_name}</span>
+                      </div>
+                    )}
+                    {project.client_email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="truncate">{project.client_email}</span>
+                      </div>
+                    )}
+                    {project.address && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span>{project.address}</span>
+                      </div>
+                    )}
+                    {project.description && (
+                      <p className="text-sm text-muted-foreground border-t pt-3">
+                        {project.description}
+                      </p>
+                    )}
+                    {!project.client_name &&
+                      !project.client_email &&
+                      !project.address &&
+                      !project.description && (
+                        <p className="text-sm text-muted-foreground">Aucune information client</p>
+                      )}
+                  </div>
+
+                  <div className="border-l" />
+
+                  {/* Stepper phase — fill */}
+                  <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
+                    <ProjectStepper projectId={project.id} currentPhase={phase} />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Documents — pleine largeur */}
+        <ProjectDocuments
+          documents={documents}
+          projectId={project.id}
+          userId={userId}
+          authorName={authorName}
+          selectedDocId={selectedDoc?.id ?? null}
+          onSelectDoc={setSelectedDoc}
+        />
+      </div>
+
+      {/* Panel desktop — pousse le contenu, pas d'overlay */}
+      <AnimatePresence>
+        {isDesktop && selectedDoc && (
+          <motion.div
+            key="doc-panel"
+            initial={{ width: 0 }}
+            animate={{ width: "26.25rem" }}
+            exit={{ width: 0 }}
+            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            className="shrink-0 border-l flex flex-col overflow-hidden"
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+              className="w-105 flex flex-col h-full"
+            >
+              <DocumentPanel
+                document={selectedDoc}
+                userId={userId}
+                authorName={authorName}
+                onClose={() => setSelectedDoc(null)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Panel mobile/tablette — drawer bottom Framer Motion */}
+      <AnimatePresence>
+        {!isDesktop && selectedDoc && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              key="mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/10 backdrop-blur-xs"
+              onClick={() => setSelectedDoc(null)}
+            />
+            {/* Drawer */}
+            <motion.div
+              key="mobile-drawer"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] bg-popover rounded-t-xl flex flex-col overflow-hidden shadow-lg"
+            >
+              <DocumentPanel
+                document={selectedDoc}
+                userId={userId}
+                authorName={authorName}
+                onClose={() => setSelectedDoc(null)}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}

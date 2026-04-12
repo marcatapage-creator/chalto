@@ -93,7 +93,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
   return (
     <div className="flex flex-col h-full">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-[200px] max-h-[400px]">
+      <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-50 max-h-100">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-sm text-muted-foreground">Aucun message — démarrez la discussion</p>

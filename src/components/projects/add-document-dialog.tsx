@@ -177,12 +177,13 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
               Pièce jointe <span className="text-muted-foreground font-normal">(optionnel)</span>
             </Label>
             {file ? (
-              <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2 overflow-hidden">
                 <div className="flex items-center gap-2 min-w-0">
                   <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="text-sm truncate">{file.name}</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setFile(null)}
                   className="ml-2 shrink-0 text-muted-foreground hover:text-foreground"
                 >

@@ -17,10 +17,10 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
   const isImage = fileType.startsWith("image/")
 
   const inner = (
-    <div className="relative w-full h-full min-h-[400px] bg-muted/30 rounded-lg overflow-hidden">
+    <div className="relative w-full h-full min-h-100 bg-muted/30 rounded-lg overflow-hidden">
       {/* Toolbar */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur-sm border-b">
-        <p className="text-xs font-medium truncate max-w-[200px]">{fileName}</p>
+        <p className="text-xs font-medium truncate max-w-50">{fileName}</p>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -46,7 +46,7 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
         {isPdf && (
           <iframe
             src={`${fileUrl}#toolbar=0`}
-            className="w-full h-full min-h-[400px]"
+            className="w-full h-full min-h-100"
             title={fileName}
           />
         )}
