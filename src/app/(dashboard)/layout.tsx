@@ -1,7 +1,29 @@
-export default function DashboardLayout({
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { Sidebar } from "@/components/dashboard/sidebar"
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect("/login")
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*, professions(label, icon)")
+    .eq("id", user.id)
+    .single()
+
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar profile={profile} />
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {children}
+      </main>
+    </div>
+  )
 }
