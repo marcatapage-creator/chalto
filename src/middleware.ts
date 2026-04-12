@@ -27,15 +27,38 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Rediriger vers login si non connecté et sur une page protégée
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/register") &&
-    request.nextUrl.pathname !== "/"
-  ) {
+  const pathname = request.nextUrl.pathname
+
+  // Routes publiques — toujours accessibles
+  const publicRoutes = ["/", "/login", "/register", "/auth/callback"]
+  const isPublic = publicRoutes.some((r) => pathname.startsWith(r))
+
+  // Non connecté → login
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
+    return NextResponse.redirect(url)
+  }
+
+  // Connecté → vérifier onboarding
+  if (user && !isPublic && pathname !== "/onboarding") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .single()
+
+    if (profile && !profile.onboarding_completed) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/onboarding"
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Connecté et onboarding fait → pas besoin d'aller sur /login ou /register
+  if (user && (pathname === "/login" || pathname === "/register")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/dashboard"
     return NextResponse.redirect(url)
   }
 
