@@ -10,6 +10,7 @@ import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
 import { ProjectStepper } from "@/components/projects/project-stepper"
+import { EditClientDialog } from "@/components/projects/edit-client-dialog"
 
 interface Document {
   id: string
@@ -58,6 +59,12 @@ export function ProjectPageClient({
 }: ProjectPageClientProps) {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(true)
+  const [clientInfo, setClientInfo] = useState({
+    client_name: project.client_name,
+    client_email: project.client_email,
+    address: project.address,
+    description: project.description,
+  })
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
   )
@@ -120,36 +127,43 @@ export function ProjectPageClient({
                 <div className="flex flex-col sm:flex-row border-b">
                   {/* Infos client — hug content */}
                   <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      Client
-                    </p>
-                    {project.client_name && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        Client
+                      </p>
+                      <EditClientDialog
+                        projectId={project.id}
+                        client={clientInfo}
+                        onSave={(updated) => setClientInfo({ ...clientInfo, ...updated })}
+                      />
+                    </div>
+                    {clientInfo.client_name && (
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span>{project.client_name}</span>
+                        <span>{clientInfo.client_name}</span>
                       </div>
                     )}
-                    {project.client_email && (
+                    {clientInfo.client_email && (
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="truncate">{project.client_email}</span>
+                        <span className="truncate">{clientInfo.client_email}</span>
                       </div>
                     )}
-                    {project.address && (
+                    {clientInfo.address && (
                       <div className="flex items-center gap-2 text-sm">
                         <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span>{project.address}</span>
+                        <span>{clientInfo.address}</span>
                       </div>
                     )}
-                    {project.description && (
+                    {clientInfo.description && (
                       <p className="text-sm text-muted-foreground border-t pt-3">
-                        {project.description}
+                        {clientInfo.description}
                       </p>
                     )}
-                    {!project.client_name &&
-                      !project.client_email &&
-                      !project.address &&
-                      !project.description && (
+                    {!clientInfo.client_name &&
+                      !clientInfo.client_email &&
+                      !clientInfo.address &&
+                      !clientInfo.description && (
                         <p className="text-sm text-muted-foreground">Aucune information client</p>
                       )}
                   </div>

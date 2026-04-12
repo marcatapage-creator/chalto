@@ -29,9 +29,10 @@ const phases = [
 interface ProjectStepperProps {
   projectId: string
   currentPhase: string
+  readOnly?: boolean
 }
 
-export function ProjectStepper({ projectId, currentPhase }: ProjectStepperProps) {
+export function ProjectStepper({ projectId, currentPhase, readOnly = false }: ProjectStepperProps) {
   const [phase, setPhase] = useState(currentPhase)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -64,7 +65,7 @@ export function ProjectStepper({ projectId, currentPhase }: ProjectStepperProps)
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Phase du projet
         </p>
-        {nextPhase && (
+        {nextPhase && !readOnly && (
           <Button
             variant="outline"
             size="sm"

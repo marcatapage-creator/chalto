@@ -7,15 +7,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
-import { DocumentThread } from "@/components/projects/document-thread"
+import { FileViewer } from "@/components/projects/file-viewer"
+import { ProjectStepper } from "@/components/projects/project-stepper"
 
 type Document = {
   id: string
+  project_id: string
   name: string
   type: string
   status: string
-  validation_token: string
-  projects?: { name: string; client_name?: string | null } | null
+  file_url?: string
+  file_name?: string
+  file_type?: string
+  pro_message?: string | null
+  projects?: { name: string; client_name?: string | null; phase?: string | null } | null
 }
 
 export function ValidationClient({ document }: { document: Document }) {
@@ -28,7 +33,6 @@ export function ValidationClient({ document }: { document: Document }) {
   const handleValidation = async (decision: "approved" | "rejected") => {
     setLoading(true)
 
-    // Créer la validation
     await supabase.from("validations").insert({
       document_id: document.id,
       status: decision,
@@ -36,8 +40,18 @@ export function ValidationClient({ document }: { document: Document }) {
       approved_at: decision === "approved" ? new Date().toISOString() : null,
     })
 
-    // Mettre à jour le statut du document
     await supabase.from("documents").update({ status: decision }).eq("id", document.id)
+
+    // Notifier le pro
+    await fetch("/api/send-approval-notification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        documentId: document.id,
+        status: decision,
+        comment: comment || null,
+      }),
+    })
 
     setStatus(decision)
     setDone(true)
@@ -72,6 +86,13 @@ export function ValidationClient({ document }: { document: Document }) {
 
   return (
     <div className="space-y-6">
+      {/* Stepper */}
+      <ProjectStepper
+        projectId={document.project_id}
+        currentPhase={document.projects?.phase ?? "cadrage"}
+        readOnly
+      />
+
       {/* Infos document */}
       <Card>
         <CardHeader>
@@ -98,17 +119,35 @@ export function ValidationClient({ document }: { document: Document }) {
         </CardContent>
       </Card>
 
-      {/* Fil de discussion */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Messages du professionnel</CardTitle>
-        </CardHeader>
-        <DocumentThread
-          documentId={document.id}
-          authorName={document.projects?.client_name ?? "Client"}
-          authorRole="client"
-        />
-      </Card>
+      {/* Message du professionnel */}
+      {document.pro_message && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Message de votre professionnel
+            </p>
+            <p className="text-sm text-foreground leading-relaxed italic">
+              {`"${document.pro_message}"`}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Visionneuse */}
+      {document.file_url && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Document
+            </p>
+            <FileViewer
+              fileUrl={document.file_url}
+              fileName={document.file_name ?? document.name}
+              fileType={document.file_type ?? "application/pdf"}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Commentaire */}
       <Card>

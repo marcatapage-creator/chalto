@@ -2,17 +2,13 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ValidationClient } from "@/components/validate/validation-client"
 
-export default async function ValidatePage({
-  params,
-}: {
-  params: Promise<{ token: string }>
-}) {
+export default async function ValidatePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const supabase = await createClient()
 
   const { data: document } = await supabase
     .from("documents")
-    .select("*, projects(name, client_name)")
+    .select("*, projects(name, client_name, phase)")
     .eq("validation_token", token)
     .single()
 
