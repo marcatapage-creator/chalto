@@ -14,7 +14,16 @@ import {
 import { MoreHorizontal, Link, Send, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
-export function DocumentActions({ doc }: { doc: any }) {
+type Document = {
+  id: string
+  name: string
+  type: string
+  status: string
+  validation_token: string
+  project_id: string
+}
+
+export function DocumentActions({ doc }: { doc: Document }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -27,10 +36,7 @@ export function DocumentActions({ doc }: { doc: any }) {
 
   const handleSend = async () => {
     setLoading(true)
-    await supabase
-      .from("documents")
-      .update({ status: "sent" })
-      .eq("id", doc.id)
+    await supabase.from("documents").update({ status: "sent" }).eq("id", doc.id)
     router.refresh()
     setLoading(false)
     toast.success("Document marqué comme envoyé")

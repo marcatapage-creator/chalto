@@ -8,17 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import {
-  LayoutDashboard,
-  FolderOpen,
-  Settings,
-  LogOut,
-  Building2,
-  Menu,
-} from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Building2, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SlideIn } from "@/components/ui/motion"
 import { useState } from "react"
+
+type Profile = {
+  full_name?: string | null
+  email?: string | null
+  professions?: { label: string; icon: string } | null
+}
 
 const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -26,13 +25,7 @@ const navigation = [
   { label: "Paramètres", href: "/settings", icon: Settings },
 ]
 
-function SidebarContent({
-  profile,
-  onNavigate,
-}: {
-  profile: any
-  onNavigate?: () => void
-}) {
+function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -44,7 +37,11 @@ function SidebarContent({
   }
 
   const initials = profile?.full_name
-    ? profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase()
+    ? profile.full_name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
     : profile?.email?.slice(0, 2).toUpperCase()
 
   return (
@@ -58,9 +55,7 @@ function SidebarContent({
           <span className="font-bold text-lg">Chalto</span>
         </div>
         {profile?.professions && (
-          <p className="text-xs text-muted-foreground mt-1 ml-9">
-            {profile.professions.label}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1 ml-9">{profile.professions.label}</p>
         )}
       </div>
 
@@ -78,9 +73,7 @@ function SidebarContent({
               onClick={onNavigate}
               className={cn(
                 "nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
-                isActive
-                  ? "active"
-                  : "text-muted-foreground"
+                isActive ? "active" : "text-muted-foreground"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -100,9 +93,7 @@ function SidebarContent({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-7 w-7">
-              <AvatarFallback className="text-xs bg-muted">
-                {initials}
-              </AvatarFallback>
+              <AvatarFallback className="text-xs bg-muted">{initials}</AvatarFallback>
             </Avatar>
             <span className="text-xs font-medium truncate max-w-30">
               {profile?.full_name || profile?.email}
@@ -124,7 +115,7 @@ function SidebarContent({
   )
 }
 
-export function Sidebar({ profile }: { profile: any }) {
+export function Sidebar({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -150,10 +141,7 @@ export function Sidebar({ profile }: { profile: any }) {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
             <SlideIn className="h-full">
-              <SidebarContent
-                profile={profile}
-                onNavigate={() => setOpen(false)}
-              />
+              <SidebarContent profile={profile} onNavigate={() => setOpen(false)} />
             </SlideIn>
           </SheetContent>
         </Sheet>

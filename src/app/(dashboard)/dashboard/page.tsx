@@ -6,12 +6,11 @@ import { FadeIn, StaggerList, StaggerItem, HoverCard } from "@/components/ui/mot
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  const { data: projects } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("user_id", user!.id)
+  const { data: projects } = await supabase.from("projects").select("*").eq("user_id", user!.id)
 
   const { data: documents } = await supabase
     .from("documents")
@@ -21,27 +20,27 @@ export default async function DashboardPage() {
   const stats = [
     {
       label: "Projets actifs",
-      value: projects?.filter(p => p.status === "active").length ?? 0,
+      value: projects?.filter((p) => p.status === "active").length ?? 0,
       icon: FolderOpen,
-      description: "En cours"
+      description: "En cours",
     },
     {
       label: "Documents",
       value: documents?.length ?? 0,
       icon: FileText,
-      description: "Total"
+      description: "Total",
     },
     {
       label: "Validations reçues",
-      value: documents?.filter(d => d.status === "approved").length ?? 0,
+      value: documents?.filter((d) => d.status === "approved").length ?? 0,
       icon: CheckCircle,
-      description: "Approuvés"
+      description: "Approuvés",
     },
     {
       label: "En attente",
-      value: documents?.filter(d => d.status === "sent").length ?? 0,
+      value: documents?.filter((d) => d.status === "sent").length ?? 0,
       icon: Clock,
-      description: "Envoyés"
+      description: "Envoyés",
     },
   ]
 
@@ -50,7 +49,7 @@ export default async function DashboardPage() {
       <div className="p-6 md:p-8 space-y-8">
         <FadeIn>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Vue d'ensemble de votre activité</p>
+          <p className="text-muted-foreground">Vue d&apos;ensemble de votre activité</p>
         </FadeIn>
 
         {/* Stats */}
@@ -97,13 +96,22 @@ export default async function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        <Badge variant={
-                          project.status === "active" ? "default" :
-                          project.status === "completed" ? "secondary" : "outline"
-                        }>
-                          {project.status === "active" ? "En cours" :
-                           project.status === "completed" ? "Terminé" :
-                           project.status === "draft" ? "Brouillon" : project.status}
+                        <Badge
+                          variant={
+                            project.status === "active"
+                              ? "default"
+                              : project.status === "completed"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {project.status === "active"
+                            ? "En cours"
+                            : project.status === "completed"
+                              ? "Terminé"
+                              : project.status === "draft"
+                                ? "Brouillon"
+                                : project.status}
                         </Badge>
                       </CardContent>
                     </Card>
@@ -115,7 +123,7 @@ export default async function DashboardPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <FolderOpen className="h-8 w-8 text-muted-foreground mb-3" />
-                <p className="font-medium">Aucun projet pour l'instant</p>
+                <p className="font-medium">Aucun projet pour l&apos;instant</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Créez votre premier projet pour commencer
                 </p>

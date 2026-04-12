@@ -8,7 +8,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
 
-export function ValidationClient({ document }: { document: any }) {
+type Document = {
+  id: string
+  name: string
+  type: string
+  status: string
+  validation_token: string
+  projects?: { name: string; client_name?: string | null } | null
+}
+
+export function ValidationClient({ document }: { document: Document }) {
   const [comment, setComment] = useState("")
   const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
   const [loading, setLoading] = useState(false)
@@ -27,10 +36,7 @@ export function ValidationClient({ document }: { document: any }) {
     })
 
     // Mettre à jour le statut du document
-    await supabase
-      .from("documents")
-      .update({ status: decision })
-      .eq("id", document.id)
+    await supabase.from("documents").update({ status: decision }).eq("id", document.id)
 
     setStatus(decision)
     setDone(true)
@@ -121,11 +127,7 @@ export function ValidationClient({ document }: { document: any }) {
           <XCircle className="h-4 w-4 mr-2" />
           Refuser
         </Button>
-        <Button
-          size="lg"
-          onClick={() => handleValidation("approved")}
-          disabled={loading}
-        >
+        <Button size="lg" onClick={() => handleValidation("approved")} disabled={loading}>
           <CheckCircle className="h-4 w-4 mr-2" />
           Approuver
         </Button>

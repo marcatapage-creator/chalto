@@ -9,11 +9,36 @@ import { Building2, Wrench, Zap, Hammer, HardHat } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const professions = [
-  { slug: "architecte", label: "Architecte", description: "Plans, permis, CCTP, notices", icon: Building2 },
-  { slug: "plombier", label: "Plombier", description: "Devis, PV réception, conformité", icon: Wrench },
-  { slug: "electricien", label: "Électricien", description: "Attestations, schémas, rapports", icon: Zap },
-  { slug: "menuisier", label: "Menuisier", description: "Commandes, fiches techniques", icon: Hammer },
-  { slug: "entrepreneur", label: "Entrepreneur GC", description: "DPGF, planning, situations", icon: HardHat },
+  {
+    slug: "architecte",
+    label: "Architecte",
+    description: "Plans, permis, CCTP, notices",
+    icon: Building2,
+  },
+  {
+    slug: "plombier",
+    label: "Plombier",
+    description: "Devis, PV réception, conformité",
+    icon: Wrench,
+  },
+  {
+    slug: "electricien",
+    label: "Électricien",
+    description: "Attestations, schémas, rapports",
+    icon: Zap,
+  },
+  {
+    slug: "menuisier",
+    label: "Menuisier",
+    description: "Commandes, fiches techniques",
+    icon: Hammer,
+  },
+  {
+    slug: "entrepreneur",
+    label: "Entrepreneur GC",
+    description: "DPGF, planning, situations",
+    icon: HardHat,
+  },
 ]
 
 export default function OnboardingPage() {
@@ -26,7 +51,9 @@ export default function OnboardingPage() {
     if (!selected) return
     setLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) return
 
     // Récupérer l'id de la profession
@@ -55,7 +82,7 @@ export default function OnboardingPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight">Bienvenue sur Chalto</h1>
           <p className="text-muted-foreground mt-2">
-            Quel est votre métier ? On personnalise l'expérience pour vous.
+            Quel est votre métier ? On personnalise l&apos;expérience pour vous.
           </p>
         </div>
 
@@ -72,10 +99,12 @@ export default function OnboardingPage() {
                 )}
               >
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div className={cn(
-                    "p-2 rounded-lg",
-                    selected === p.slug ? "bg-primary text-primary-foreground" : "bg-muted"
-                  )}>
+                  <div
+                    className={cn(
+                      "p-2 rounded-lg",
+                      selected === p.slug ? "bg-primary text-primary-foreground" : "bg-muted"
+                    )}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
@@ -88,11 +117,7 @@ export default function OnboardingPage() {
           })}
         </div>
 
-        <Button
-          className="w-full"
-          disabled={!selected || loading}
-          onClick={handleContinue}
-        >
+        <Button className="w-full" disabled={!selected || loading} onClick={handleContinue}>
           {loading ? "Enregistrement..." : "Continuer →"}
         </Button>
       </div>

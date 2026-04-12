@@ -15,7 +15,9 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
 
 export default async function ProjectsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { data: projects } = await supabase
     .from("projects")
@@ -47,28 +49,28 @@ export default async function ProjectsPage() {
                 <StaggerItem key={project.id}>
                   <HoverCard>
                     <Link href={`/projects/${project.id}`}>
-                    <Card className="hover:border-primary transition-colors duration-200 cursor-pointer">
-                      <CardContent className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-muted p-2 rounded-lg">
-                            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                      <Card className="hover:border-primary transition-colors duration-200 cursor-pointer">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-muted p-2 rounded-lg">
+                              <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{project.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {project.client_name || "Pas de client"}
+                                {project.address && ` · ${project.address}`}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">{project.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {project.client_name || "Pas de client"}
-                              {project.address && ` · ${project.address}`}
+                          <div className="flex items-center gap-3">
+                            <p className="text-xs text-muted-foreground hidden sm:block">
+                              {new Date(project.created_at).toLocaleDateString("fr-FR")}
                             </p>
+                            <Badge variant={status.variant}>{status.label}</Badge>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-xs text-muted-foreground hidden sm:block">
-                            {new Date(project.created_at).toLocaleDateString("fr-FR")}
-                          </p>
-                          <Badge variant={status.variant}>{status.label}</Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
                     </Link>
                   </HoverCard>
                 </StaggerItem>
@@ -80,7 +82,7 @@ export default async function ProjectsPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="font-medium">Aucun projet pour l'instant</p>
+                <p className="font-medium">Aucun projet pour l&apos;instant</p>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
                   Créez votre premier projet pour commencer
                 </p>
