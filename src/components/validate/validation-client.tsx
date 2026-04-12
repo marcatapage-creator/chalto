@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
+import { DocumentThread } from "@/components/projects/document-thread"
 
 type Document = {
   id: string
@@ -95,6 +96,18 @@ export function ValidationClient({ document }: { document: Document }) {
             <Badge variant="outline">En attente</Badge>
           </div>
         </CardContent>
+      </Card>
+
+      {/* Fil de discussion */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Messages du professionnel</CardTitle>
+        </CardHeader>
+        <DocumentThread
+          documentId={document.id}
+          authorName={document.projects?.client_name ?? "Client"}
+          authorRole="client"
+        />
       </Card>
 
       {/* Commentaire */}

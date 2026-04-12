@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Link, Send, Trash2 } from "lucide-react"
+import { MoreHorizontal, Link, Send, Trash2, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
 type Document = {
@@ -19,6 +19,7 @@ type Document = {
   name: string
   type: string
   status: string
+  version: number
   validation_token: string
   project_id: string
 }
@@ -40,6 +41,26 @@ export function DocumentActions({ doc }: { doc: Document }) {
     router.refresh()
     setLoading(false)
     toast.success("Document marqué comme envoyé")
+  }
+
+  const handleProposeV2 = async () => {
+    setLoading(true)
+    const newToken = crypto.randomUUID()
+    await supabase
+      .from("documents")
+      .update({
+        status: "draft",
+        version: (doc.version ?? 1) + 1,
+        file_url: null,
+        file_name: null,
+        file_type: null,
+        file_size: null,
+        validation_token: newToken,
+      })
+      .eq("id", doc.id)
+    router.refresh()
+    setLoading(false)
+    toast.success(`Version ${(doc.version ?? 1) + 1} créée — uploadez le nouveau fichier`)
   }
 
   const handleDelete = async () => {
@@ -64,6 +85,12 @@ export function DocumentActions({ doc }: { doc: Document }) {
           <DropdownMenuItem onClick={handleSend} disabled={loading}>
             <Send className="mr-2 h-4 w-4" />
             Marquer comme envoyé
+          </DropdownMenuItem>
+        )}
+        {doc.status === "rejected" && (
+          <DropdownMenuItem onClick={handleProposeV2} disabled={loading}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Proposer une V{(doc.version ?? 1) + 1}
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

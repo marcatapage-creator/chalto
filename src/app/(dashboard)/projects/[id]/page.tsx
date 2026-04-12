@@ -9,7 +9,6 @@ import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { DocumentActions } from "@/components/projects/document-actions"
 import { DocumentThread } from "@/components/projects/document-thread"
 import { FileUpload } from "@/components/projects/file-upload"
-import { FileViewer } from "@/components/projects/file-viewer"
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
@@ -154,7 +153,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant={docStatus.variant}>{docStatus.label}</Badge>
+                            <Badge variant={docStatus.variant}>
+                              {docStatus.label}
+                              {doc.version > 1 && ` · v${doc.version}`}
+                            </Badge>
                             <DocumentActions doc={doc} />
                           </div>
                         </div>
@@ -180,14 +182,24 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           </div>
                         )}
 
-                        {/* Fichier — upload ou visionneuse */}
+                        {/* Fichier — upload ou lien */}
                         <div className="border-t p-4">
                           {doc.file_url ? (
-                            <FileViewer
-                              fileUrl={doc.file_url}
-                              fileName={doc.file_name ?? doc.name}
-                              fileType={doc.file_type ?? "application/pdf"}
-                            />
+                            <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                <span className="text-sm truncate">
+                                  {doc.file_name ?? doc.name}
+                                </span>
+                              </div>
+                              <Link
+                                href={doc.file_url}
+                                target="_blank"
+                                className="text-xs text-primary hover:underline shrink-0 ml-3"
+                              >
+                                Ouvrir
+                              </Link>
+                            </div>
                           ) : (
                             <FileUpload documentId={doc.id} userId={user!.id} />
                           )}
