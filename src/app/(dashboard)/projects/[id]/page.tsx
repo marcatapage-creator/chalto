@@ -3,14 +3,23 @@ import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, User, MapPin, Mail, FileText, Plus } from "lucide-react"
+import { ArrowLeft, User, MapPin, Mail, FileText } from "lucide-react"
 import Link from "next/link"
+import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
+import { DocumentActions } from "@/components/projects/document-actions"
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
   active: { label: "En cours", variant: "default" },
   completed: { label: "Terminé", variant: "secondary" },
   archived: { label: "Archivé", variant: "outline" },
+}
+
+const docStatusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  draft: { label: "Brouillon", variant: "outline" },
+  sent: { label: "Envoyé", variant: "secondary" },
+  approved: { label: "Approuvé ✓", variant: "default" },
+  rejected: { label: "Refusé", variant: "destructive" },
 }
 
 export default async function ProjectPage({
@@ -110,34 +119,33 @@ export default async function ProjectPage({
           <div className="col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">Documents</h2>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter un document
-              </Button>
+              <AddDocumentDialog projectId={id} />
             </div>
 
             {documents && documents.length > 0 ? (
               <div className="space-y-3">
-                {documents.map((doc) => (
-                  <Card key={doc.id}>
-                    <CardContent className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">{doc.name}</p>
-                          <p className="text-xs text-muted-foreground">{doc.type}</p>
+                {documents.map((doc) => {
+                  const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft
+                  return (
+                    <Card key={doc.id}>
+                      <CardContent className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{doc.name}</p>
+                            <p className="text-xs text-muted-foreground">{doc.type}</p>
+                          </div>
                         </div>
-                      </div>
-                      <Badge variant={
-                        doc.status === "approved" ? "default" :
-                        doc.status === "sent" ? "secondary" : "outline"
-                      }>
-                        {doc.status === "approved" ? "Approuvé" :
-                         doc.status === "sent" ? "Envoyé" : "Brouillon"}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex items-center gap-2">
+                          <Badge variant={docStatus.variant}>
+                            {docStatus.label}
+                          </Badge>
+                          <DocumentActions doc={doc} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             ) : (
               <Card>

@@ -55,3 +55,28 @@ body {
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
 }
+
+/* Fix popover / dialog backgrounds */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+.bg-popover {
+  background-color: hsl(var(--popover));
+}
+
+[role="dialog"] {
+  background-color: hsl(var(--background));
+}
+
+[data-radix-select-content] {
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+[data-radix-dropdown-menu-content] {
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
