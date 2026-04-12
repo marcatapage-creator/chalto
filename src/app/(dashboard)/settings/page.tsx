@@ -1,0 +1,30 @@
+import { createClient } from "@/lib/supabase/server"
+import { SettingsForm } from "@/components/settings/settings-form"
+import { FadeIn } from "@/components/ui/motion"
+
+export default async function SettingsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*, professions(id, label, slug)")
+    .eq("id", user!.id)
+    .single()
+
+  const { data: professions } = await supabase.from("professions").select("id, label, slug")
+
+  return (
+    <div className="flex-1 overflow-auto">
+      <div className="p-6 md:p-8 max-w-2xl space-y-6">
+        <FadeIn>
+          <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
+          <p className="text-muted-foreground">Gérez votre profil et vos préférences</p>
+        </FadeIn>
+        <SettingsForm profile={profile} professions={professions ?? []} />
+      </div>
+    </div>
+  )
+}

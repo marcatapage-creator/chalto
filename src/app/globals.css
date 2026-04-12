@@ -105,3 +105,10 @@ body {
 .clickable:hover {
   background-color: hsl(var(--muted) / 0.7);
 }
+
+/* Radix Select item hover */
+[data-radix-collection-item][data-highlighted] {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-radius: calc(var(--radius) - 2px);
+}
