@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FolderOpen, FileText, CheckCircle, Clock } from "lucide-react"
 import { FadeIn, StaggerList, StaggerItem, HoverCard } from "@/components/ui/motion"
+import Link from "next/link"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -85,36 +86,38 @@ export default async function DashboardPage() {
               {projects.slice(0, 5).map((project) => (
                 <StaggerItem key={project.id}>
                   <HoverCard>
-                    <Card className="transition-colors duration-200">
-                      <CardContent className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3">
-                          <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium text-sm">{project.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {project.client_name || "Pas de client"}
-                            </p>
+                    <Link href={`/projects/${project.id}`}>
+                      <Card className="transition-colors duration-200 cursor-pointer">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium text-sm">{project.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {project.client_name || "Pas de client"}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <Badge
-                          variant={
-                            project.status === "active"
-                              ? "default"
+                          <Badge
+                            variant={
+                              project.status === "active"
+                                ? "default"
+                                : project.status === "completed"
+                                  ? "secondary"
+                                  : "outline"
+                            }
+                          >
+                            {project.status === "active"
+                              ? "En cours"
                               : project.status === "completed"
-                                ? "secondary"
-                                : "outline"
-                          }
-                        >
-                          {project.status === "active"
-                            ? "En cours"
-                            : project.status === "completed"
-                              ? "Terminé"
-                              : project.status === "draft"
-                                ? "Brouillon"
-                                : project.status}
-                        </Badge>
-                      </CardContent>
-                    </Card>
+                                ? "Terminé"
+                                : project.status === "draft"
+                                  ? "Brouillon"
+                                  : project.status}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </HoverCard>
                 </StaggerItem>
               ))}

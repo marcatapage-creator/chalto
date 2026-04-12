@@ -8,6 +8,8 @@ import Link from "next/link"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { DocumentActions } from "@/components/projects/document-actions"
 import { DocumentThread } from "@/components/projects/document-thread"
+import { FileUpload } from "@/components/projects/file-upload"
+import { FileViewer } from "@/components/projects/file-viewer"
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
@@ -177,6 +179,19 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             </div>
                           </div>
                         )}
+
+                        {/* Fichier — upload ou visionneuse */}
+                        <div className="border-t p-4">
+                          {doc.file_url ? (
+                            <FileViewer
+                              fileUrl={doc.file_url}
+                              fileName={doc.file_name ?? doc.name}
+                              fileType={doc.file_type ?? "application/pdf"}
+                            />
+                          ) : (
+                            <FileUpload documentId={doc.id} userId={user!.id} />
+                          )}
+                        </div>
 
                         {/* Fil de discussion */}
                         <div className="border-t">
