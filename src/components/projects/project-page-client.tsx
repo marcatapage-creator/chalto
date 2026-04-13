@@ -10,7 +10,10 @@ import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
 import { ProjectStepper } from "@/components/projects/project-stepper"
-import { EditClientDialog } from "@/components/projects/edit-client-dialog"
+import {
+  ProjectDetailsDialog,
+  type ProjectInfo,
+} from "@/components/projects/project-details-dialog"
 
 interface Document {
   id: string
@@ -36,6 +39,10 @@ interface Project {
   client_email?: string
   address?: string
   description?: string
+  work_type?: string
+  budget_range?: string
+  deadline?: string
+  constraints?: string
 }
 
 interface ProjectPageClientProps {
@@ -59,11 +66,15 @@ export function ProjectPageClient({
 }: ProjectPageClientProps) {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(true)
-  const [clientInfo, setClientInfo] = useState({
+  const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,
     address: project.address,
     description: project.description,
+    work_type: project.work_type,
+    budget_range: project.budget_range,
+    deadline: project.deadline,
+    constraints: project.constraints,
   })
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
@@ -131,39 +142,33 @@ export function ProjectPageClient({
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
                       </p>
-                      <EditClientDialog
+                      <ProjectDetailsDialog
                         projectId={project.id}
-                        client={clientInfo}
-                        onSave={(updated) => setClientInfo({ ...clientInfo, ...updated })}
+                        project={projectInfo}
+                        onSave={(updated) => setProjectInfo(updated)}
                       />
                     </div>
-                    {clientInfo.client_name && (
+                    {projectInfo.client_name && (
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span>{clientInfo.client_name}</span>
+                        <span>{projectInfo.client_name}</span>
                       </div>
                     )}
-                    {clientInfo.client_email && (
+                    {projectInfo.client_email && (
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="truncate">{clientInfo.client_email}</span>
+                        <span className="truncate">{projectInfo.client_email}</span>
                       </div>
                     )}
-                    {clientInfo.address && (
+                    {projectInfo.address && (
                       <div className="flex items-center gap-2 text-sm">
                         <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span>{clientInfo.address}</span>
+                        <span>{projectInfo.address}</span>
                       </div>
                     )}
-                    {clientInfo.description && (
-                      <p className="text-sm text-muted-foreground border-t pt-3">
-                        {clientInfo.description}
-                      </p>
-                    )}
-                    {!clientInfo.client_name &&
-                      !clientInfo.client_email &&
-                      !clientInfo.address &&
-                      !clientInfo.description && (
+                    {!projectInfo.client_name &&
+                      !projectInfo.client_email &&
+                      !projectInfo.address && (
                         <p className="text-sm text-muted-foreground">Aucune information client</p>
                       )}
                   </div>

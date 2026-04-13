@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Building2, Menu } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Building2, Menu, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SlideIn } from "@/components/ui/motion"
 import { useState } from "react"
@@ -22,6 +22,7 @@ type Profile = {
 const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Projets", href: "/projects", icon: FolderOpen },
+  { label: "Annuaire", href: "/contacts", icon: Users },
   { label: "Paramètres", href: "/settings", icon: Settings },
 ]
 
