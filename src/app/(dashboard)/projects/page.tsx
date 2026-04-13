@@ -4,13 +4,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FolderOpen, Plus } from "lucide-react"
 import Link from "next/link"
-import { FadeIn, StaggerList, StaggerItem, HoverCard } from "@/components/ui/motion"
+import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
+import { DeleteProjectButton } from "@/components/projects/delete-project-button"
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
   active: { label: "En cours", variant: "default" },
   completed: { label: "Terminé", variant: "secondary" },
   archived: { label: "Archivé", variant: "outline" },
+}
+
+const phaseMap: Record<string, string> = {
+  cadrage: "Cadrage",
+  conception: "Conception",
+  validation: "Validation",
+  chantier: "Chantier",
+  reception: "Réception",
+  cloture: "Clôturé",
 }
 
 export default async function ProjectsPage() {
@@ -45,34 +55,37 @@ export default async function ProjectsPage() {
           <StaggerList className="space-y-3">
             {projects.map((project) => {
               const status = statusMap[project.status] ?? statusMap.draft
+              const phase = phaseMap[project.phase ?? "cadrage"] ?? "Cadrage"
               return (
                 <StaggerItem key={project.id}>
-                  <HoverCard>
-                    <Link href={`/projects/${project.id}`}>
-                      <Card className="hover:border-primary transition-colors duration-200 cursor-pointer">
-                        <CardContent className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-muted p-2 rounded-lg">
-                              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{project.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {project.client_name || "Pas de client"}
-                                {project.address && ` · ${project.address}`}
-                              </p>
-                            </div>
+                  <Link href={`/projects/${project.id}`}>
+                    <Card className="cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
+                      <CardContent className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-muted p-2 rounded-lg">
+                            <FolderOpen className="h-4 w-4 text-muted-foreground" />
                           </div>
-                          <div className="flex items-center gap-3">
-                            <p className="text-xs text-muted-foreground hidden sm:block">
-                              {new Date(project.created_at).toLocaleDateString("fr-FR")}
+                          <div>
+                            <p className="font-medium text-sm">{project.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {project.client_name || "Pas de client"}
+                              {project.address && ` · ${project.address}`}
                             </p>
-                            <Badge variant={status.variant}>{status.label}</Badge>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  </HoverCard>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <p className="text-xs text-muted-foreground hidden sm:block">
+                            {new Date(project.created_at).toLocaleDateString("fr-FR")}
+                          </p>
+                          <span className="hidden sm:inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                            {phase}
+                          </span>
+                          <Badge variant={status.variant}>{status.label}</Badge>
+                          <DeleteProjectButton projectId={project.id} projectName={project.name} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </StaggerItem>
               )
             })}

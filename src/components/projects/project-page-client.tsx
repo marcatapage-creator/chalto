@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+
 import { ArrowLeft, User, MapPin, Mail, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -52,12 +54,17 @@ interface Project {
   constraints?: string
 }
 
+const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+  draft: { label: "Brouillon", variant: "outline" },
+  active: { label: "En cours", variant: "default" },
+  completed: { label: "Terminé", variant: "secondary" },
+  archived: { label: "Archivé", variant: "outline" },
+}
+
 interface ProjectPageClientProps {
   project: Project
   documents: Document[]
   userId: string
-  statusLabel: string
-  statusVariant: "default" | "secondary" | "outline"
   phase: string
   contacts: Contact[]
 }
@@ -66,13 +73,66 @@ export function ProjectPageClient({
   project,
   documents,
   userId,
-  statusLabel,
-  statusVariant,
   phase,
   contacts,
 }: ProjectPageClientProps) {
+  const { label: statusLabel, variant: statusVariant } =
+    statusMap[project.status] ?? statusMap.draft
   const isChantierPhase = ["chantier", "reception", "cloture"].includes(phase)
+  const supabase = useMemo(() => createClient(), [])
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [localDocs, setLocalDocs] = useState(documents)
+
+  const handleDocStatusChange = (docId: string, status: string, version?: number) => {
+    setLocalDocs((prev) =>
+      prev.map((d) =>
+        d.id === docId ? { ...d, status, ...(version !== undefined && { version }) } : d
+      )
+    )
+    setSelectedDoc((prev) =>
+      prev?.id === docId ? { ...prev, status, ...(version !== undefined && { version }) } : prev
+    )
+  }
+
+  useEffect(() => {
+    setLocalDocs(documents)
+  }, [documents])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`documents:${project.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "documents",
+          filter: `project_id=eq.${project.id}`,
+        },
+        (payload) => {
+          const newDoc = payload.new as Document
+          setLocalDocs((prev) => (prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]))
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "documents",
+          filter: `project_id=eq.${project.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as Document
+          setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [project.id, supabase])
   const [detailsOpen, setDetailsOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(!isChantierPhase)
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
@@ -99,41 +159,42 @@ export function ProjectPageClient({
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Contenu principal */}
-      <div className="flex-1 overflow-auto p-6 md:p-8 space-y-6 min-w-0">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/projects">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-              <Badge variant={statusVariant}>{statusLabel}</Badge>
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+        {/* En-tête fixe */}
+        <div className="shrink-0 border-b bg-background">
+          {/* Header */}
+          <div className="flex items-center gap-4 px-6 md:px-8 pt-6 pb-6 md:pb-8">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/projects">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                <Badge variant={statusVariant}>{statusLabel}</Badge>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}
+              </p>
             </div>
-            <p className="text-muted-foreground text-sm">
-              Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}
-            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-muted-foreground gap-1.5"
+              onClick={() => setDetailsOpen((v) => !v)}
+            >
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 transition-transform duration-200",
+                  !detailsOpen && "-rotate-90"
+                )}
+              />
+              {detailsOpen ? "Réduire" : "Détails"}
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="shrink-0 text-muted-foreground gap-1.5"
-            onClick={() => setDetailsOpen((v) => !v)}
-          >
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 transition-transform duration-200",
-                !detailsOpen && "-rotate-90"
-              )}
-            />
-            {detailsOpen ? "Réduire" : "Détails"}
-          </Button>
-        </div>
 
-        {/* Section full-bleed : client + phase */}
-        <div className="-mx-6 md:-mx-8 border-t">
+          {/* Section client + phase — collapsible */}
           <AnimatePresence initial={false}>
             {detailsOpen && (
               <motion.div
@@ -144,7 +205,7 @@ export function ProjectPageClient({
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
                 className="overflow-hidden"
               >
-                <div className="flex flex-col sm:flex-row border-b">
+                <div className="border-t flex flex-col sm:flex-row">
                   {/* Infos client — hug content */}
                   <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
                     <div className="flex items-center justify-between">
@@ -194,23 +255,29 @@ export function ProjectPageClient({
           </AnimatePresence>
         </div>
 
-        {/* Documents — pleine largeur */}
-        <ProjectDocuments
-          documents={documents}
-          projectId={project.id}
-          selectedDocId={selectedDoc?.id ?? null}
-          onSelectDoc={setSelectedDoc}
-          isOpen={docsOpen}
-          onToggle={() => {
-            if (docsOpen) setSelectedDoc(null)
-            setDocsOpen((v) => !v)
-          }}
-        />
+        {/* Corps scrollable */}
+        <div className="flex-1 overflow-auto px-6 md:px-8 py-6 md:py-8 space-y-6">
+          {/* Documents */}
+          <ProjectDocuments
+            documents={localDocs}
+            projectId={project.id}
+            selectedDocId={selectedDoc?.id ?? null}
+            onSelectDoc={setSelectedDoc}
+            isOpen={docsOpen}
+            onToggle={() => {
+              if (docsOpen) setSelectedDoc(null)
+              setDocsOpen((v) => !v)
+            }}
+          />
 
-        {/* Kanban tâches — phases chantier et au-delà */}
-        {isChantierPhase && (
-          <ProjectTasks projectId={project.id} userId={userId} contacts={contacts} />
-        )}
+          {/* Kanban tâches — phases chantier et au-delà */}
+          {isChantierPhase && (
+            <>
+              <div className="-mx-6 md:-mx-8 h-px bg-border" />
+              <ProjectTasks projectId={project.id} userId={userId} contacts={contacts} />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Panel desktop — pousse le contenu, pas d'overlay */}
@@ -232,9 +299,11 @@ export function ProjectPageClient({
               className="w-105 flex flex-col h-full"
             >
               <DocumentPanel
+                key={selectedDoc.id}
                 document={selectedDoc}
                 userId={userId}
                 onClose={() => setSelectedDoc(null)}
+                onStatusChange={handleDocStatusChange}
               />
             </motion.div>
           </motion.div>
@@ -265,9 +334,11 @@ export function ProjectPageClient({
               className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] bg-popover rounded-t-xl flex flex-col overflow-hidden shadow-lg"
             >
               <DocumentPanel
+                key={selectedDoc.id}
                 document={selectedDoc}
                 userId={userId}
                 onClose={() => setSelectedDoc(null)}
+                onStatusChange={handleDocStatusChange}
               />
             </motion.div>
           </>

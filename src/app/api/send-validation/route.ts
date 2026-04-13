@@ -12,11 +12,14 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
 
-    const { data: document } = await supabase
-      .from("documents")
-      .select("*, projects(name, client_email, client_name)")
-      .eq("id", documentId)
-      .single()
+    const [{ data: document }, { data: profile }] = await Promise.all([
+      supabase
+        .from("documents")
+        .select("*, projects(name, client_email, client_name)")
+        .eq("id", documentId)
+        .single(),
+      supabase.from("profiles").select("full_name, email").eq("id", user.id).single(),
+    ])
 
     if (!document) {
       return NextResponse.json({ error: "Document introuvable" }, { status: 404 })
@@ -26,15 +29,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pas d'email client" }, { status: 400 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", user.id)
-      .single()
-
     const validationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/validate/${document.validation_token}`
 
-    await sendValidationEmail({
+    const { error: emailError } = await sendValidationEmail({
       clientEmail: document.projects.client_email,
       clientName: document.projects.client_name ?? "Client",
       proName: profile?.full_name ?? profile?.email ?? "Votre professionnel",
@@ -43,6 +40,14 @@ export async function POST(request: Request) {
       validationUrl,
       message: message ?? undefined,
     })
+
+    if (emailError) {
+      console.error("Resend error:", emailError)
+      return NextResponse.json(
+        { error: "Erreur envoi email", details: String(emailError) },
+        { status: 500 }
+      )
+    }
 
     await supabase
       .from("documents")

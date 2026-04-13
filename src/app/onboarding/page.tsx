@@ -94,7 +94,7 @@ export default function OnboardingPage() {
                 key={p.slug}
                 onClick={() => setSelected(p.slug)}
                 className={cn(
-                  "cursor-pointer transition-all hover:border-primary",
+                  "cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50 hover:border-primary",
                   selected === p.slug && "border-primary ring-2 ring-primary"
                 )}
               >

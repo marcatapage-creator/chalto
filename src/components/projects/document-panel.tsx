@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,7 @@ interface DocumentPanelProps {
   document: Document
   userId: string
   onClose: () => void
+  onStatusChange?: (docId: string, status: string, version?: number) => void
 }
 
 const docStatusMap: Record<
@@ -66,8 +67,24 @@ const docStatusMap: Record<
   },
 }
 
-export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps) {
-  const [localFileUrl, setLocalFileUrl] = useState<string | null>(null)
+interface PrevVersion {
+  version: number
+  file_url: string | null
+  file_name?: string
+  file_type?: string
+}
+
+export function DocumentPanel({ document, userId, onClose, onStatusChange }: DocumentPanelProps) {
+  const [localStatus, setLocalStatus] = useState(document.status)
+  const [localVersion, setLocalVersion] = useState(document.version ?? 1)
+  // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
+  const [localFileUrl, setLocalFileUrl] = useState<string | null | undefined>(undefined)
+  const [prevVersions, setPrevVersions] = useState<PrevVersion[]>([])
+  const [activeVersionTab, setActiveVersionTab] = useState<number | null>(null)
+  const onStatusChangeRef = useRef(onStatusChange)
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange
+  }, [onStatusChange])
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
     data: { status: string; comment?: string; approved_at?: string } | null
@@ -79,11 +96,9 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
-  // Derive current validation — null while a new fetch is in-flight (docId mismatch)
   const validation = validationEntry.docId === document.id ? validationEntry.data : null
-
-  const docStatus = docStatusMap[document.status] ?? docStatusMap.draft
-  const fileUrl = localFileUrl ?? document.file_url
+  const docStatus = docStatusMap[localStatus] ?? docStatusMap.draft
+  const fileUrl = localFileUrl === undefined ? document.file_url : localFileUrl
 
   useEffect(() => {
     supabase
@@ -98,38 +113,79 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
       })
   }, [document.id, supabase])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`validation:${document.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "validations",
+          filter: `document_id=eq.${document.id}`,
+        },
+        (payload) => {
+          const v = payload.new as { status: string; comment?: string; approved_at?: string }
+          setValidationEntry({ docId: document.id, data: v })
+          setLocalStatus(v.status)
+          onStatusChangeRef.current?.(document.id, v.status)
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [document.id, supabase])
+
   const handleSend = async () => {
     setSending(true)
-
     const res = await fetch("/api/send-validation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ documentId: document.id, message: message || null }),
     })
-
     const data = await res.json()
-
     if (res.ok) {
       toast.success("Email de validation envoyé au client ✅")
       setMessage("")
+      setLocalStatus("sent")
+      onStatusChange?.(document.id, "sent")
       router.refresh()
     } else if (data.error === "Pas d'email client") {
       toast.error("Ajoutez l'email du client dans le projet")
     } else {
       toast.error("Erreur lors de l'envoi")
     }
-
     setSending(false)
   }
 
   const handleProposeV2 = async () => {
     setProposing(true)
+    const newVersion = localVersion + 1
+
+    setPrevVersions((prev) =>
+      [
+        {
+          version: localVersion,
+          file_url: fileUrl ?? null,
+          file_name: document.file_name,
+          file_type: document.file_type,
+        },
+        ...prev,
+      ].slice(0, 3)
+    )
+    setLocalVersion(newVersion)
+    setLocalStatus("draft")
+    setLocalFileUrl(null)
+    setActiveVersionTab(null)
+    onStatusChange?.(document.id, "draft", newVersion)
+
     const newToken = crypto.randomUUID()
     await supabase
       .from("documents")
       .update({
         status: "draft",
-        version: (document.version ?? 1) + 1,
+        version: newVersion,
         file_url: null,
         file_name: null,
         file_type: null,
@@ -139,7 +195,7 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
       .eq("id", document.id)
     router.refresh()
     setProposing(false)
-    toast.success(`Version ${(document.version ?? 1) + 1} créée — uploadez le nouveau fichier`)
+    toast.success(`Version ${newVersion} créée — uploadez le nouveau fichier`)
   }
 
   const handleCopyLink = () => {
@@ -148,10 +204,15 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
     toast.success("Lien copié dans le presse-papiers")
   }
 
+  const activePrev =
+    activeVersionTab !== null
+      ? (prevVersions.find((p) => p.version === activeVersionTab) ?? null)
+      : null
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <div className="px-4 py-3 border-b flex items-center justify-between gap-3 shrink-0">
+      <div className="px-4 border-b flex items-center justify-between gap-3 shrink-0 min-h-25.25 md:min-h-27.25">
         <div className="flex items-center gap-2 min-w-0">
           <div className="bg-muted p-1.5 rounded-md shrink-0">
             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
@@ -164,7 +225,7 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
         <div className="flex items-center gap-1.5 shrink-0">
           <Badge variant={docStatus.variant} className={cn("text-xs", docStatus.className)}>
             {docStatus.label}
-            {document.version > 1 && ` · v${document.version}`}
+            {localVersion > 1 && ` · v${localVersion}`}
           </Badge>
           <DocumentActions doc={document} />
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
@@ -217,12 +278,54 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
 
       {/* Contenu scrollable */}
       <div className="flex-1 overflow-y-auto">
-        {/* Section fichier */}
         <div className="px-4 py-4 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Fichier
           </p>
-          {fileUrl ? (
+
+          {prevVersions.length > 0 && (
+            <div className="flex text-xs border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setActiveVersionTab(null)}
+                className={cn(
+                  "flex-1 px-3 py-1.5 transition-colors",
+                  activeVersionTab === null
+                    ? "bg-background font-medium"
+                    : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                )}
+              >
+                V{localVersion} · En cours
+              </button>
+              {prevVersions.map((pv) => (
+                <button
+                  key={pv.version}
+                  onClick={() => setActiveVersionTab(pv.version)}
+                  className={cn(
+                    "flex-1 px-3 py-1.5 transition-colors border-l",
+                    activeVersionTab === pv.version
+                      ? "bg-background font-medium"
+                      : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  V{pv.version}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {activePrev ? (
+            activePrev.file_url ? (
+              <FileViewer
+                fileUrl={activePrev.file_url}
+                fileName={activePrev.file_name ?? document.name}
+                fileType={activePrev.file_type ?? "application/pdf"}
+              />
+            ) : (
+              <div className="flex items-center justify-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
+                Aucun fichier pour la V{activeVersionTab}
+              </div>
+            )
+          ) : fileUrl ? (
             <FileViewer
               fileUrl={fileUrl}
               fileName={document.file_name ?? document.name}
@@ -239,8 +342,7 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
 
         <Separator />
 
-        {/* Section validation — contextuelle selon statut */}
-        {document.status === "draft" && (
+        {localStatus === "draft" && (
           <div className="px-4 py-4 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Envoyer pour validation
@@ -252,14 +354,14 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
               rows={3}
               className="resize-none text-sm"
             />
-            <Button onClick={handleSend} disabled={sending} className="w-full">
+            <Button onClick={handleSend} disabled={sending || !fileUrl} className="w-full">
               <Send className="h-4 w-4 mr-2" />
               {sending ? "Envoi..." : "Envoyer au client"}
             </Button>
           </div>
         )}
 
-        {document.status === "sent" && (
+        {localStatus === "sent" && (
           <div className="px-4 py-4 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Validation
@@ -275,7 +377,7 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
           </div>
         )}
 
-        {document.status === "rejected" && (
+        {localStatus === "rejected" && (
           <div className="px-4 py-4 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Suite à donner
@@ -287,7 +389,7 @@ export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps)
               disabled={proposing}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              {proposing ? "Création..." : `Proposer une V${(document.version ?? 1) + 1}`}
+              {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
             </Button>
           </div>
         )}

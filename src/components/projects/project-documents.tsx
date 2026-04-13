@@ -111,7 +111,7 @@ export function ProjectDocuments({
                         <Card
                           onClick={() => onSelectDoc(doc)}
                           className={cn(
-                            "cursor-pointer transition-shadow duration-150 hover:shadow-sm",
+                            "cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50",
                             isSelected && "border-primary"
                           )}
                         >

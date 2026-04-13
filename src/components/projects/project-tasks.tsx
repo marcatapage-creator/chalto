@@ -42,7 +42,7 @@ import {
   Check,
   X,
 } from "lucide-react"
-import { StaggerList, StaggerItem, HoverCard, FadeIn } from "@/components/ui/motion"
+import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
 import { InviteButton } from "@/components/projects/invite-button"
 import { cn } from "@/lib/utils"
 
@@ -362,117 +362,115 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
                           <StaggerList className="space-y-2">
                             {colTasks.map((task) => (
                               <StaggerItem key={task.id}>
-                                <HoverCard>
-                                  <Card className="cursor-default">
-                                    <CardContent className="p-3 space-y-2">
-                                      <div className="flex items-start justify-between gap-2">
-                                        <p className="text-sm font-medium leading-tight">
-                                          {task.title}
-                                        </p>
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-6 w-6 shrink-0"
-                                            >
-                                              <MoreHorizontal className="h-3.5 w-3.5" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end">
-                                            {col.id !== "todo" && (
-                                              <DropdownMenuItem
-                                                onClick={() => handleStatusChange(task.id, "todo")}
-                                              >
-                                                À faire
-                                              </DropdownMenuItem>
-                                            )}
-                                            {col.id !== "in_progress" && (
-                                              <DropdownMenuItem
-                                                onClick={() =>
-                                                  handleStatusChange(task.id, "in_progress")
-                                                }
-                                              >
-                                                En cours
-                                              </DropdownMenuItem>
-                                            )}
-                                            {col.id !== "done" && (
-                                              <DropdownMenuItem
-                                                onClick={() => handleStatusChange(task.id, "done")}
-                                              >
-                                                Terminé
-                                              </DropdownMenuItem>
-                                            )}
+                                <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
+                                  <CardContent className="p-3 space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <p className="text-sm font-medium leading-tight">
+                                        {task.title}
+                                      </p>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 shrink-0"
+                                          >
+                                            <MoreHorizontal className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          {col.id !== "todo" && (
                                             <DropdownMenuItem
-                                              onClick={() => handleDelete(task.id)}
-                                              className="text-destructive focus:text-destructive"
+                                              onClick={() => handleStatusChange(task.id, "todo")}
                                             >
-                                              <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                              Supprimer
+                                              À faire
                                             </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      </div>
+                                          )}
+                                          {col.id !== "in_progress" && (
+                                            <DropdownMenuItem
+                                              onClick={() =>
+                                                handleStatusChange(task.id, "in_progress")
+                                              }
+                                            >
+                                              En cours
+                                            </DropdownMenuItem>
+                                          )}
+                                          {col.id !== "done" && (
+                                            <DropdownMenuItem
+                                              onClick={() => handleStatusChange(task.id, "done")}
+                                            >
+                                              Terminé
+                                            </DropdownMenuItem>
+                                          )}
+                                          <DropdownMenuItem
+                                            onClick={() => handleDelete(task.id)}
+                                            className="text-destructive focus:text-destructive"
+                                          >
+                                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                            Supprimer
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
 
-                                      {task.description && (
-                                        <p className="text-xs text-muted-foreground leading-relaxed">
-                                          {task.description}
-                                        </p>
-                                      )}
+                                    {task.description && (
+                                      <p className="text-xs text-muted-foreground leading-relaxed">
+                                        {task.description}
+                                      </p>
+                                    )}
 
-                                      <div className="flex items-center gap-3 flex-wrap">
-                                        {task.contacts && (
-                                          <div className="flex items-center gap-1">
-                                            <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
-                                              <User className="h-2.5 w-2.5 text-primary" />
-                                            </div>
-                                            <span className="text-xs text-muted-foreground">
-                                              {task.contacts.name}
-                                            </span>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                      {task.contacts && (
+                                        <div className="flex items-center gap-1">
+                                          <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <User className="h-2.5 w-2.5 text-primary" />
                                           </div>
-                                        )}
-                                        {task.due_date && (
-                                          <div className="flex items-center gap-1">
-                                            <Calendar className="h-3 w-3 text-muted-foreground" />
-                                            <span className="text-xs text-muted-foreground">
-                                              {new Date(task.due_date).toLocaleDateString("fr-FR", {
-                                                day: "numeric",
-                                                month: "short",
-                                              })}
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {task.contacts && task.assigned_to && (
-                                        <div className="pt-1">
-                                          <InviteButton
-                                            contactId={task.assigned_to}
-                                            projectId={projectId}
-                                            contactName={task.contacts.name}
-                                          />
+                                          <span className="text-xs text-muted-foreground">
+                                            {task.contacts.name}
+                                          </span>
                                         </div>
                                       )}
-
-                                      {col.id !== "done" && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-                                          onClick={() =>
-                                            handleStatusChange(
-                                              task.id,
-                                              col.id === "todo" ? "in_progress" : "done"
-                                            )
-                                          }
-                                        >
-                                          {col.id === "todo" ? "Démarrer" : "Terminer"}
-                                          <ArrowRight className="ml-1 h-3 w-3" />
-                                        </Button>
+                                      {task.due_date && (
+                                        <div className="flex items-center gap-1">
+                                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                                          <span className="text-xs text-muted-foreground">
+                                            {new Date(task.due_date).toLocaleDateString("fr-FR", {
+                                              day: "numeric",
+                                              month: "short",
+                                            })}
+                                          </span>
+                                        </div>
                                       )}
-                                    </CardContent>
-                                  </Card>
-                                </HoverCard>
+                                    </div>
+
+                                    {task.contacts && task.assigned_to && (
+                                      <div className="pt-1">
+                                        <InviteButton
+                                          contactId={task.assigned_to}
+                                          projectId={projectId}
+                                          contactName={task.contacts.name}
+                                        />
+                                      </div>
+                                    )}
+
+                                    {col.id !== "done" && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                                        onClick={() =>
+                                          handleStatusChange(
+                                            task.id,
+                                            col.id === "todo" ? "in_progress" : "done"
+                                          )
+                                        }
+                                      >
+                                        {col.id === "todo" ? "Démarrer" : "Terminer"}
+                                        <ArrowRight className="ml-1 h-3 w-3" />
+                                      </Button>
+                                    )}
+                                  </CardContent>
+                                </Card>
                               </StaggerItem>
                             ))}
                           </StaggerList>

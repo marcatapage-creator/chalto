@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import { Plus, Users, Phone, Mail, MoreHorizontal, Trash2, Building2 } from "lucide-react"
-import { StaggerList, StaggerItem, HoverCard } from "@/components/ui/motion"
+import { StaggerList, StaggerItem } from "@/components/ui/motion"
 
 interface Profession {
   id: string
@@ -232,71 +232,69 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
         <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((contact) => (
             <StaggerItem key={contact.id}>
-              <HoverCard>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-semibold text-primary">
-                            {initials(contact.name)}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{contact.name}</p>
-                          {contact.company_name && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {contact.company_name}
-                            </p>
-                          )}
-                        </div>
+              <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-primary">
+                          {initials(contact.name)}
+                        </span>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(contact.id)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div>
+                        <p className="font-medium text-sm">{contact.name}</p>
+                        {contact.company_name && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Building2 className="h-3 w-3" />
+                            {contact.company_name}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(contact.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Supprimer
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-                    <div className="mt-3 space-y-1.5">
-                      {contact.professions && (
-                        <Badge variant="outline" className="text-xs">
-                          {contact.professions.label}
-                        </Badge>
-                      )}
-                      {contact.email && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Mail className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{contact.email}</span>
-                        </p>
-                      )}
-                      {contact.phone && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Phone className="h-3 w-3 shrink-0" />
-                          {contact.phone}
-                        </p>
-                      )}
-                      {contact.notes && (
-                        <p className="text-xs text-muted-foreground italic truncate">
-                          {contact.notes}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </HoverCard>
+                  <div className="mt-3 space-y-1.5">
+                    {contact.professions && (
+                      <Badge variant="outline" className="text-xs">
+                        {contact.professions.label}
+                      </Badge>
+                    )}
+                    {contact.email && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Mail className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{contact.email}</span>
+                      </p>
+                    )}
+                    {contact.phone && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 shrink-0" />
+                        {contact.phone}
+                      </p>
+                    )}
+                    {contact.notes && (
+                      <p className="text-xs text-muted-foreground italic truncate">
+                        {contact.notes}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </StaggerItem>
           ))}
         </StaggerList>

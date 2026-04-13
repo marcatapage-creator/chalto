@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Upload, Loader2 } from "lucide-react"
@@ -18,7 +18,7 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const acceptedTypes = ["application/pdf", "image/jpeg", "image/png"]
   const maxSize = 10 * 1024 * 1024 // 10MB

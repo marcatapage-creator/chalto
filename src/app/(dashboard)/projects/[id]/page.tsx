@@ -2,13 +2,6 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ProjectPageClient } from "@/components/projects/project-page-client"
 
-const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  draft: { label: "Brouillon", variant: "outline" },
-  active: { label: "En cours", variant: "default" },
-  completed: { label: "Terminé", variant: "secondary" },
-  archived: { label: "Archivé", variant: "outline" },
-}
-
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -32,17 +25,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   if (!project) notFound()
 
-  const status = statusMap[project.status] ?? statusMap.draft
-
   return (
     <ProjectPageClient
       project={project}
       documents={documents ?? []}
-      userId={user!.id}
-      statusLabel={status.label}
-      statusVariant={status.variant}
-      phase={project.phase ?? "cadrage"}
       contacts={contacts ?? []}
+      userId={user!.id}
+      phase={project.phase ?? "cadrage"}
     />
   )
 }
