@@ -1,10 +1,11 @@
 "use client"
 
+import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FileText, ChevronRight } from "lucide-react"
+import { FileText, ChevronRight, ChevronDown } from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
-import { StaggerList, StaggerItem, HoverCard } from "@/components/ui/motion"
+import { StaggerList, StaggerItem } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface Document {
@@ -25,10 +26,10 @@ interface Document {
 interface ProjectDocumentsProps {
   documents: Document[]
   projectId: string
-  userId: string
-  authorName: string
   selectedDocId: string | null
   onSelectDoc: (doc: Document) => void
+  isOpen?: boolean
+  onToggle?: () => void
 }
 
 const docStatusMap: Record<
@@ -61,82 +62,106 @@ export function ProjectDocuments({
   projectId,
   selectedDocId,
   onSelectDoc,
+  isOpen = true,
+  onToggle,
 }: ProjectDocumentsProps) {
   return (
     <>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold">
-          Documents
-          {documents.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
-              ({documents.length})
-            </span>
-          )}
-        </h2>
+        <button onClick={onToggle} className="flex items-center gap-1.5 group" disabled={!onToggle}>
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+              !isOpen && "-rotate-90"
+            )}
+          />
+          <h2 className="font-semibold group-hover:text-foreground transition-colors">
+            Documents
+            {documents.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({documents.length})
+              </span>
+            )}
+          </h2>
+        </button>
         <AddDocumentDialog projectId={projectId} />
       </div>
 
-      {/* Liste */}
-      {documents.length > 0 ? (
-        <StaggerList className="space-y-2">
-          {documents.map((doc) => {
-            const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft
-            const isSelected = selectedDocId === doc.id
+      {/* Liste collapsible */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="docs-list"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="p-0.5">
+              {documents.length > 0 ? (
+                <StaggerList className="space-y-2">
+                  {documents.map((doc) => {
+                    const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft
+                    const isSelected = selectedDocId === doc.id
 
-            return (
-              <StaggerItem key={doc.id}>
-                <HoverCard onClick={() => onSelectDoc(doc)}>
-                  <Card
-                    className={cn(
-                      "cursor-pointer transition-all duration-200",
-                      isSelected && "border-primary"
-                    )}
-                  >
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div className={cn("h-2 w-2 rounded-full shrink-0", docStatus.dot)} />
-                      <div className="bg-muted p-2 rounded-lg shrink-0">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{doc.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {doc.type} · {new Date(doc.created_at).toLocaleDateString("fr-FR")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge
-                          variant={docStatus.variant}
-                          className={cn("text-xs", docStatus.className)}
-                        >
-                          {docStatus.label}
-                          {doc.version > 1 && ` · v${doc.version}`}
-                        </Badge>
-                        <ChevronRight
+                    return (
+                      <StaggerItem key={doc.id}>
+                        <Card
+                          onClick={() => onSelectDoc(doc)}
                           className={cn(
-                            "h-4 w-4 text-muted-foreground transition-transform",
-                            isSelected && "text-primary"
+                            "cursor-pointer transition-shadow duration-150 hover:shadow-sm",
+                            isSelected && "border-primary"
                           )}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-            )
-          })}
-        </StaggerList>
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <FileText className="h-8 w-8 text-muted-foreground mb-3" />
-            <p className="font-medium text-sm">Aucun document</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Ajoutez des documents à valider par votre client
-            </p>
-          </CardContent>
-        </Card>
-      )}
+                        >
+                          <CardContent className="flex items-center gap-3 p-4">
+                            <div className={cn("h-2 w-2 rounded-full shrink-0", docStatus.dot)} />
+                            <div className="bg-muted p-2 rounded-lg shrink-0">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {doc.type} · {new Date(doc.created_at).toLocaleDateString("fr-FR")}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge
+                                variant={docStatus.variant}
+                                className={cn("text-xs", docStatus.className)}
+                              >
+                                {docStatus.label}
+                                {doc.version > 1 && ` · v${doc.version}`}
+                              </Badge>
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 text-muted-foreground transition-transform",
+                                  isSelected && "text-primary"
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </StaggerItem>
+                    )
+                  })}
+                </StaggerList>
+              ) : (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-8 w-8 text-muted-foreground mb-3" />
+                    <p className="font-medium text-sm">Aucun document</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ajoutez des documents à valider par votre client
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

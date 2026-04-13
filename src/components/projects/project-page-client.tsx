@@ -10,6 +10,7 @@ import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
 import { ProjectStepper } from "@/components/projects/project-stepper"
+import { ProjectTasks } from "@/components/projects/project-tasks"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -28,6 +29,12 @@ interface Document {
   file_type?: string
   file_size?: number
   created_at: string
+}
+
+interface Contact {
+  id: string
+  name: string
+  professions?: { label: string }[]
 }
 
 interface Project {
@@ -49,23 +56,25 @@ interface ProjectPageClientProps {
   project: Project
   documents: Document[]
   userId: string
-  authorName: string
   statusLabel: string
   statusVariant: "default" | "secondary" | "outline"
   phase: string
+  contacts: Contact[]
 }
 
 export function ProjectPageClient({
   project,
   documents,
   userId,
-  authorName,
   statusLabel,
   statusVariant,
   phase,
+  contacts,
 }: ProjectPageClientProps) {
+  const isChantierPhase = ["chantier", "reception", "cloture"].includes(phase)
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(true)
+  const [docsOpen, setDocsOpen] = useState(!isChantierPhase)
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,
@@ -189,11 +198,19 @@ export function ProjectPageClient({
         <ProjectDocuments
           documents={documents}
           projectId={project.id}
-          userId={userId}
-          authorName={authorName}
           selectedDocId={selectedDoc?.id ?? null}
           onSelectDoc={setSelectedDoc}
+          isOpen={docsOpen}
+          onToggle={() => {
+            if (docsOpen) setSelectedDoc(null)
+            setDocsOpen((v) => !v)
+          }}
         />
+
+        {/* Kanban tâches — phases chantier et au-delà */}
+        {isChantierPhase && (
+          <ProjectTasks projectId={project.id} userId={userId} contacts={contacts} />
+        )}
       </div>
 
       {/* Panel desktop — pousse le contenu, pas d'overlay */}
@@ -217,7 +234,6 @@ export function ProjectPageClient({
               <DocumentPanel
                 document={selectedDoc}
                 userId={userId}
-                authorName={authorName}
                 onClose={() => setSelectedDoc(null)}
               />
             </motion.div>
@@ -251,7 +267,6 @@ export function ProjectPageClient({
               <DocumentPanel
                 document={selectedDoc}
                 userId={userId}
-                authorName={authorName}
                 onClose={() => setSelectedDoc(null)}
               />
             </motion.div>

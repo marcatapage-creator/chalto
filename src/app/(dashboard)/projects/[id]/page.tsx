@@ -16,14 +16,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ data: project }, { data: documents }, { data: profile }] = await Promise.all([
+  const [{ data: project }, { data: documents }, { data: contacts }] = await Promise.all([
     supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
     supabase
       .from("documents")
       .select("*")
       .eq("project_id", id)
       .order("created_at", { ascending: false }),
-    supabase.from("profiles").select("full_name, email").eq("id", user!.id).single(),
+    supabase
+      .from("contacts")
+      .select("id, name, professions(label)")
+      .eq("user_id", user!.id)
+      .order("name", { ascending: true }),
   ])
 
   if (!project) notFound()
@@ -35,10 +39,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       project={project}
       documents={documents ?? []}
       userId={user!.id}
-      authorName={profile?.full_name ?? profile?.email ?? "Pro"}
       statusLabel={status.label}
       statusVariant={status.variant}
       phase={project.phase ?? "cadrage"}
+      contacts={contacts ?? []}
     />
   )
 }

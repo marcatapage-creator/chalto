@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,6 @@ interface Document {
 interface DocumentPanelProps {
   document: Document
   userId: string
-  authorName: string
   onClose: () => void
 }
 
@@ -67,12 +66,7 @@ const docStatusMap: Record<
   },
 }
 
-export function DocumentPanel({
-  document,
-  userId,
-  authorName: _authorName,
-  onClose,
-}: DocumentPanelProps) {
+export function DocumentPanel({ document, userId, onClose }: DocumentPanelProps) {
   const [localFileUrl, setLocalFileUrl] = useState<string | null>(null)
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
@@ -83,6 +77,7 @@ export function DocumentPanel({
   const [proposing, setProposing] = useState(false)
 
   const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
 
   // Derive current validation — null while a new fetch is in-flight (docId mismatch)
   const validation = validationEntry.docId === document.id ? validationEntry.data : null
@@ -91,7 +86,6 @@ export function DocumentPanel({
   const fileUrl = localFileUrl ?? document.file_url
 
   useEffect(() => {
-    const supabase = createClient()
     supabase
       .from("validations")
       .select("status, comment, approved_at")
@@ -102,7 +96,7 @@ export function DocumentPanel({
       .then(({ data }) => {
         setValidationEntry({ docId: document.id, data: data ?? null })
       })
-  }, [document.id])
+  }, [document.id, supabase])
 
   const handleSend = async () => {
     setSending(true)
@@ -130,7 +124,6 @@ export function DocumentPanel({
 
   const handleProposeV2 = async () => {
     setProposing(true)
-    const supabase = createClient()
     const newToken = crypto.randomUUID()
     await supabase
       .from("documents")
