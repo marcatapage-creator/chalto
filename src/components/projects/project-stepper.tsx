@@ -30,9 +30,15 @@ interface ProjectStepperProps {
   projectId: string
   currentPhase: string
   readOnly?: boolean
+  onPhaseChange?: (phase: string) => void
 }
 
-export function ProjectStepper({ projectId, currentPhase, readOnly = false }: ProjectStepperProps) {
+export function ProjectStepper({
+  projectId,
+  currentPhase,
+  readOnly = false,
+  onPhaseChange,
+}: ProjectStepperProps) {
   const [phase, setPhase] = useState(currentPhase)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -53,6 +59,7 @@ export function ProjectStepper({ projectId, currentPhase, readOnly = false }: Pr
       toast.error("Erreur lors du changement de phase")
     } else {
       setPhase(nextPhase.id)
+      onPhaseChange?.(nextPhase.id)
       toast.success(`Phase "${nextPhase.label}"`)
       router.refresh()
     }

@@ -125,6 +125,7 @@ export function ProjectPageClient({
         (payload) => {
           const updated = payload.new as Document
           setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+          setSelectedDoc((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
         }
       )
       .subscribe()
@@ -247,7 +248,15 @@ export function ProjectPageClient({
 
                   {/* Stepper phase — fill */}
                   <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
-                    <ProjectStepper projectId={project.id} currentPhase={phase} />
+                    <ProjectStepper
+                      projectId={project.id}
+                      currentPhase={phase}
+                      onPhaseChange={(newPhase) => {
+                        if (["chantier", "reception", "cloture"].includes(newPhase)) {
+                          setDocsOpen(false)
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </motion.div>

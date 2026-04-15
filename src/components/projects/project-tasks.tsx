@@ -131,19 +131,24 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
     }
     setLoading(true)
 
-    const { error } = await supabase.from("tasks").insert({
-      project_id: projectId,
-      title: form.title,
-      description: form.description || null,
-      assigned_to: form.assigned_to || null,
-      due_date: form.due_date || null,
-      created_by: userId,
-      status: "todo",
-    })
+    const { data: newTask, error } = await supabase
+      .from("tasks")
+      .insert({
+        project_id: projectId,
+        title: form.title,
+        description: form.description || null,
+        assigned_to: form.assigned_to || null,
+        due_date: form.due_date || null,
+        created_by: userId,
+        status: "todo",
+      })
+      .select("*, contacts(id, name, professions(label))")
+      .single()
 
     if (error) {
       toast.error("Erreur lors de la création")
     } else {
+      setTasks((prev) => [...prev, newTask])
       toast.success("Tâche créée ✅")
       setOpen(false)
       setForm({ title: "", description: "", assigned_to: "", due_date: "" })
@@ -152,8 +157,8 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
   }
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
     await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
-    toast.success("Statut mis à jour")
   }
 
   const handleDelete = async (taskId: string) => {

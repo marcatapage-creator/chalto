@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { sendValidationEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function POST(request: Request) {
   try {
@@ -49,11 +50,18 @@ export async function POST(request: Request) {
       )
     }
 
-    await supabase
+    const { error: updateError } = await supabase
       .from("documents")
       .update({ status: "sent", pro_message: message ?? null })
       .eq("id", documentId)
 
+    if (updateError) {
+      console.error("Update document error:", updateError)
+      return NextResponse.json({ error: "Erreur mise à jour document" }, { status: 500 })
+    }
+
+    revalidatePath("/dashboard")
+    revalidatePath(`/projects/${document.project_id}`)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Erreur send-validation:", error)

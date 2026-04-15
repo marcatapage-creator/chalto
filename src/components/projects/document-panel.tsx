@@ -151,6 +151,8 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
       setLocalStatus("sent")
       onStatusChange?.(document.id, "sent")
       router.refresh()
+    } else if (data.error === "Erreur mise à jour document") {
+      toast.error("Erreur lors de la mise à jour du document")
     } else if (data.error === "Pas d'email client") {
       toast.error("Ajoutez l'email du client dans le projet")
     } else {

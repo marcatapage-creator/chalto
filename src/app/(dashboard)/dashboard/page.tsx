@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FolderOpen, FileText, CheckCircle, Clock } from "lucide-react"
+import { FolderOpen } from "lucide-react"
 import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 import Link from "next/link"
+import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,39 +12,24 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: projects } = await supabase.from("projects").select("*").eq("user_id", user!.id)
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id, status, name, client_name, created_at")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
 
-  const { data: documents } = await supabase
-    .from("documents")
-    .select("*, projects!inner(user_id)")
-    .eq("projects.user_id", user!.id)
+  const projectIds = projects?.map((p) => p.id) ?? []
+  const { data: documents } =
+    projectIds.length > 0
+      ? await supabase.from("documents").select("status").in("project_id", projectIds)
+      : { data: [] }
 
-  const stats = [
-    {
-      label: "Projets actifs",
-      value: projects?.filter((p) => p.status === "active").length ?? 0,
-      icon: FolderOpen,
-      description: "En cours",
-    },
-    {
-      label: "Documents",
-      value: documents?.length ?? 0,
-      icon: FileText,
-      description: "Total",
-    },
-    {
-      label: "Validations reçues",
-      value: documents?.filter((d) => d.status === "approved").length ?? 0,
-      icon: CheckCircle,
-      description: "Approuvés",
-    },
-    {
-      label: "En attente",
-      value: documents?.filter((d) => d.status === "sent").length ?? 0,
-      icon: Clock,
-      description: "Envoyés",
-    },
-  ]
+  const initialCounts = {
+    activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
+    totalDocs: documents?.length ?? 0,
+    approved: documents?.filter((d) => d.status === "approved").length ?? 0,
+    pending: documents?.filter((d) => d.status === "sent").length ?? 0,
+  }
 
   return (
     <div className="flex-1 overflow-auto">
@@ -53,28 +39,7 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground">Vue d&apos;ensemble de votre activité</p>
         </FadeIn>
 
-        {/* Stats */}
-        <StaggerList className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon
-            return (
-              <StaggerItem key={stat.label}>
-                <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.label}
-                    </CardTitle>
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-                  </CardContent>
-                </Card>
-              </StaggerItem>
-            )
-          })}
-        </StaggerList>
+        <DashboardStats userId={user!.id} initialCounts={initialCounts} />
 
         {/* Projets récents */}
         <FadeIn delay={0.2}>
