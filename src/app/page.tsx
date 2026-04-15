@@ -272,16 +272,14 @@ export default function LandingPage() {
           </FadeIn>
           <StaggerList className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map((plan) => (
-              <StaggerItem key={plan.name}>
-                <Card
-                  className={`h-full relative ${plan.highlighted ? "border-primary shadow-lg" : ""}`}
-                >
-                  {plan.highlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
-                    </div>
-                  )}
-                  <CardContent className="p-6 space-y-6">
+              <StaggerItem key={plan.name} className="h-full">
+                <Card className={`h-full ${plan.highlighted ? "border-primary shadow-lg" : ""}`}>
+                  <CardContent className={`p-6 space-y-6 ${plan.highlighted ? "pt-4" : ""}`}>
+                    {plan.highlighted && (
+                      <div className="flex justify-center">
+                        <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
+                      </div>
+                    )}
                     <div>
                       <h3 className="font-bold text-lg">{plan.name}</h3>
                       <p className="text-muted-foreground text-sm">{plan.description}</p>
