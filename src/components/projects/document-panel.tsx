@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -107,10 +107,26 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         setValidationEntry({ docId: document.id, data: data ?? null })
+        if (data?.status) setLocalStatus(data.status)
       })
+  }, [document.id, supabase])
+
+  const fetchValidation = useCallback(async () => {
+    const { data } = await supabase
+      .from("validations")
+      .select("status, comment, approved_at")
+      .eq("document_id", document.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (data) {
+      setValidationEntry({ docId: document.id, data })
+      setLocalStatus(data.status)
+      onStatusChangeRef.current?.(document.id, data.status)
+    }
   }, [document.id, supabase])
 
   useEffect(() => {
@@ -124,18 +140,13 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
           table: "validations",
           filter: `document_id=eq.${document.id}`,
         },
-        (payload) => {
-          const v = payload.new as { status: string; comment?: string; approved_at?: string }
-          setValidationEntry({ docId: document.id, data: v })
-          setLocalStatus(v.status)
-          onStatusChangeRef.current?.(document.id, v.status)
-        }
+        () => void fetchValidation()
       )
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [document.id, supabase])
+  }, [document.id, fetchValidation, supabase])
 
   const handleSend = async () => {
     setSending(true)
@@ -356,7 +367,7 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
               rows={3}
               className="resize-none text-sm"
             />
-            <Button onClick={handleSend} disabled={sending || !fileUrl} className="w-full">
+            <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">
               <Send className="h-4 w-4 mr-2" />
               {sending ? "Envoi..." : "Envoyer au client"}
             </Button>
@@ -388,7 +399,7 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
               variant="outline"
               className="w-full"
               onClick={handleProposeV2}
-              disabled={proposing}
+              loading={proposing}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}

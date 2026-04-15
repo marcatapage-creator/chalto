@@ -336,7 +336,7 @@ export default function NewProjectPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
-              <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
+              <Button className="flex-1" onClick={handleSubmit} loading={loading}>
                 {loading ? "Création..." : "Créer le projet"}
                 {!loading && <Check className="ml-2 h-4 w-4" />}
               </Button>

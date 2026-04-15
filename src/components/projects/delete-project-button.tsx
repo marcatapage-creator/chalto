@@ -77,7 +77,7 @@ export function DeleteProjectButton({
             <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={deleting}>
               Annuler
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+            <Button variant="destructive" onClick={handleDelete} loading={deleting}>
               {deleting ? "Suppression..." : "Supprimer"}
             </Button>
           </DialogFooter>

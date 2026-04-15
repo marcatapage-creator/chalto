@@ -214,7 +214,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button onClick={handleSubmit} loading={loading}>
             {loading ? "Création..." : "Créer le document"}
           </Button>
         </DialogFooter>

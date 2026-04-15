@@ -167,13 +167,27 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
   }
 
   const handleApproveSuggestion = async (task: Task) => {
-    await supabase.from("tasks").update({ status: "todo", approved_by: userId }).eq("id", task.id)
-    toast.success("Suggestion acceptée ✅")
+    setSuggestions((prev) => prev.filter((s) => s.id !== task.id))
+    setTasks((prev) => [...prev, { ...task, status: "todo" }])
+    const { error } = await supabase.from("tasks").update({ status: "todo" }).eq("id", task.id)
+    if (error) {
+      setSuggestions((prev) => [...prev, task])
+      setTasks((prev) => prev.filter((t) => t.id !== task.id))
+      toast.error("Erreur lors de l'acceptation")
+    } else {
+      toast.success("Suggestion acceptée ✅")
+    }
   }
 
   const handleRejectSuggestion = async (task: Task) => {
-    await supabase.from("tasks").update({ status: "rejected" }).eq("id", task.id)
-    toast.success("Suggestion refusée")
+    setSuggestions((prev) => prev.filter((s) => s.id !== task.id))
+    const { error } = await supabase.from("tasks").update({ status: "rejected" }).eq("id", task.id)
+    if (error) {
+      setSuggestions((prev) => [...prev, task])
+      toast.error("Erreur lors du refus")
+    } else {
+      toast.success("Suggestion refusée")
+    }
   }
 
   const getTasksByStatus = (status: string) => tasks.filter((t) => t.status === status)
@@ -265,7 +279,7 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Annuler
               </Button>
-              <Button onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} loading={loading}>
                 {loading ? "Création..." : "Créer la tâche"}
               </Button>
             </DialogFooter>

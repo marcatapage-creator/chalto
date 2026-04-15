@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -45,35 +45,39 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const handleContinue = async () => {
     if (!selected) return
     setLoading(true)
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        router.push("/login")
+        return
+      }
 
-    // Récupérer l'id de la profession
-    const { data: profession } = await supabase
-      .from("professions")
-      .select("id")
-      .eq("slug", selected)
-      .single()
+      const { data: profession } = await supabase
+        .from("professions")
+        .select("id")
+        .eq("slug", selected)
+        .single()
 
-    if (profession) {
       await supabase
         .from("profiles")
         .update({
-          profession_id: profession.id,
+          profession_id: profession?.id ?? null,
           onboarding_completed: true,
         })
         .eq("id", user.id)
-    }
 
-    router.push("/dashboard")
+      router.push("/dashboard")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

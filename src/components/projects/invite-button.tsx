@@ -54,7 +54,7 @@ export function InviteButton({ contactId, projectId, contactName }: InviteButton
       size="sm"
       className="h-7 text-xs"
       onClick={handleInvite}
-      disabled={loading}
+      loading={loading}
     >
       <Mail className="h-3 w-3 mr-1.5" />
       {loading ? "Envoi..." : "Inviter"}

@@ -15,6 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { HoverButton } from "@/components/ui/motion"
 
@@ -42,6 +53,7 @@ export function SettingsForm({
   professions: Profession[]
 }) {
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [form, setForm] = useState({
     full_name: profile?.full_name ?? "",
     company_name: profile?.company_name ?? "",
@@ -53,6 +65,21 @@ export function SettingsForm({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/delete-account", { method: "DELETE" })
+      if (!res.ok) {
+        toast.error("Erreur lors de la suppression du compte")
+        return
+      }
+      await supabase.auth.signOut()
+      router.push("/register")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const handleSave = async () => {
@@ -147,7 +174,7 @@ export function SettingsForm({
         </Card>
 
         <HoverButton>
-          <Button onClick={handleSave} disabled={loading} className="w-full">
+          <Button onClick={handleSave} loading={loading} className="w-full">
             {loading ? "Sauvegarde..." : "Sauvegarder les modifications"}
           </Button>
         </HoverButton>
@@ -174,7 +201,7 @@ export function SettingsForm({
         </Card>
 
         <HoverButton>
-          <Button onClick={handleSave} disabled={loading} className="w-full">
+          <Button onClick={handleSave} loading={loading} className="w-full">
             {loading ? "Sauvegarde..." : "Sauvegarder les modifications"}
           </Button>
         </HoverButton>
@@ -208,9 +235,31 @@ export function SettingsForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" className="w-full" disabled>
-              Supprimer mon compte (bientôt disponible)
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full" loading={deleting}>
+                  {deleting ? "Suppression..." : "Supprimer mon compte"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer définitivement le compte ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Votre compte, vos projets et tous vos documents
+                    seront supprimés définitivement.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Oui, supprimer mon compte
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </TabsContent>

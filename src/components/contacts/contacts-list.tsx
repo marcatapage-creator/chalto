@@ -219,7 +219,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Annuler
               </Button>
-              <Button onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} loading={loading}>
                 {loading ? "Ajout..." : "Ajouter"}
               </Button>
             </DialogFooter>

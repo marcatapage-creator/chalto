@@ -93,7 +93,7 @@ export default function LoginPage() {
               {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" loading={loading}>
                 {loading ? "Connexion..." : "Se connecter"}
               </Button>
               <p className="text-sm text-muted-foreground text-center">

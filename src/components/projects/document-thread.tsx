@@ -167,7 +167,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
           className="resize-none"
         />
         <div className="flex justify-end">
-          <Button size="sm" onClick={handleSend} disabled={loading || !content.trim()}>
+          <Button size="sm" onClick={handleSend} disabled={!content.trim()} loading={loading}>
             <Send className="h-4 w-4 mr-2" />
             Envoyer
           </Button>

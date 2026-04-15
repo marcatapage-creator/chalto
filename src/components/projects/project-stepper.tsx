@@ -78,7 +78,7 @@ export function ProjectStepper({
             size="sm"
             className="text-xs h-7"
             onClick={handleAdvance}
-            disabled={loading}
+            loading={loading}
           >
             Passer à : {nextPhase.label}
             <ChevronRight className="ml-1 h-3.5 w-3.5" />

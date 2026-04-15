@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -23,34 +22,19 @@ type Document = {
   projects?: { name: string; client_name?: string | null; phase?: string | null } | null
 }
 
-export function ValidationClient({ document }: { document: Document }) {
+export function ValidationClient({ document, token }: { document: Document; token: string }) {
   const [comment, setComment] = useState("")
   const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(document.status === "approved" || document.status === "rejected")
-  const supabase = createClient()
 
   const handleValidation = async (decision: "approved" | "rejected") => {
     setLoading(true)
 
-    await supabase.from("validations").insert({
-      document_id: document.id,
-      status: decision,
-      comment: comment || null,
-      approved_at: decision === "approved" ? new Date().toISOString() : null,
-    })
-
-    await supabase.from("documents").update({ status: decision }).eq("id", document.id)
-
-    // Notifier le pro
-    await fetch("/api/send-approval-notification", {
+    await fetch("/api/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        documentId: document.id,
-        status: decision,
-        comment: comment || null,
-      }),
+      body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
 
     setStatus(decision)
@@ -174,12 +158,12 @@ export function ValidationClient({ document }: { document: Document }) {
           size="lg"
           className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
           onClick={() => handleValidation("rejected")}
-          disabled={loading}
+          loading={loading}
         >
           <XCircle className="h-4 w-4 mr-2" />
           Refuser
         </Button>
-        <Button size="lg" onClick={() => handleValidation("approved")} disabled={loading}>
+        <Button size="lg" onClick={() => handleValidation("approved")} loading={loading}>
           <CheckCircle className="h-4 w-4 mr-2" />
           Approuver
         </Button>
