@@ -46,6 +46,7 @@ import {
 import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
 import { InviteButton } from "@/components/projects/invite-button"
 import { TaskComments } from "@/components/projects/task-comments"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 interface Contact {
@@ -81,6 +82,7 @@ const columns = [
 export function ProjectTasks({ projectId, userId, contacts, authorName }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
+  const [loaded, setLoaded] = useState(false)
   const [localContacts, setLocalContacts] = useState(contacts)
   const [tasksOpen, setTasksOpen] = useState(true)
   const [open, setOpen] = useState(false)
@@ -106,6 +108,7 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
     if (data) {
       setTasks(data.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
       setSuggestions(data.filter((t) => t.status === "suggestion"))
+      setLoaded(true)
     }
   }, [supabase, projectId])
 
@@ -474,7 +477,13 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
                       </div>
 
                       <div className="space-y-2 min-h-25">
-                        {colTasks.length === 0 ? (
+                        {!loaded ? (
+                          <div className="space-y-2">
+                            {Array.from({ length: col.id === "todo" ? 2 : 1 }).map((_, i) => (
+                              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                            ))}
+                          </div>
+                        ) : colTasks.length === 0 ? (
                           <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
                             <p className="text-xs text-muted-foreground">Aucune tâche</p>
                           </div>
