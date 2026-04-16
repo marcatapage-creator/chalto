@@ -20,6 +20,8 @@ import {
   FileText,
   Users,
 } from "lucide-react"
+import { TaskComments } from "@/components/projects/task-comments"
+import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -271,12 +273,24 @@ export function ContributorSpace({ contributor, tasks: initialTasks }: Contribut
                         </Button>
                       )}
                     </CardContent>
+                    <TaskComments
+                      taskId={task.id}
+                      authorName={contributor.name}
+                      authorRole="prestataire"
+                    />
                   </Card>
                 )
               })}
             </div>
           )}
         </div>
+
+        {/* Discussion projet */}
+        <ProjectDiscussion
+          projectId={contributor.project_id}
+          authorName={contributor.name}
+          authorRole="prestataire"
+        />
 
         {/* Suggérer une tâche */}
         <Card>

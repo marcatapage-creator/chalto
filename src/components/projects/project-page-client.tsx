@@ -13,6 +13,7 @@ import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
 import { ProjectStepper } from "@/components/projects/project-stepper"
 import { ProjectTasks } from "@/components/projects/project-tasks"
+import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -67,6 +68,7 @@ interface ProjectPageClientProps {
   userId: string
   phase: string
   contacts: Contact[]
+  authorName: string
 }
 
 export function ProjectPageClient({
@@ -75,6 +77,7 @@ export function ProjectPageClient({
   userId,
   phase,
   contacts,
+  authorName,
 }: ProjectPageClientProps) {
   const { label: statusLabel, variant: statusVariant } =
     statusMap[project.status] ?? statusMap.draft
@@ -285,7 +288,13 @@ export function ProjectPageClient({
           {isChantierPhase && (
             <>
               <div className="-mx-6 md:-mx-8 h-px bg-border" />
-              <ProjectTasks projectId={project.id} userId={userId} contacts={contacts} />
+              <ProjectTasks
+                projectId={project.id}
+                userId={userId}
+                contacts={contacts}
+                authorName={authorName}
+              />
+              <ProjectDiscussion projectId={project.id} authorName={authorName} authorRole="pro" />
             </>
           )}
         </div>

@@ -45,6 +45,7 @@ import {
 } from "lucide-react"
 import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
 import { InviteButton } from "@/components/projects/invite-button"
+import { TaskComments } from "@/components/projects/task-comments"
 import { cn } from "@/lib/utils"
 
 interface Contact {
@@ -68,6 +69,7 @@ interface ProjectTasksProps {
   projectId: string
   userId: string
   contacts: Contact[]
+  authorName: string
 }
 
 const columns = [
@@ -76,7 +78,7 @@ const columns = [
   { id: "done", label: "Terminé", color: "text-primary" },
 ]
 
-export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps) {
+export function ProjectTasks({ projectId, userId, contacts, authorName }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
   const [localContacts, setLocalContacts] = useState(contacts)
@@ -483,7 +485,7 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
                           <StaggerList className="space-y-2">
                             {colTasks.map((task) => (
                               <StaggerItem key={task.id}>
-                                <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
+                                <Card className="transition-all duration-150 hover:shadow-sm">
                                   <CardContent className="p-3 space-y-2">
                                     <div className="flex items-start justify-between gap-2">
                                       <p className="text-sm font-medium leading-tight">
@@ -591,6 +593,11 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
                                       </Button>
                                     )}
                                   </CardContent>
+                                  <TaskComments
+                                    taskId={task.id}
+                                    authorName={authorName}
+                                    authorRole="pro"
+                                  />
                                 </Card>
                               </StaggerItem>
                             ))}
