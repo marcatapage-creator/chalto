@@ -8,7 +8,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
   const { data: contributor } = await admin
     .from("contributors")
-    .select("*, projects(id, name, phase, profiles(full_name, company_name))")
+    .select("*, projects(id, name, phase)")
     .eq("invite_token", token)
     .single()
 

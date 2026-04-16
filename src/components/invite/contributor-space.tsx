@@ -43,10 +43,6 @@ interface ContributorSpaceProps {
       id: string
       name: string
       phase: string
-      profiles?: {
-        full_name?: string
-        company_name?: string
-      }
     }
   }
   tasks: Task[]
@@ -88,10 +84,7 @@ export function ContributorSpace({ contributor, tasks: initialTasks }: Contribut
   const [showSuggestForm, setShowSuggestForm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
-  const proName =
-    contributor.projects?.profiles?.full_name ??
-    contributor.projects?.profiles?.company_name ??
-    "Votre professionnel"
+  const proName = "Votre professionnel"
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
