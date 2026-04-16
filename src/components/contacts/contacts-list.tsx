@@ -137,8 +137,8 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter un contact
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Ajouter un contact</span>
             </Button>
           </DialogTrigger>
           <DialogContent>

@@ -117,10 +117,19 @@ export function ProjectDocuments({
                         >
                           <CardContent className="flex items-center gap-3 p-4">
                             <div className={cn("h-2 w-2 rounded-full shrink-0", docStatus.dot)} />
-                            <div className="bg-muted p-2 rounded-lg shrink-0">
+                            <div className="hidden sm:block bg-muted p-2 rounded-lg shrink-0">
                               <FileText className="h-4 w-4 text-muted-foreground" />
                             </div>
                             <div className="flex-1 min-w-0">
+                              <div className="sm:hidden mb-0.5">
+                                <Badge
+                                  variant={docStatus.variant}
+                                  className={cn("text-xs", docStatus.className)}
+                                >
+                                  {docStatus.label}
+                                  {doc.version > 1 && ` · v${doc.version}`}
+                                </Badge>
+                              </div>
                               <p className="text-sm font-medium truncate">{doc.name}</p>
                               <p className="text-xs text-muted-foreground truncate">
                                 {doc.type} · {new Date(doc.created_at).toLocaleDateString("fr-FR")}
@@ -129,7 +138,7 @@ export function ProjectDocuments({
                             <div className="flex items-center gap-2 shrink-0">
                               <Badge
                                 variant={docStatus.variant}
-                                className={cn("text-xs", docStatus.className)}
+                                className={cn("hidden sm:inline-flex text-xs", docStatus.className)}
                               >
                                 {docStatus.label}
                                 {doc.version > 1 && ` · v${doc.version}`}

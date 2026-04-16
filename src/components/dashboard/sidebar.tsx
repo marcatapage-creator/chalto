@@ -48,7 +48,7 @@ function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 md:pb-8">
+      <div className="p-6 md:pb-11">
         <div className="flex items-center gap-2">
           <div className="bg-primary rounded-lg p-1.5">
             <Building2 className="h-5 w-5 text-primary-foreground" />

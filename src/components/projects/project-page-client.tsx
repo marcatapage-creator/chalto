@@ -164,16 +164,18 @@ export function ProjectPageClient({
         {/* En-tête fixe */}
         <div className="shrink-0 border-b bg-background">
           {/* Header */}
-          <div className="flex items-center gap-4 px-6 md:px-8 pt-6 pb-6 md:pb-8">
+          <div className="flex items-center gap-4 px-6 md:px-8 pt-6 pb-6">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/projects">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-                <Badge variant={statusVariant}>{statusLabel}</Badge>
+              <div className="flex items-center gap-3 min-w-0">
+                <h1 className="text-2xl font-bold tracking-tight truncate">{project.name}</h1>
+                <Badge variant={statusVariant} className="shrink-0">
+                  {statusLabel}
+                </Badge>
               </div>
               <p className="text-muted-foreground text-sm">
                 Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/projects/file-upload"
 import { FileViewer } from "@/components/projects/file-viewer"
@@ -290,7 +289,7 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
       )}
 
       {/* Contenu scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="px-4 py-4 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Fichier
@@ -352,61 +351,60 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
             />
           )}
         </div>
-
-        <Separator />
-
-        {localStatus === "draft" && (
-          <div className="px-4 py-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Envoyer pour validation
-            </p>
-            <Textarea
-              placeholder="Ajouter un mot pour le client (optionnel)..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={3}
-              className="resize-none text-sm"
-            />
-            <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">
-              <Send className="h-4 w-4 mr-2" />
-              {sending ? "Envoi..." : "Envoyer au client"}
-            </Button>
-          </div>
-        )}
-
-        {localStatus === "sent" && (
-          <div className="px-4 py-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Validation
-            </p>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span>En attente de réponse du client</span>
-            </div>
-            <Button variant="outline" size="sm" className="w-full" onClick={handleCopyLink}>
-              <Link2 className="h-4 w-4 mr-2" />
-              Copier le lien de validation
-            </Button>
-          </div>
-        )}
-
-        {localStatus === "rejected" && (
-          <div className="px-4 py-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Suite à donner
-            </p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleProposeV2}
-              loading={proposing}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
-            </Button>
-          </div>
-        )}
       </div>
+
+      {/* Footer sticky — actions */}
+      {localStatus === "draft" && (
+        <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Envoyer pour validation
+          </p>
+          <Textarea
+            placeholder="Ajouter un mot pour le client (optionnel)..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={3}
+            className="resize-none text-sm"
+          />
+          <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">
+            <Send className="h-4 w-4 mr-2" />
+            {sending ? "Envoi..." : "Envoyer au client"}
+          </Button>
+        </div>
+      )}
+
+      {localStatus === "sent" && (
+        <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Validation
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 shrink-0" />
+            <span>En attente de réponse du client</span>
+          </div>
+          <Button variant="outline" size="sm" className="w-full" onClick={handleCopyLink}>
+            <Link2 className="h-4 w-4 mr-2" />
+            Copier le lien de validation
+          </Button>
+        </div>
+      )}
+
+      {localStatus === "rejected" && (
+        <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Suite à donner
+          </p>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleProposeV2}
+            loading={proposing}
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

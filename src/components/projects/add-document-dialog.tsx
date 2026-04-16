@@ -137,8 +137,8 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un document
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Ajouter un document</span>
         </Button>
       </DialogTrigger>
       <DialogContent>

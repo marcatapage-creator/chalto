@@ -45,8 +45,8 @@ export default async function ProjectsPage() {
           </div>
           <Button asChild>
             <Link href="/projects/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau projet
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nouveau projet</span>
             </Link>
           </Button>
         </FadeIn>
@@ -62,10 +62,13 @@ export default async function ProjectsPage() {
                     <Card className="cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-muted p-2 rounded-lg">
+                          <div className="hidden sm:block bg-muted p-2 rounded-lg">
                             <FolderOpen className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
+                            <div className="sm:hidden mb-0.5">
+                              <Badge variant={status.variant}>{status.label}</Badge>
+                            </div>
                             <p className="font-medium text-sm">{project.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {project.client_name || "Pas de client"}
@@ -80,7 +83,9 @@ export default async function ProjectsPage() {
                           <span className="hidden sm:inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                             {phase}
                           </span>
-                          <Badge variant={status.variant}>{status.label}</Badge>
+                          <Badge variant={status.variant} className="hidden sm:inline-flex">
+                            {status.label}
+                          </Badge>
                           <DeleteProjectButton projectId={project.id} projectName={project.name} />
                         </div>
                       </CardContent>

@@ -122,7 +122,8 @@ export function ProjectStepper({
                 <p
                   className={cn(
                     "text-xs font-medium text-center leading-tight",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    isActive ? "text-primary" : "text-muted-foreground",
+                    !isActive && "hidden sm:block"
                   )}
                 >
                   {p.label}

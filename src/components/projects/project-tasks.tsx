@@ -38,6 +38,7 @@ import {
   User,
   Calendar,
   ArrowRight,
+  ArrowLeft,
   Lightbulb,
   Check,
   X,
@@ -78,8 +79,10 @@ const columns = [
 export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
+  const [localContacts, setLocalContacts] = useState(contacts)
   const [tasksOpen, setTasksOpen] = useState(true)
   const [open, setOpen] = useState(false)
+  const [dialogView, setDialogView] = useState<"task" | "new-contact">("task")
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     title: "",
@@ -87,6 +90,8 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
     assigned_to: "",
     due_date: "",
   })
+  const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "" })
+  const [contactLoading, setContactLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
   const fetchTasks = useCallback(async () => {
@@ -190,6 +195,35 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
     }
   }
 
+  const handleCreateContact = async () => {
+    if (!contactForm.name) {
+      toast.error("Le nom est obligatoire")
+      return
+    }
+    setContactLoading(true)
+    const { data, error } = await supabase
+      .from("contacts")
+      .insert({
+        user_id: userId,
+        name: contactForm.name,
+        email: contactForm.email || null,
+        phone: contactForm.phone || null,
+      })
+      .select("id, name")
+      .single()
+
+    if (error) {
+      toast.error("Erreur lors de la création")
+    } else {
+      setLocalContacts((prev) => [...prev, data])
+      setForm((prev) => ({ ...prev, assigned_to: data.id }))
+      setContactForm({ name: "", email: "", phone: "" })
+      setDialogView("task")
+      toast.success(`${data.name} ajouté à l'annuaire ✅`)
+    }
+    setContactLoading(false)
+  }
+
   const getTasksByStatus = (status: string) => tasks.filter((t) => t.status === status)
 
   return (
@@ -213,76 +247,144 @@ export function ProjectTasks({ projectId, userId, contacts }: ProjectTasksProps)
           </h3>
         </button>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+          open={open}
+          onOpenChange={(v) => {
+            setOpen(v)
+            if (!v) {
+              setDialogView("task")
+              setContactForm({ name: "", email: "", phone: "" })
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle tâche
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nouvelle tâche</span>
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nouvelle tâche</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label>Titre *</Label>
-                <Input
-                  placeholder="Ex: Pose des gaines électriques"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Input
-                  placeholder="Détails de la tâche..."
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Assigner à</Label>
-                <Select
-                  value={form.assigned_to}
-                  onValueChange={(v) => setForm({ ...form, assigned_to: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner depuis l'annuaire" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contacts.length > 0 ? (
-                      contacts.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                          {c.professions?.[0] && ` — ${c.professions[0].label}`}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        Aucun contact dans l&apos;annuaire
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Date limite</Label>
-                <Input
-                  type="date"
-                  value={form.due_date}
-                  onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleSubmit} loading={loading}>
-                {loading ? "Création..." : "Créer la tâche"}
-              </Button>
-            </DialogFooter>
+            {dialogView === "task" ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Nouvelle tâche</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <Label>Titre *</Label>
+                    <Input
+                      placeholder="Ex: Pose des gaines électriques"
+                      value={form.title}
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Input
+                      placeholder="Détails de la tâche..."
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Assigner à</Label>
+                    <Select
+                      value={form.assigned_to}
+                      onValueChange={(v) => setForm({ ...form, assigned_to: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner depuis l'annuaire" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {localContacts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                            {c.professions?.[0] && ` — ${c.professions[0].label}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => setDialogView("new-contact")}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline mt-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Créer un nouveau prestataire
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date limite</Label>
+                    <Input
+                      type="date"
+                      value={form.due_date}
+                      onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleSubmit} loading={loading}>
+                    {loading ? "Création..." : "Créer la tâche"}
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDialogView("task")}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <DialogTitle>Nouveau prestataire</DialogTitle>
+                  </div>
+                </DialogHeader>
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <Label>Nom *</Label>
+                    <Input
+                      placeholder="Jean Dupont"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="jean@exemple.fr"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Téléphone</Label>
+                    <Input
+                      placeholder="06 00 00 00 00"
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Le prestataire sera ajouté à votre annuaire et sélectionné automatiquement.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDialogView("task")}>
+                    Retour
+                  </Button>
+                  <Button onClick={handleCreateContact} loading={contactLoading}>
+                    {contactLoading ? "Création..." : "Créer le prestataire"}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       </div>
