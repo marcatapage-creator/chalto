@@ -169,6 +169,7 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
   }
 
   const handleDelete = async (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId))
     await supabase.from("tasks").delete().eq("id", taskId)
     toast.success("Tâche supprimée")
   }
