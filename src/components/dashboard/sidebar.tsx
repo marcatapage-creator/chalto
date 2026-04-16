@@ -19,14 +19,24 @@ type Profile = {
   professions?: { label: string; icon: string } | null
 }
 
+type Counts = { projects: number; contacts: number }
+
 const navigation = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Projets", href: "/projects", icon: FolderOpen },
-  { label: "Annuaire", href: "/contacts", icon: Users },
-  { label: "Paramètres", href: "/settings", icon: Settings },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, countKey: null },
+  { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
+  { label: "Annuaire", href: "/contacts", icon: Users, countKey: "contacts" as const },
+  { label: "Paramètres", href: "/settings", icon: Settings, countKey: null },
 ]
 
-function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?: () => void }) {
+function SidebarContent({
+  profile,
+  counts,
+  onNavigate,
+}: {
+  profile: Profile
+  counts: Counts
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -79,7 +89,12 @@ function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?
             >
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
-              {isActive && (
+              {item.countKey && (
+                <span className="ml-auto text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                  {counts[item.countKey]}
+                </span>
+              )}
+              {isActive && !item.countKey && (
                 <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground opacity-70" />
               )}
             </Link>
@@ -116,14 +131,14 @@ function SidebarContent({ profile, onNavigate }: { profile: Profile; onNavigate?
   )
 }
 
-export function Sidebar({ profile }: { profile: Profile }) {
+export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts }) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-64 border-r bg-card flex-col h-full">
-        <SidebarContent profile={profile} />
+        <SidebarContent profile={profile} counts={counts} />
       </aside>
 
       {/* Mobile header + burger */}
@@ -143,7 +158,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
           <SheetContent side="left" className="p-0 w-64">
             <SheetTitle className="sr-only">Menu</SheetTitle>
             <SlideIn className="h-full">
-              <SidebarContent profile={profile} onNavigate={() => setOpen(false)} />
+              <SidebarContent profile={profile} counts={counts} onNavigate={() => setOpen(false)} />
             </SlideIn>
           </SheetContent>
         </Sheet>

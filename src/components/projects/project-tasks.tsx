@@ -239,14 +239,10 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
               !tasksOpen && "-rotate-90"
             )}
           />
-          <h3 className="font-semibold group-hover:text-foreground transition-colors">
-            Tâches
-            {tasks.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({tasks.length})
-              </span>
-            )}
-          </h3>
+          <h3 className="font-semibold group-hover:text-foreground transition-colors">Tâches</h3>
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+            {tasks.length}
+          </span>
         </button>
 
         <Dialog

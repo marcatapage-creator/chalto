@@ -76,14 +76,10 @@ export function ProjectDocuments({
               !isOpen && "-rotate-90"
             )}
           />
-          <h2 className="font-semibold group-hover:text-foreground transition-colors">
-            Documents
-            {documents.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({documents.length})
-              </span>
-            )}
-          </h2>
+          <h2 className="font-semibold group-hover:text-foreground transition-colors">Documents</h2>
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+            {documents.length}
+          </span>
         </button>
         <AddDocumentDialog projectId={projectId} />
       </div>

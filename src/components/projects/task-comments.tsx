@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Send, MessageSquare } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, initials } from "@/lib/utils"
 import { FadeIn } from "@/components/ui/motion"
 
 interface Comment {
@@ -54,12 +54,16 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
           filter: `task_id=eq.${taskId}`,
         },
         (payload) => {
-          setComments((prev) => [...prev, payload.new as Comment])
+          const incoming = payload.new as Comment
+          setComments((prev) =>
+            prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
+          )
         }
       )
       .subscribe()
 
     return () => {
+      void channel.unsubscribe()
       supabase.removeChannel(channel)
     }
   }, [taskId, open, supabase])
@@ -72,12 +76,21 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
     if (!content.trim()) return
     setLoading(true)
 
-    await supabase.from("task_comments").insert({
-      task_id: taskId,
-      author_name: authorName,
-      author_role: authorRole,
-      content: content.trim(),
-    })
+    const { data: newComment } = await supabase
+      .from("task_comments")
+      .insert({
+        task_id: taskId,
+        author_name: authorName,
+        author_role: authorRole,
+        content: content.trim(),
+      })
+      .select()
+      .single()
+
+    if (newComment)
+      setComments((prev) =>
+        prev.some((c) => c.id === newComment.id) ? prev : [...prev, newComment]
+      )
 
     setContent("")
     setLoading(false)
@@ -89,14 +102,6 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
       void handleSend()
     }
   }
-
-  const initials = (name: string) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
 
   return (
     <div className="border-t">
@@ -115,7 +120,7 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
       {open && (
         <FadeIn className="px-3 pb-3 space-y-3">
           {/* Messages */}
-          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+          <div className="space-y-2 max-h-50 overflow-y-auto">
             {comments.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-3">
                 Aucune note — démarrez la discussion
@@ -177,7 +182,7 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              className="resize-none text-xs min-h-[32px]"
+              className="resize-none text-xs min-h-8"
             />
             <Button
               size="icon"

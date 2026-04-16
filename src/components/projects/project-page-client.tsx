@@ -294,6 +294,7 @@ export function ProjectPageClient({
                 contacts={contacts}
                 authorName={authorName}
               />
+              <div className="-mx-6 md:-mx-8 h-px bg-border" />
               <ProjectDiscussion projectId={project.id} authorName={authorName} authorRole="pro" />
             </>
           )}

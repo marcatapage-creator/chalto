@@ -1,12 +1,12 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
 import { ContributorSpace } from "@/components/invite/contributor-space"
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  const { data: contributor } = await supabase
+  const { data: contributor } = await admin
     .from("contributors")
     .select("*, projects(id, name, phase, profiles(full_name, company_name))")
     .eq("invite_token", token)
@@ -14,7 +14,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
   if (!contributor) notFound()
 
-  const { data: tasks } = await supabase
+  const { data: tasks } = await admin
     .from("tasks")
     .select("*")
     .eq("project_id", contributor.project_id)
