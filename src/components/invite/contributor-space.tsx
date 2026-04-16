@@ -45,6 +45,7 @@ interface ContributorSpaceProps {
       phase: string
     }
   }
+  proName: string
   tasks: Task[]
 }
 
@@ -76,15 +77,17 @@ const ctaFeatures = [
   { icon: Zap, label: "Validations" },
 ]
 
-export function ContributorSpace({ contributor, tasks: initialTasks }: ContributorSpaceProps) {
+export function ContributorSpace({
+  contributor,
+  proName,
+  tasks: initialTasks,
+}: ContributorSpaceProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [suggestion, setSuggestion] = useState("")
   const [suggestionDesc, setSuggestionDesc] = useState("")
   const [suggesting, setSuggesting] = useState(false)
   const [showSuggestForm, setShowSuggestForm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
-
-  const proName = "Votre professionnel"
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)

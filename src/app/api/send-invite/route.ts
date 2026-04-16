@@ -66,14 +66,6 @@ export async function POST(request: Request) {
     }
 
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
-    console.log(
-      "[send-invite] contributor id:",
-      contributor?.id,
-      "invite_token:",
-      contributor?.invite_token,
-      "url:",
-      inviteUrl
-    )
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
 
