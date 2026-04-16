@@ -54,10 +54,15 @@ export async function POST(request: Request) {
           name: contact.name,
           email: contact.email,
           profession_id: contact.profession_id,
+          invite_token: crypto.randomUUID(),
         })
         .select()
         .single()
       contributor = created
+    } else if (!contributor.invite_token) {
+      const token = crypto.randomUUID()
+      await supabase.from("contributors").update({ invite_token: token }).eq("id", contributor.id)
+      contributor = { ...contributor, invite_token: token }
     }
 
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
