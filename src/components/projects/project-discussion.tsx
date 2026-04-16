@@ -130,7 +130,7 @@ export function ProjectDiscussion({ projectId, authorName, authorRole }: Project
           {messages.length}
         </span>
         {messages.length > 0 && !open && (
-          <span className="text-xs text-muted-foreground italic truncate max-w-37.5">
+          <span className="hidden sm:inline text-xs text-muted-foreground italic truncate max-w-37.5">
             — {messages[messages.length - 1].content}
           </span>
         )}
