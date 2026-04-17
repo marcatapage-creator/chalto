@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { motion, useInView, useScroll, useTransform } from "framer-motion"
+import { motion, useInView } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -261,14 +261,52 @@ function scrollToSection(id: string) {
 }
 
 export default function LandingPage() {
-  // Parallax hero
-  const heroRef = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  })
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Chalto est-il gratuit ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Oui, Chalto propose un plan Starter gratuit avec 2 projets et 5 documents. Les plans Pro (29€/mois) et Agence (79€/mois) offrent des fonctionnalités illimitées.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Chalto fonctionne-t-il sur mobile ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Oui, Chalto est une PWA installable sur iPhone et Android. L'interface est optimisée pour une utilisation sur chantier depuis votre téléphone.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Mon client a-t-il besoin d'un compte pour valider un document ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Non. Votre client reçoit un lien sécurisé par email et peut approuver ou commenter vos documents sans créer de compte.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Quels métiers peuvent utiliser Chalto ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Chalto s'adapte à tous les corps de métier du bâtiment : architectes, plombiers, électriciens, menuisiers, entrepreneurs généraux et plus encore.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Mes données sont-elles sécurisées ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Oui. Chalto utilise Supabase avec Row Level Security, HTTPS et des tokens sécurisés pour protéger toutes vos données et documents.",
+        },
+      },
+    ],
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -290,6 +328,10 @@ export default function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       <div className="min-h-screen bg-background overflow-x-hidden">
@@ -337,18 +379,15 @@ export default function LandingPage() {
           </div>
         </motion.header>
 
-        {/* Hero — avec parallax */}
-        <section ref={heroRef} className="relative pt-32 pb-20 px-4 overflow-hidden">
-          {/* Fond décoratif parallax */}
-          <motion.div style={{ y: heroY }} className="absolute inset-0 pointer-events-none">
+        {/* Hero */}
+        <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+          {/* Fond décoratif — desktop uniquement (blur-3xl coûteux sur mobile) */}
+          <div className="absolute inset-0 pointer-events-none hidden md:block">
             <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
             <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
-          </motion.div>
+          </div>
 
-          <motion.div
-            style={{ y: heroY, opacity: heroOpacity }}
-            className="max-w-4xl mx-auto text-center space-y-6 relative"
-          >
+          <div className="max-w-4xl mx-auto text-center space-y-6 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -419,7 +458,7 @@ export default function LandingPage() {
             >
               Gratuit · Sans carte bancaire · Prêt en 2 minutes
             </motion.p>
-          </motion.div>
+          </div>
         </section>
 
         {/* Features */}
@@ -547,6 +586,52 @@ export default function LandingPage() {
                 </div>
               ))}
             </StaggerGrid>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-20 px-4">
+          <div className="max-w-2xl mx-auto">
+            <AnimateIn>
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold tracking-tight">Questions fréquentes</h2>
+              </div>
+            </AnimateIn>
+            <AnimateIn delay={0.1}>
+              <div className="space-y-4">
+                {[
+                  {
+                    question: "Chalto est-il gratuit ?",
+                    answer:
+                      "Oui, plan Starter gratuit avec 2 projets et 5 documents. Plans Pro et Agence pour aller plus loin.",
+                  },
+                  {
+                    question: "Mon client a besoin d'un compte ?",
+                    answer: "Non. Il reçoit un lien par email et valide sans créer de compte.",
+                  },
+                  {
+                    question: "Ça fonctionne sur mobile ?",
+                    answer:
+                      "Oui, Chalto est installable sur iPhone et Android comme une app native.",
+                  },
+                  {
+                    question: "Quels métiers peuvent utiliser Chalto ?",
+                    answer:
+                      "Architectes, plombiers, électriciens, menuisiers, entrepreneurs — tous les corps de métier.",
+                  },
+                  {
+                    question: "Mes données sont-elles sécurisées ?",
+                    answer:
+                      "Oui. Chiffrement HTTPS, Row Level Security Supabase, tokens sécurisés.",
+                  },
+                ].map((faq) => (
+                  <div key={faq.question} className="border rounded-xl p-5 space-y-2">
+                    <p className="font-semibold text-sm">{faq.question}</p>
+                    <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </AnimateIn>
           </div>
         </section>
 

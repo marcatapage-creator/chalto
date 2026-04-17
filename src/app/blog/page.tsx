@@ -1,0 +1,80 @@
+import { Metadata } from "next"
+import Link from "next/link"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowRight } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description: "Conseils et guides pour les professionnels du bâtiment.",
+}
+
+const articles = [
+  {
+    slug: "faire-valider-plans-client",
+    title: "Comment faire valider ses plans par un client sans email",
+    description:
+      "Les allers-retours par email font perdre un temps précieux. Voici comment moderniser votre workflow de validation.",
+    category: "Workflow",
+    date: "17 avril 2026",
+    readTime: "5 min",
+  },
+  {
+    slug: "coordonner-corps-de-metier",
+    title: "Comment coordonner plusieurs corps de métier sur un chantier",
+    description:
+      "Architectes, plombiers, électriciens — gérer plusieurs intervenants est un défi. Voici les meilleures pratiques.",
+    category: "Gestion de chantier",
+    date: "10 avril 2026",
+    readTime: "7 min",
+  },
+  {
+    slug: "logiciel-architecte-independant",
+    title: "Quel logiciel pour un architecte indépendant en 2026 ?",
+    description:
+      "Comparatif des meilleurs outils pour gérer ses projets, ses clients et ses documents en tant qu'architecte solo.",
+    category: "Outils",
+    date: "3 avril 2026",
+    readTime: "8 min",
+  },
+]
+
+export default function BlogPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-16 space-y-12">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Blog</h1>
+          <p className="text-muted-foreground text-lg">
+            Conseils et guides pour les pros du bâtiment
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {articles.map((article) => (
+            <Link key={article.slug} href={`/blog/${article.slug}`}>
+              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer">
+                <CardContent className="p-6 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">{article.category}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {article.date} · {article.readTime} de lecture
+                    </span>
+                  </div>
+                  <h2 className="font-bold text-xl leading-tight">{article.title}</h2>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {article.description}
+                  </p>
+                  <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                    Lire l&apos;article
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
