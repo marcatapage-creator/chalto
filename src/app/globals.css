@@ -168,3 +168,16 @@ body {
 *:hover {
   scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
 }
+
+/* Touch feedback — mobile uniquement */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  a:active,
+  [role="button"]:active,
+  [role="tab"]:active,
+  [role="menuitem"]:active {
+    opacity: 0.65;
+    transform: scale(0.97);
+    transition: transform 0.08s ease, opacity 0.08s ease;
+  }
+}
