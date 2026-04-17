@@ -25,22 +25,22 @@ interface TaskCommentsProps {
 
 export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
+  const [count, setCount] = useState(0)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const loadedRef = useRef(false)
   const supabase = useMemo(() => createClient(), [])
 
+  // Eager: fetch count + subscribe realtime (toujours actif)
   useEffect(() => {
-    if (!open) return
-
     supabase
       .from("task_comments")
-      .select("*")
+      .select("id", { count: "exact", head: true })
       .eq("task_id", taskId)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (data) setComments(data)
+      .then(({ count: c }) => {
+        if (c !== null) setCount(c)
       })
 
     const channel = supabase
@@ -55,9 +55,12 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
         },
         (payload) => {
           const incoming = payload.new as Comment
-          setComments((prev) =>
-            prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
-          )
+          setCount((prev) => prev + 1)
+          if (loadedRef.current) {
+            setComments((prev) =>
+              prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
+            )
+          }
         }
       )
       .subscribe()
@@ -66,11 +69,29 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
       void channel.unsubscribe()
       supabase.removeChannel(channel)
     }
-  }, [taskId, open, supabase])
+  }, [taskId, supabase])
+
+  // Lazy: charge les messages complets à la première ouverture
+  useEffect(() => {
+    if (!open || loadedRef.current) return
+
+    supabase
+      .from("task_comments")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          setComments(data)
+          setCount(data.length)
+          loadedRef.current = true
+        }
+      })
+  }, [open, taskId, supabase])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [comments])
+    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [comments, open])
 
   const handleSend = async () => {
     if (!content.trim()) return
@@ -110,11 +131,7 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
       >
         <MessageSquare className="h-3.5 w-3.5" />
-        <span>
-          {comments.length > 0
-            ? `${comments.length} note${comments.length > 1 ? "s" : ""}`
-            : "Ajouter une note"}
-        </span>
+        <span>{count > 0 ? `${count} note${count > 1 ? "s" : ""}` : "Ajouter une note"}</span>
       </button>
 
       {open && (
