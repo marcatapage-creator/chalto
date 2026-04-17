@@ -224,7 +224,7 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <div className="px-4 border-b flex items-center justify-between gap-3 shrink-0 min-h-25.25 md:min-h-27.25">
+      <div className="px-4 border-b flex items-center justify-between gap-3 shrink-0 min-h-25">
         <div className="flex items-center gap-2 min-w-0">
           <div className="bg-muted p-1.5 rounded-md shrink-0">
             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
