@@ -6,8 +6,54 @@ import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Chalto",
-  description: "Gérez vos projets et faites valider vos livrables simplement",
+  title: {
+    default: "Chalto — Gestion de projets pour les pros du bâtiment",
+    template: "%s | Chalto",
+  },
+  description:
+    "Gérez vos projets, partagez vos documents et faites valider vos livrables par vos clients. La plateforme des architectes, artisans et entrepreneurs du bâtiment.",
+  keywords: [
+    "logiciel architecte",
+    "gestion chantier",
+    "validation document client",
+    "suivi projet bâtiment",
+    "outil artisan BTP",
+    "application chantier",
+    "coordination prestataires",
+  ],
+  authors: [{ name: "Chalto", url: "https://chalto.fr" }],
+  creator: "Chalto",
+  metadataBase: new URL("https://chalto.fr"),
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "https://chalto.fr",
+    siteName: "Chalto",
+    title: "Chalto — Gestion de projets pour les pros du bâtiment",
+    description: "Gérez vos projets et faites valider vos livrables simplement.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Chalto — La plateforme des pros du bâtiment",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chalto — Gestion de projets BTP",
+    description: "La plateforme des pros du bâtiment",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 }
 
 // Runs before React hydration to apply stored theme and prevent FOUC
