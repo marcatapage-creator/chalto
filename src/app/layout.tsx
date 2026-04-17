@@ -54,6 +54,8 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
+  themeColor: "#2260E8",
+  manifest: "/manifest.json",
 }
 
 // Runs before React hydration to apply stored theme and prevent FOUC

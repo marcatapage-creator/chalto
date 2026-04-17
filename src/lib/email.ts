@@ -97,7 +97,7 @@ export async function sendWelcomeEmail({ email, fullName }: { email: string; ful
         <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
           <div style="margin-bottom: 32px;">
-            <div style="background: #16a34a; border-radius: 8px; padding: 6px 12px; display: inline-block;">
+            <div style="background: #2260E8; border-radius: 8px; padding: 6px 12px; display: inline-block;">
               <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
             </div>
           </div>
@@ -138,7 +138,7 @@ export async function sendWelcomeEmail({ email, fullName }: { email: string; ful
           </div>
 
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard"
-             style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+             style="display: inline-block; background: #2260E8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
             Accéder à mon espace →
           </a>
 

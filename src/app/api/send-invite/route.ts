@@ -79,7 +79,7 @@ export async function POST(request: Request) {
           <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
             <div style="margin-bottom: 32px;">
-              <div style="background: #16a34a; border-radius: 8px; padding: 6px 12px; display: inline-block;">
+              <div style="background: #2260E8; border-radius: 8px; padding: 6px 12px; display: inline-block;">
                 <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
               </div>
             </div>
@@ -106,19 +106,19 @@ export async function POST(request: Request) {
             </div>
 
             <a href="${inviteUrl}"
-               style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+               style="display: inline-block; background: #2260E8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
               Voir mes tâches →
             </a>
 
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 20px; margin: 0 0 32px;">
-              <p style="margin: 0 0 8px; font-weight: 600; font-size: 14px; color: #16a34a;">
+              <p style="margin: 0 0 8px; font-weight: 600; font-size: 14px; color: #2260E8;">
                 💡 Et si vous utilisiez Chalto pour vos propres projets ?
               </p>
               <p style="margin: 0 0 12px; font-size: 13px; color: #555; line-height: 1.6;">
                 Gérez vos chantiers, partagez vos documents et faites valider vos livrables par vos clients — simplement.
               </p>
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/register"
-                 style="font-size: 13px; color: #16a34a; font-weight: 600; text-decoration: underline;">
+                 style="font-size: 13px; color: #2260E8; font-weight: 600; text-decoration: underline;">
                 Créer mon compte gratuitement →
               </a>
             </div>
