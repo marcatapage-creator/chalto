@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import Image from "next/image"
 import {
-  Building2,
   CheckCircle,
   FileText,
   Users,
@@ -150,9 +150,7 @@ export default function LandingPage() {
         <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="bg-primary rounded-lg p-1.5">
-                <Building2 className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
               <span className="font-bold">Chalto</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
@@ -360,9 +358,7 @@ export default function LandingPage() {
         <footer className="border-t py-8 px-4">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <div className="bg-primary rounded-lg p-1">
-                <Building2 className="h-3 w-3 text-primary-foreground" />
-              </div>
+              <Image src="/Logo.svg" alt="Chalto" width={20} height={20} />
               <span className="font-medium text-foreground">Chalto</span>
               <span>— La plateforme des pros du bâtiment</span>
             </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Building2, Menu, Users } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SlideIn } from "@/components/ui/motion"
 import { useState } from "react"
@@ -58,11 +59,9 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 md:pb-11">
+      <div className="p-6 min-h-25">
         <div className="flex items-center gap-2">
-          <div className="bg-primary rounded-lg p-1.5">
-            <Building2 className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <Image src="/Logo.svg" alt="Chalto" width={28} height={28} />
           <span className="font-bold text-lg">Chalto</span>
         </div>
         {profile?.professions && (
@@ -144,9 +143,7 @@ export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts 
       {/* Mobile header + burger */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
         <div className="flex items-center gap-2">
-          <div className="bg-primary rounded-lg p-1">
-            <Building2 className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
           <span className="font-bold">Chalto</span>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
