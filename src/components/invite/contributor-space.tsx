@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -8,17 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import {
-  Building2,
-  CheckSquare,
-  ArrowRight,
-  Plus,
-  Check,
-  Clock,
-  Zap,
-  FileText,
-  Users,
-} from "lucide-react"
+import { CheckSquare, ArrowRight, Plus, Check, Clock, Zap, FileText, Users } from "lucide-react"
 import { TaskComments } from "@/components/projects/task-comments"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { cn } from "@/lib/utils"
@@ -127,9 +118,7 @@ export function ContributorSpace({
       <header className="border-b bg-card">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-lg p-1.5">
-              <Building2 className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
             <span className="font-bold">Chalto</span>
           </div>
           <Badge variant="outline" className="text-xs">
@@ -338,9 +327,7 @@ export function ContributorSpace({
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="bg-primary rounded-lg p-1.5">
-                <Building2 className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
               <span className="font-bold">Chalto</span>
             </div>
             <div>

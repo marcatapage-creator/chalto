@@ -1,6 +1,7 @@
+import Image from "next/image"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ValidationClient } from "@/components/validate/validation-client"
-import { Building2, AlertCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -19,9 +20,7 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-6">
           <div className="flex justify-center">
-            <div className="bg-primary rounded-xl p-3">
-              <Building2 className="h-8 w-8 text-primary-foreground" />
-            </div>
+            <Image src="/Logo.svg" alt="Chalto" width={40} height={40} />
           </div>
           <div className="space-y-2">
             <div className="flex justify-center">

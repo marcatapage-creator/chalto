@@ -32,12 +32,9 @@ export async function sendValidationEmail({
       <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-          <div style="margin-bottom: 32px;">
-            <div style="display: inline-flex; align-items: center; gap: 8px;">
-              <div style="background: #3b5fdb; border-radius: 8px; padding: 6px 10px;">
-                <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
-              </div>
-            </div>
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
@@ -96,10 +93,9 @@ export async function sendWelcomeEmail({ email, fullName }: { email: string; ful
       <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-          <div style="margin-bottom: 32px;">
-            <div style="background: #2260E8; border-radius: 8px; padding: 6px 12px; display: inline-block;">
-              <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
-            </div>
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
@@ -183,12 +179,9 @@ export async function sendApprovalEmail({
       <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-          <div style="margin-bottom: 32px;">
-            <div style="display: inline-flex; align-items: center; gap: 8px;">
-              <div style="background: #3b5fdb; border-radius: 8px; padding: 6px 10px;">
-                <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
-              </div>
-            </div>
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
