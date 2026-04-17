@@ -1,6 +1,7 @@
+import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Building2, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
   return (
@@ -8,9 +9,7 @@ export default function NotFound() {
       <div className="text-center space-y-6 max-w-md">
         {/* Logo */}
         <div className="flex justify-center">
-          <div className="bg-primary rounded-xl p-3">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
-          </div>
+          <Image src="/Logo.svg" alt="Chalto" width={48} height={48} />
         </div>
 
         {/* Erreur */}
