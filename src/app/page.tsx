@@ -417,7 +417,7 @@ export default function LandingPage() {
                 words={["Créer", "Organiser", "Partager", "Commenter", "Valider", "Avancer"]}
               />
               <br />
-              <span className="text-foreground">vos projets simplement.</span>
+              <span className="text-foreground whitespace-nowrap">vos projets simplement.</span>
             </motion.h1>
 
             <motion.p
