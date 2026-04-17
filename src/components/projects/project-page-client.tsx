@@ -196,7 +196,7 @@ export function ProjectPageClient({
                   !detailsOpen && "-rotate-90"
                 )}
               />
-              {detailsOpen ? "Réduire" : "Détails"}
+              <span className="hidden sm:inline">{detailsOpen ? "Réduire" : "Détails"}</span>
             </Button>
           </div>
 
