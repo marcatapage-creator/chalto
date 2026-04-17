@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Building2, Wrench, Zap, Hammer, HardHat } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { analytics } from "@/lib/analytics"
 
 const professions = [
   {
@@ -74,6 +75,7 @@ export default function OnboardingPage() {
         })
         .eq("id", user.id)
 
+      analytics.onboardingCompleted(selected)
       router.push("/dashboard")
     } finally {
       setLoading(false)

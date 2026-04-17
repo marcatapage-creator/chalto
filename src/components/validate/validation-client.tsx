@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { haptics } from "@/lib/haptics"
+import { analytics } from "@/lib/analytics"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,8 +39,13 @@ export function ValidationClient({ document, token }: { document: Document; toke
       body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
 
-    if (decision === "approved") haptics.success()
-    else haptics.error()
+    if (decision === "approved") {
+      haptics.success()
+      analytics.documentApproved()
+    } else {
+      haptics.error()
+      analytics.documentRejected()
+    }
     setStatus(decision)
     setDone(true)
     setLoading(false)

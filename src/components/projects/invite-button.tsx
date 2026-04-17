@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Mail, Check } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
 interface InviteButtonProps {
   contactId: string
@@ -25,6 +26,7 @@ export function InviteButton({ contactId, projectId, contactName }: InviteButton
     })
 
     if (res.ok) {
+      analytics.providerInvited()
       toast.success(`Invitation envoyée à ${contactName} ✅`)
       setSent(true)
     } else {

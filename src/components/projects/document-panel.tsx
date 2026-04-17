@@ -10,6 +10,7 @@ import { FileViewer } from "@/components/projects/file-viewer"
 import { DocumentActions } from "@/components/projects/document-actions"
 import { createClient } from "@/lib/supabase/client"
 import { haptics } from "@/lib/haptics"
+import { analytics } from "@/lib/analytics"
 import {
   FileText,
   X,
@@ -158,6 +159,7 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
     const data = await res.json()
     if (res.ok) {
       haptics.success()
+      analytics.documentSent()
       toast.success("Email de validation envoyé au client ✅")
       setMessage("")
       setLocalStatus("sent")

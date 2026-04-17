@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { AlertCircle } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
 function SessionExpiredBanner() {
   const searchParams = useSearchParams()
@@ -45,6 +46,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
+    analytics.login("google")
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -62,6 +64,7 @@ export default function LoginPage() {
         setError(error.message)
         return
       }
+      analytics.login("email")
       router.push("/dashboard")
       router.refresh()
     } catch (err) {

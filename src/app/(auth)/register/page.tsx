@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { CheckCircle } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -28,6 +29,7 @@ export default function RegisterPage() {
   const supabase = useMemo(() => createClient(), [])
 
   const handleGoogleLogin = async () => {
+    analytics.signUp("google")
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -62,6 +64,7 @@ export default function RegisterPage() {
 
       if (data.session) {
         // Email confirmation désactivée → session immédiate
+        analytics.signUp("email")
         router.push("/onboarding")
       } else {
         // Email confirmation activée → attente de confirmation

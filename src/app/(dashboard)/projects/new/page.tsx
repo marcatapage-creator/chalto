@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { analytics } from "@/lib/analytics"
 
 const steps = [
   { id: 1, label: "Le projet" },
@@ -107,6 +108,7 @@ export default function NewProjectPage() {
       return
     }
 
+    analytics.projectCreated()
     router.push(`/projects/${data.id}`)
   }
 
