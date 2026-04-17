@@ -38,7 +38,8 @@ export function ValidationClient({ document, token }: { document: Document; toke
       body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
 
-    decision === "approved" ? haptics.success() : haptics.error()
+    if (decision === "approved") haptics.success()
+    else haptics.error()
     setStatus(decision)
     setDone(true)
     setLoading(false)
