@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, Suspense } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { AlertCircle } from "lucide-react"
+
+function SessionExpiredBanner() {
+  const searchParams = useSearchParams()
+  if (searchParams.get("reason") !== "session_expired") return null
+  return (
+    <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400">
+      <AlertCircle className="h-4 w-4 shrink-0" />
+      Votre session a expiré. Reconnectez-vous pour continuer.
+    </div>
+  )
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -76,6 +88,9 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
+              <Suspense>
+                <SessionExpiredBanner />
+              </Suspense>
               <Button
                 type="button"
                 variant="outline"

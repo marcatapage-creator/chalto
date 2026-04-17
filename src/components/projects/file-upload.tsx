@@ -25,12 +25,16 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
 
   const handleFile = async (file: File) => {
     if (!acceptedTypes.includes(file.type)) {
-      toast.error("Format non supporté — PDF, JPG ou PNG uniquement")
+      toast.error("Format non supporté", {
+        description: "Utilisez un fichier PDF, JPG ou PNG uniquement.",
+      })
       return
     }
 
     if (file.size > maxSize) {
-      toast.error("Fichier trop volumineux — 10MB maximum")
+      toast.error("Fichier trop volumineux", {
+        description: `Votre fichier fait ${(file.size / 1024 / 1024).toFixed(1)} MB. Maximum autorisé : 10 MB.`,
+      })
       return
     }
 
@@ -44,7 +48,10 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
       .upload(path, file, { upsert: true })
 
     if (uploadError) {
-      toast.error("Erreur lors de l'upload")
+      toast.error("Upload échoué", {
+        description:
+          "Vérifiez votre connexion et réessayez. Si le problème persiste, contactez le support.",
+      })
       setUploading(false)
       return
     }
