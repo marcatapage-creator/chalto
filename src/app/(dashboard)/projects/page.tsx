@@ -29,11 +29,12 @@ export default async function ProjectsPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: projects = [] } = await supabase
+  const { data } = await supabase
     .from("projects")
     .select("*")
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
+  const projects = data ?? []
 
   return (
     <div className="flex-1 overflow-auto">
