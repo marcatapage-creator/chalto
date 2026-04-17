@@ -43,6 +43,7 @@ import {
   Check,
   X,
 } from "lucide-react"
+import { haptics } from "@/lib/haptics"
 import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
 import { InviteButton } from "@/components/projects/invite-button"
 import { TaskComments } from "@/components/projects/task-comments"
@@ -167,6 +168,7 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
   }
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
+    haptics.medium()
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
     await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
   }

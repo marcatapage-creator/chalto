@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { haptics } from "@/lib/haptics"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -37,6 +38,7 @@ export function ValidationClient({ document, token }: { document: Document; toke
       body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
 
+    decision === "approved" ? haptics.success() : haptics.error()
     setStatus(decision)
     setDone(true)
     setLoading(false)
