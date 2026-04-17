@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
 import {
   Building2,
@@ -124,8 +123,6 @@ export function ContributorSpace({
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster />
-
       {/* Header */}
       <header className="border-b bg-card">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
