@@ -148,7 +148,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
             Ajoutez un document à soumettre à la validation client
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-2 min-w-0 overflow-hidden">
+        <div className="space-y-4 py-2 min-w-0">
           <div className="space-y-2">
             <Label>Nom du document</Label>
             <Input
