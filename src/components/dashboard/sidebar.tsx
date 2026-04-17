@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SlideIn } from "@/components/ui/motion"
-import { useState } from "react"
+import { useState, useEffect, useTransition } from "react"
 
 type Profile = {
   full_name?: string | null
@@ -41,6 +41,14 @@ function SidebarContent({
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    router.prefetch("/dashboard")
+    router.prefetch("/projects")
+    router.prefetch("/contacts")
+    router.prefetch("/settings")
+  }, [router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -80,10 +88,14 @@ function SidebarContent({
             <Link
               key={item.href}
               href={item.href}
-              onClick={onNavigate}
+              onClick={() => {
+                startTransition(() => {})
+                onNavigate?.()
+              }}
               className={cn(
                 "nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
-                isActive ? "active" : "text-muted-foreground"
+                isActive ? "active" : "text-muted-foreground",
+                isPending && "opacity-60"
               )}
             >
               <Icon className="h-4 w-4" />
