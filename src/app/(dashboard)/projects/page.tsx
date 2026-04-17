@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,27 +23,17 @@ const phaseMap: Record<string, string> = {
   cloture: "Clôturé",
 }
 
-const getProjects = unstable_cache(
-  async (userId: string) => {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from("projects")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-    return data ?? []
-  },
-  ["projects"],
-  { revalidate: 30 }
-)
-
 export default async function ProjectsPage() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const projects = await getProjects(user!.id)
+  const { data: projects = [] } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
 
   return (
     <div className="flex-1 overflow-auto">
