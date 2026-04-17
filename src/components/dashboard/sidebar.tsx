@@ -1,7 +1,7 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
+import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -69,7 +69,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="p-6 min-h-25">
         <div className="flex items-center gap-2">
-          <Image src="/Logo.svg" alt="Chalto" width={28} height={28} />
+          <AnimatedLogo width={28} height={28} />
           <span className="font-bold text-lg">Chalto</span>
         </div>
         {profile?.professions && (
@@ -155,7 +155,7 @@ export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts 
       {/* Mobile header + burger */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
         <div className="flex items-center gap-2">
-          <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
+          <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>

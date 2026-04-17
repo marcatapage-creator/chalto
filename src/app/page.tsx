@@ -1,9 +1,14 @@
+"use client"
+
+import { useRef, useState, useEffect } from "react"
+import { motion, useInView, useScroll, useTransform } from "framer-motion"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
-import Image from "next/image"
+import { AnimatedLogo } from "@/components/ui/animated-logo"
 import {
   CheckCircle,
   FileText,
@@ -14,7 +19,118 @@ import {
   ArrowRight,
   FolderOpen,
 } from "lucide-react"
-import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
+
+function AnimatedWord({ words }: { words: string[] }) {
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % words.length)
+        setVisible(true)
+      }, 300)
+    }, 1800)
+
+    return () => clearInterval(interval)
+  }, [words])
+
+  return (
+    <span
+      className="text-primary inline-block transition-all duration-300 text-5xl md:text-7xl"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-8px)",
+      }}
+    >
+      {words[index]}
+    </span>
+  )
+}
+
+// Composant animation réutilisable
+function AnimateIn({
+  children,
+  delay = 0,
+  direction = "up",
+}: {
+  children: React.ReactNode
+  delay?: number
+  direction?: "up" | "left" | "right"
+}) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-80px" })
+
+  const variants = {
+    hidden: {
+      opacity: 0,
+      y: direction === "up" ? 30 : 0,
+      x: direction === "left" ? -30 : direction === "right" ? 30 : 0,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      x: 0,
+      transition: {
+        duration: 0.6,
+        delay,
+        ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
+      },
+    },
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={variants}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+// Composant stagger pour les grilles
+function StaggerGrid({ children, className }: { children: React.ReactNode[]; className?: string }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-60px" })
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.08 },
+        },
+      }}
+    >
+      {children.map((child, i) => (
+        <motion.div
+          key={i}
+          variants={{
+            hidden: { opacity: 0, y: 24 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: {
+                duration: 0.5,
+                ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
+              },
+            },
+          }}
+        >
+          {child}
+        </motion.div>
+      ))}
+    </motion.div>
+  )
+}
 
 const features = [
   {
@@ -122,7 +238,38 @@ const plans = [
   },
 ]
 
+function scrollToSection(id: string) {
+  const el = document.getElementById(id)
+  if (!el) return
+
+  const start = window.scrollY
+  const target = el.getBoundingClientRect().top + window.scrollY - 64
+  const distance = target - start
+  const duration = 900
+  let startTime: number | null = null
+
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+
+  function step(timestamp: number) {
+    if (!startTime) startTime = timestamp
+    const progress = Math.min((timestamp - startTime) / duration, 1)
+    window.scrollTo(0, start + distance * ease(progress))
+    if (progress < 1) requestAnimationFrame(step)
+  }
+
+  requestAnimationFrame(step)
+}
+
 export default function LandingPage() {
+  // Parallax hero
+  const heroRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  })
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -135,7 +282,6 @@ export default function LandingPage() {
       "@type": "Offer",
       price: "0",
       priceCurrency: "EUR",
-      description: "Plan Starter gratuit",
     },
   }
 
@@ -145,24 +291,39 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="min-h-screen bg-background">
+
+      <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Navbar */}
-        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
+        <motion.header
+          className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm"
+          initial={{ y: -60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
+              <AnimatedLogo width={24} height={24} />
               <span className="font-bold">Chalto</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#features" className="hover:text-foreground transition-colors">
+              <button
+                onClick={() => scrollToSection("features")}
+                className="hover:text-foreground transition-colors"
+              >
                 Fonctionnalités
-              </a>
-              <a href="#pricing" className="hover:text-foreground transition-colors">
+              </button>
+              <button
+                onClick={() => scrollToSection("pricing")}
+                className="hover:text-foreground transition-colors"
+              >
                 Tarifs
-              </a>
-              <a href="#testimonials" className="hover:text-foreground transition-colors">
+              </button>
+              <button
+                onClick={() => scrollToSection("testimonials")}
+                className="hover:text-foreground transition-colors"
+              >
                 Témoignages
-              </a>
+              </button>
             </nav>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -174,114 +335,168 @@ export default function LandingPage() {
               </Button>
             </div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Hero */}
-        <section className="pt-32 pb-20 px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <FadeIn>
+        {/* Hero — avec parallax */}
+        <section ref={heroRef} className="relative pt-32 pb-20 px-4 overflow-hidden">
+          {/* Fond décoratif parallax */}
+          <motion.div style={{ y: heroY }} className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+          </motion.div>
+
+          <motion.div
+            style={{ y: heroY, opacity: heroOpacity }}
+            className="max-w-4xl mx-auto text-center space-y-6 relative"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.05 }}
+              className="flex justify-center mb-6"
+            >
+              <AnimatedLogo width={112} height={112} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
               <Badge variant="outline" className="mb-4">
-                🏗️ Pour tous les pros du bâtiment
+                Pour tous les pros du bâtiment
               </Badge>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                Faites valider vos projets <span className="text-primary">simplement</span>
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mt-4">
-                Chalto permet aux architectes, artisans et entrepreneurs de gérer leurs projets,
-                générer leurs documents et obtenir la validation de leurs clients en quelques clics.
-              </p>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-                <Button size="lg" asChild>
-                  <Link href="/register">
-                    Commencer gratuitement
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/login">Voir une démo</Link>
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                Gratuit · Sans carte bancaire · Prêt en 2 minutes
-              </p>
-            </FadeIn>
-          </div>
+            </motion.div>
+
+            <motion.h1
+              className="text-4xl md:text-6xl font-bold tracking-tight leading-tight"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <AnimatedWord
+                words={["Créer", "Organiser", "Partager", "Commenter", "Valider", "Avancer"]}
+              />
+              <br />
+              <span className="text-foreground">vos projets simplement.</span>
+            </motion.h1>
+
+            <motion.p
+              className="text-lg md:text-xl text-muted-foreground mx-auto"
+              style={{ maxWidth: "412px" }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+            >
+              Ne perdez plus de temps avec les emails, les WhatsApp et les appels de relance.
+              <br />
+              Chalto centralise tous vos projets, documents et validations client en un seul
+              endroit.
+            </motion.p>
+
+            <motion.div
+              className="flex flex-col items-center sm:flex-row gap-3 justify-center mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <Button size="lg" asChild>
+                <Link href="/register">
+                  Commencer gratuitement
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/login">Voir une démo</Link>
+              </Button>
+            </motion.div>
+
+            <motion.p
+              className="text-xs text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+            >
+              Gratuit · Sans carte bancaire · Prêt en 2 minutes
+            </motion.p>
+          </motion.div>
         </section>
 
         {/* Features */}
         <section id="features" className="py-20 px-4 bg-muted/30">
           <div className="max-w-6xl mx-auto">
-            <FadeIn>
+            <AnimateIn>
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tight">Tout ce dont vous avez besoin</h2>
                 <p className="text-muted-foreground mt-2">
                   Un outil pensé pour les réalités du terrain
                 </p>
               </div>
-            </FadeIn>
-            <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </AnimateIn>
+
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => {
                 const Icon = feature.icon
                 return (
-                  <StaggerItem key={feature.title}>
-                    <Card className="h-full hover:border-primary/50 transition-colors duration-200">
-                      <CardContent className="p-6 space-y-3">
-                        <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <h3 className="font-semibold">{feature.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </StaggerItem>
+                  <Card
+                    key={feature.title}
+                    className="h-full hover:border-primary/50 transition-colors duration-200"
+                  >
+                    <CardContent className="p-6 space-y-3">
+                      <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
                 )
               })}
-            </StaggerList>
+            </StaggerGrid>
           </div>
         </section>
 
         {/* Testimonials */}
         <section id="testimonials" className="py-20 px-4">
           <div className="max-w-6xl mx-auto">
-            <FadeIn>
+            <AnimateIn>
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tight">Ils utilisent Chalto</h2>
                 <p className="text-muted-foreground mt-2">
-                  Des professionnels du bâtiment qui ont simplifié leur quotidien
+                  Des professionnels qui ont simplifié leur quotidien
                 </p>
               </div>
-            </FadeIn>
-            <StaggerList className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            </AnimateIn>
+
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((t) => (
-                <StaggerItem key={t.name}>
-                  <Card className="h-full">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex gap-1">
-                        {Array.from({ length: t.rating }).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                        ))}
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{`"${t.content}"`}</p>
-                      <div>
-                        <p className="font-medium text-sm">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.role}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </StaggerItem>
+                <Card key={t.name} className="h-full">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex gap-1">
+                      {Array.from({ length: t.rating }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {`"${t.content}"`}
+                    </p>
+                    <div>
+                      <p className="font-medium text-sm">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
-            </StaggerList>
+            </StaggerGrid>
           </div>
         </section>
 
         {/* Pricing */}
         <section id="pricing" className="py-20 px-4 bg-muted/30">
           <div className="max-w-5xl mx-auto">
-            <FadeIn>
+            <AnimateIn>
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tight">
                   Tarifs simples et transparents
@@ -290,17 +505,18 @@ export default function LandingPage() {
                   Commencez gratuitement, évoluez selon vos besoins
                 </p>
               </div>
-            </FadeIn>
-            <StaggerList className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            </AnimateIn>
+
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
               {plans.map((plan) => (
-                <StaggerItem key={plan.name} className="h-full">
+                <div key={plan.name} className="relative flex flex-col pt-3">
+                  {plan.highlighted && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
+                    </div>
+                  )}
                   <Card className={`h-full ${plan.highlighted ? "border-primary shadow-lg" : ""}`}>
-                    <CardContent className={`p-6 space-y-6 ${plan.highlighted ? "pt-4" : ""}`}>
-                      {plan.highlighted && (
-                        <div className="flex justify-center">
-                          <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
-                        </div>
-                      )}
+                    <CardContent className="p-6 space-y-6">
                       <div>
                         <h3 className="font-bold text-lg">{plan.name}</h3>
                         <p className="text-muted-foreground text-sm">{plan.description}</p>
@@ -328,16 +544,16 @@ export default function LandingPage() {
                       </Button>
                     </CardContent>
                   </Card>
-                </StaggerItem>
+                </div>
               ))}
-            </StaggerList>
+            </StaggerGrid>
           </div>
         </section>
 
         {/* CTA Final */}
         <section className="py-20 px-4">
-          <div className="max-w-2xl mx-auto text-center space-y-6">
-            <FadeIn>
+          <AnimateIn>
+            <div className="max-w-2xl mx-auto text-center space-y-6">
               <h2 className="text-3xl font-bold tracking-tight">
                 Prêt à simplifier votre activité ?
               </h2>
@@ -350,8 +566,8 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </FadeIn>
-          </div>
+            </div>
+          </AnimateIn>
         </section>
 
         {/* Footer */}

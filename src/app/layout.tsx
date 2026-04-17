@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -55,7 +55,6 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
-  themeColor: "#2260E8",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -66,6 +65,10 @@ export const metadata: Metadata = {
     apple: [{ url: "/icon-192.png" }],
     shortcut: "/icon-32.png",
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#2260E8",
 }
 
 // Runs before React hydration to apply stored theme and prevent FOUC
