@@ -163,9 +163,9 @@ export default function LoginPage() {
                 {loading ? "Connexion..." : "Se connecter"}
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Pas encore de compte ?{" "}
-                <Link href="/register" className="text-primary hover:underline">
-                  Créer un compte
+                Accès sur invitation uniquement.{" "}
+                <Link href="/#waitlist" className="text-primary hover:underline">
+                  Rejoindre la liste d&apos;attente
                 </Link>
               </p>
             </CardFooter>
