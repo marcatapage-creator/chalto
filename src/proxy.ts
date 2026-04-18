@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
     "/invite",
     "/blog",
   ]
-  const isPublic = publicRoutes.some((r) => pathname.startsWith(r))
+  const isPublic = publicRoutes.some((r) => (r === "/" ? pathname === "/" : pathname.startsWith(r)))
 
   // Non connecté → login
   if (!user && !isPublic) {
