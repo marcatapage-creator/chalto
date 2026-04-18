@@ -64,11 +64,11 @@ function SheetContent({
           "data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:sm:max-w-sm",
           "data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b",
           // Animation — autres côtés (left/right/top)
-          "data-[side=left]:data-[state=open]:animate-in data-[side=left]:data-[state=open]:fade-in-0 data-[side=left]:data-[state=open]:slide-in-from-left-10",
-          "data-[side=right]:data-[state=open]:animate-in data-[side=right]:data-[state=open]:fade-in-0 data-[side=right]:data-[state=open]:slide-in-from-right-10",
+          "data-[side=left]:data-[state=open]:animate-in data-[side=left]:data-[state=open]:slide-in-from-left-[100%] data-[side=left]:data-[state=open]:duration-500 data-[side=left]:data-[state=open]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",
+          "data-[side=right]:data-[state=open]:animate-in data-[side=right]:data-[state=open]:slide-in-from-right-[100%] data-[side=right]:data-[state=open]:duration-500 data-[side=right]:data-[state=open]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",
           "data-[side=top]:data-[state=open]:animate-in data-[side=top]:data-[state=open]:fade-in-0 data-[side=top]:data-[state=open]:slide-in-from-top-10",
-          "data-[side=left]:data-[state=closed]:animate-out data-[side=left]:data-[state=closed]:fade-out-0 data-[side=left]:data-[state=closed]:slide-out-to-left-10 data-[side=left]:data-[state=closed]:duration-200",
-          "data-[side=right]:data-[state=closed]:animate-out data-[side=right]:data-[state=closed]:fade-out-0 data-[side=right]:data-[state=closed]:slide-out-to-right-10 data-[side=right]:data-[state=closed]:duration-200",
+          "data-[side=left]:data-[state=closed]:animate-out data-[side=left]:data-[state=closed]:slide-out-to-left-[100%] data-[side=left]:data-[state=closed]:duration-300 data-[side=left]:data-[state=closed]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",
+          "data-[side=right]:data-[state=closed]:animate-out data-[side=right]:data-[state=closed]:slide-out-to-right-[100%] data-[side=right]:data-[state=closed]:duration-300 data-[side=right]:data-[state=closed]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",
           "data-[side=top]:data-[state=closed]:animate-out data-[side=top]:data-[state=closed]:fade-out-0 data-[side=top]:data-[state=closed]:slide-out-to-top-10 data-[side=top]:data-[state=closed]:duration-200",
           // Animation — bottom drawer : glissé fluide, sans fade
           "data-[side=bottom]:data-[state=open]:animate-in data-[side=bottom]:data-[state=open]:slide-in-from-bottom-[100%] data-[side=bottom]:data-[state=open]:duration-500 data-[side=bottom]:data-[state=open]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",

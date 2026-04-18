@@ -413,52 +413,52 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-        </motion.header>
 
-        {/* Mobile menu — en dehors du header pour un vrai effet slide */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-              className="fixed top-14 left-0 right-0 bottom-0 z-40 bg-background md:hidden"
-            >
-              <nav className="flex flex-col px-6 py-6 gap-1 border-t">
-                {[
-                  { label: "Fonctionnalités", id: "features" },
-                  { label: "Tarifs", id: "pricing" },
-                  { label: "Témoignages", id: "testimonials" },
-                  { label: "Rejoindre la bêta", id: "waitlist" },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      scrollToSection(item.id)
-                      setMenuOpen(false)
-                    }}
-                    className="text-left py-4 text-base font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50 last:border-0"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <div className="flex gap-2 pt-4">
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <Link href="/login" onClick={() => setMenuOpen(false)}>
-                      Connexion
-                    </Link>
-                  </Button>
-                  <Button size="sm" className="flex-1" asChild>
-                    <Link href="/register" onClick={() => setMenuOpen(false)}>
-                      Commencer
-                    </Link>
-                  </Button>
-                </div>
-              </nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Mobile menu */}
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="md:hidden border-t bg-background/95 backdrop-blur-sm"
+              >
+                <nav className="flex flex-col px-6 py-4 gap-1">
+                  {[
+                    { label: "Fonctionnalités", id: "features" },
+                    { label: "Tarifs", id: "pricing" },
+                    { label: "Témoignages", id: "testimonials" },
+                    { label: "Rejoindre la bêta", id: "waitlist" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        scrollToSection(item.id)
+                        setMenuOpen(false)
+                      }}
+                      className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50 last:border-0"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                  <div className="flex gap-2 pt-3">
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
+                      <Link href="/login" onClick={() => setMenuOpen(false)}>
+                        Connexion
+                      </Link>
+                    </Button>
+                    <Button size="sm" className="flex-1" asChild>
+                      <Link href="/register" onClick={() => setMenuOpen(false)}>
+                        Commencer
+                      </Link>
+                    </Button>
+                  </div>
+                </nav>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.header>
 
         {/* Hero */}
         <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden">

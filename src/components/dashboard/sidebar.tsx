@@ -8,11 +8,11 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, X, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { SlideIn } from "@/components/ui/motion"
+
 import { useState, useEffect, useTransition } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 
 type Profile = {
   full_name?: string | null
@@ -158,20 +158,37 @@ export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts 
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
         </div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <SheetTitle className="sr-only">Menu</SheetTitle>
-            <SlideIn className="h-full">
-              <SidebarContent profile={profile} counts={counts} onNavigate={() => setOpen(false)} />
-            </SlideIn>
-          </SheetContent>
-        </Sheet>
+        <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <Menu className="h-5 w-5" />
+        </Button>
       </div>
+
+      {/* Mobile menu panel */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden fixed inset-0 z-50 bg-black/40"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              key="panel"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+              className="md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
+            >
+              <SidebarContent profile={profile} counts={counts} onNavigate={() => setOpen(false)} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   )
 }
