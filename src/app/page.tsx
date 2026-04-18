@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
+import { WaitlistForm } from "@/components/waitlist-form"
 import {
   CheckCircle,
   FileText,
@@ -38,7 +39,7 @@ function AnimatedWord({ words }: { words: string[] }) {
 
   return (
     <span
-      className="text-primary inline-block transition-all duration-300 text-5xl md:text-7xl"
+      className="text-primary inline-block transition-all duration-300 text-3xl md:text-6xl"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(-8px)",
@@ -408,7 +409,7 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-6xl font-bold tracking-tight leading-tight"
+              className="text-4xl md:text-6xl font-bold tracking-tight leading-tight uppercase"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -418,13 +419,13 @@ export default function LandingPage() {
               />
               <br />
               <span className="text-foreground whitespace-nowrap text-3xl md:text-6xl">
-                vos projets simplement.
+                vos projets simplement
               </span>
             </motion.h1>
 
             <motion.p
               className="text-lg md:text-xl text-muted-foreground mx-auto"
-              style={{ maxWidth: "412px" }}
+              style={{ maxWidth: "512px" }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
@@ -442,10 +443,10 @@ export default function LandingPage() {
               transition={{ duration: 0.6, delay: 0.5 }}
             >
               <Button size="lg" asChild>
-                <Link href="/register">
-                  Commencer gratuitement
+                <a href="#waitlist">
+                  Rejoindre la bêta
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                </a>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/login">Voir une démo</Link>
@@ -458,7 +459,7 @@ export default function LandingPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              Gratuit · Sans carte bancaire · Prêt en 2 minutes
+              Accès bêta sur invitation · Gratuit · Sans engagement
             </motion.p>
           </div>
         </section>
@@ -581,7 +582,7 @@ export default function LandingPage() {
                         variant={plan.highlighted ? "default" : "outline"}
                         asChild
                       >
-                        <Link href={plan.href}>{plan.cta}</Link>
+                        <a href="#waitlist">{plan.cta}</a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -648,13 +649,29 @@ export default function LandingPage() {
                 Rejoignez les professionnels du bâtiment qui font confiance à Chalto
               </p>
               <Button size="lg" asChild className="mt-4">
-                <Link href="/register">
-                  Commencer gratuitement
+                <a href="#waitlist">
+                  Rejoindre la liste d&apos;attente
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                </a>
               </Button>
             </div>
           </AnimateIn>
+        </section>
+
+        {/* Waitlist */}
+        <section id="waitlist" className="py-20 px-4 bg-muted/30">
+          <div className="max-w-md mx-auto">
+            <AnimateIn>
+              <div className="text-center space-y-4 mb-8">
+                <Badge variant="outline">🚀 Accès bêta</Badge>
+                <h2 className="text-3xl font-bold tracking-tight">Rejoignez les premiers</h2>
+                <p className="text-muted-foreground">
+                  Chalto est en accès bêta fermé. Inscrivez-vous pour être contacté en priorité.
+                </p>
+              </div>
+              <WaitlistForm />
+            </AnimateIn>
+          </div>
         </section>
 
         {/* Footer */}

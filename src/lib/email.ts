@@ -149,6 +149,67 @@ export async function sendWelcomeEmail({ email, fullName }: { email: string; ful
   })
 }
 
+export async function sendWaitlistConfirmationEmail({
+  email,
+  name,
+}: {
+  email: string
+  name?: string
+}) {
+  return getResend().emails.send({
+    from: FROM,
+    to: email,
+    subject: "Vous êtes sur la liste — Chalto Bêta",
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="margin-bottom: 32px;">
+            <div style="background: #2260E8; border-radius: 8px; padding: 6px 12px; display: inline-block;">
+              <span style="color: white; font-weight: 700; font-size: 14px;">Chalto</span>
+            </div>
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            Vous êtes sur la liste ! 🎉
+          </h1>
+
+          <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
+            Bonjour ${name ?? ""}
+          </p>
+
+          <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
+            Merci pour votre intérêt pour Chalto. Vous faites partie
+            des premiers inscrits à notre bêta fermée.
+          </p>
+
+          <div style="background: #f9f9f9; border-radius: 10px; padding: 24px; margin: 0 0 32px;">
+            <p style="margin: 0 0 12px; font-weight: 600;">
+              Ce qui vous attend :
+            </p>
+            <p style="margin: 0 0 8px; font-size: 14px; color: #555;">
+              ✅ Accès prioritaire à la plateforme
+            </p>
+            <p style="margin: 0 0 8px; font-size: 14px; color: #555;">
+              ✅ Plan Pro offert pendant la bêta
+            </p>
+            <p style="margin: 0; font-size: 14px; color: #555;">
+              ✅ Votre feedback façonnera le produit
+            </p>
+          </div>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            La plateforme des professionnels du bâtiment ·
+            <a href="https://chalto.fr" style="color: #2260E8;">chalto.fr</a>
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendApprovalEmail({
   proEmail,
   proName,
