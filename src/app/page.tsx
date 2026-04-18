@@ -204,7 +204,7 @@ const plans = [
     description: "Pour découvrir Chalto",
     features: ["2 projets actifs", "5 documents", "Validation client", "Templates de base"],
     cta: "Commencer gratuitement",
-    href: "/register",
+    href: "#waitlist",
     highlighted: false,
   },
   {
@@ -221,7 +221,7 @@ const plans = [
       "Support prioritaire",
     ],
     cta: "Démarrer l'essai",
-    href: "/register",
+    href: "#waitlist",
     highlighted: true,
   },
   {
@@ -236,7 +236,7 @@ const plans = [
       "Support dédié",
     ],
     cta: "Nous contacter",
-    href: "/register",
+    href: "#waitlist",
     highlighted: false,
   },
 ]
@@ -372,7 +372,7 @@ export default function LandingPage() {
                 <Link href="/login">Connexion</Link>
               </Button>
               <Button size="sm" asChild className="hidden md:inline-flex">
-                <Link href="/register">Commencer</Link>
+                <a href="#waitlist">Rejoindre la bêta</a>
               </Button>
               <button
                 className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
@@ -450,9 +450,9 @@ export default function LandingPage() {
                       </Link>
                     </Button>
                     <Button size="sm" className="flex-1" asChild>
-                      <Link href="/register" onClick={() => setMenuOpen(false)}>
-                        Commencer
-                      </Link>
+                      <a href="#waitlist" onClick={() => setMenuOpen(false)}>
+                        Rejoindre la bêta
+                      </a>
                     </Button>
                   </div>
                 </nav>
@@ -549,7 +549,7 @@ export default function LandingPage() {
                 </a>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/login">Voir une démo</Link>
+                <a href="#waitlist">Rejoindre la bêta</a>
               </Button>
             </motion.div>
 
