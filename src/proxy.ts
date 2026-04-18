@@ -30,7 +30,16 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Routes publiques — toujours accessibles
-  const publicRoutes = ["/", "/login", "/register", "/auth/callback", "/blog"]
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/register",
+    "/onboarding",
+    "/auth/callback",
+    "/validate",
+    "/invite",
+    "/blog",
+  ]
   const isPublic = publicRoutes.some((r) => pathname.startsWith(r))
 
   // Non connecté → login
