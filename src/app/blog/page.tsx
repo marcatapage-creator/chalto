@@ -50,9 +50,9 @@ export default function BlogPage() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-4">
           {articles.map((article) => (
-            <Link key={article.slug} href={`/blog/${article.slug}`}>
+            <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
               <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer">
                 <CardContent className="p-6 space-y-3">
                   <div className="flex items-center gap-3">

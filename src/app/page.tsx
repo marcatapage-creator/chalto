@@ -353,24 +353,18 @@ export default function LandingPage() {
               <span className="font-bold">Chalto</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-              <button
-                onClick={() => scrollToSection("features")}
-                className="hover:text-foreground transition-colors"
-              >
+              <a href="#features" className="hover:text-foreground transition-colors">
                 Fonctionnalités
-              </button>
-              <button
-                onClick={() => scrollToSection("pricing")}
-                className="hover:text-foreground transition-colors"
-              >
+              </a>
+              <a href="#pricing" className="hover:text-foreground transition-colors">
                 Tarifs
-              </button>
-              <button
-                onClick={() => scrollToSection("testimonials")}
-                className="hover:text-foreground transition-colors"
-              >
+              </a>
+              <a href="#testimonials" className="hover:text-foreground transition-colors">
                 Témoignages
-              </button>
+              </a>
+              <Link href="/blog" className="hover:text-foreground transition-colors">
+                Blog
+              </Link>
             </nav>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -437,11 +431,18 @@ export default function LandingPage() {
                         scrollToSection(item.id)
                         setMenuOpen(false)
                       }}
-                      className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50 last:border-0"
+                      className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
                     >
                       {item.label}
                     </button>
                   ))}
+                  <Link
+                    href="/blog"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
+                  >
+                    Blog
+                  </Link>
                   <div className="flex gap-2 pt-3">
                     <Button variant="outline" size="sm" className="flex-1" asChild>
                       <Link href="/login" onClick={() => setMenuOpen(false)}>
@@ -782,6 +783,9 @@ export default function LandingPage() {
               <span>— La plateforme des pros du bâtiment</span>
             </div>
             <div className="flex gap-6">
+              <Link href="/blog" className="hover:text-foreground transition-colors">
+                Blog
+              </Link>
               <a href="#" className="hover:text-foreground transition-colors">
                 Mentions légales
               </a>
