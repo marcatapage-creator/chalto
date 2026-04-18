@@ -39,7 +39,7 @@ function AnimatedWord({ words }: { words: string[] }) {
 
   return (
     <span
-      className="text-primary inline-block transition-all duration-300 text-4xl md:text-7xl"
+      className="text-primary inline-block transition-all duration-300 text-4xl md:text-6xl"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(-8px)",
@@ -343,7 +343,7 @@ export default function LandingPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-6 md:px-4 h-14 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AnimatedLogo width={24} height={24} />
               <span className="font-bold">Chalto</span>
@@ -381,7 +381,7 @@ export default function LandingPage() {
         </motion.header>
 
         {/* Hero */}
-        <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden">
           {/* Fond décoratif — desktop uniquement (blur-3xl coûteux sur mobile) */}
           <div className="absolute inset-0 pointer-events-none hidden md:block">
             <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
@@ -395,8 +395,13 @@ export default function LandingPage() {
               transition={{ duration: 0.7, delay: 0.05 }}
               className="flex justify-center mb-6"
             >
-              <AnimatedLogo width={88} height={88} className="md:hidden" />
-              <AnimatedLogo width={112} height={112} className="hidden md:block" />
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.75 }}
+              >
+                <AnimatedLogo width={88} height={88} className="md:hidden" />
+                <AnimatedLogo width={112} height={112} className="hidden md:block" />
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -410,7 +415,7 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.h1
-              className="text-5xl md:text-7xl font-bold tracking-tight leading-tight uppercase"
+              className="text-5xl md:text-6xl font-bold tracking-tight leading-tight uppercase"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -425,8 +430,8 @@ export default function LandingPage() {
                 <span className="block text-foreground text-4xl">simplement</span>
               </span>
               {/* Desktop : 1 ligne */}
-              <span className="hidden md:inline text-foreground whitespace-nowrap md:text-7xl">
-                vos projets simplement
+              <span className="hidden md:inline text-foreground whitespace-nowrap md:text-6xl">
+                vos projets, simplement
               </span>
             </motion.h1>
 
@@ -449,10 +454,17 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <Button size="lg" asChild>
+              <Button size="lg" asChild className="group">
                 <a href="#waitlist">
                   Rejoindre la bêta
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <motion.span
+                    className="md:hidden ml-2"
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </motion.span>
+                  <ArrowRight className="hidden md:inline ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </a>
               </Button>
               <Button size="lg" variant="outline" asChild>
@@ -472,7 +484,7 @@ export default function LandingPage() {
         </section>
 
         {/* Features */}
-        <section id="features" className="py-20 px-4 bg-muted/30">
+        <section id="features" className="py-20 px-6 md:px-4 bg-muted/30">
           <div className="max-w-6xl mx-auto">
             <AnimateIn>
               <div className="text-center mb-12">
@@ -508,7 +520,7 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials */}
-        <section id="testimonials" className="py-20 px-4">
+        <section id="testimonials" className="py-20 px-6 md:px-4">
           <div className="max-w-6xl mx-auto">
             <AnimateIn>
               <div className="text-center mb-12">
@@ -543,7 +555,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="py-20 px-4 bg-muted/30">
+        <section id="pricing" className="py-20 px-6 md:px-4 bg-muted/30">
           <div className="max-w-5xl mx-auto">
             <AnimateIn>
               <div className="text-center mb-12">
@@ -600,7 +612,7 @@ export default function LandingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="py-20 px-4">
+        <section className="py-20 px-6 md:px-4">
           <div className="max-w-2xl mx-auto">
             <AnimateIn>
               <div className="text-center mb-12">
@@ -646,7 +658,7 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Final */}
-        <section className="py-20 px-4">
+        <section className="py-20 px-6 md:px-4">
           <AnimateIn>
             <div className="max-w-2xl mx-auto text-center space-y-6">
               <h2 className="text-3xl font-bold tracking-tight">
@@ -666,7 +678,7 @@ export default function LandingPage() {
         </section>
 
         {/* Waitlist */}
-        <section id="waitlist" className="py-20 px-4 bg-muted/30">
+        <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
           <div className="max-w-md mx-auto">
             <AnimateIn>
               <div className="text-center space-y-4 mb-8">
@@ -682,7 +694,7 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t py-8 px-4">
+        <footer className="border-t py-8 px-6 md:px-4">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Image src="/Logo.svg" alt="Chalto" width={20} height={20} />
