@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { CheckCircle } from "lucide-react"
+import Image from "next/image"
 import { analytics } from "@/lib/analytics"
 
 export default function RegisterPage() {
@@ -97,7 +98,10 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Chalto</h1>
+          <div className="flex items-center justify-center gap-2">
+            <Image src="/Logo.svg" alt="Chalto" width={32} height={32} />
+            <h1 className="text-2xl font-bold tracking-tight">Chalto</h1>
+          </div>
           <p className="text-muted-foreground text-sm mt-1">
             La plateforme des professionnels du bâtiment
           </p>
