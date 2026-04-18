@@ -39,7 +39,7 @@ function AnimatedWord({ words }: { words: string[] }) {
 
   return (
     <span
-      className="text-primary inline-block transition-all duration-300 text-3xl md:text-6xl"
+      className="text-primary inline-block transition-all duration-300 text-4xl md:text-7xl"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(-8px)",
@@ -395,7 +395,8 @@ export default function LandingPage() {
               transition={{ duration: 0.7, delay: 0.05 }}
               className="flex justify-center mb-6"
             >
-              <AnimatedLogo width={112} height={112} />
+              <AnimatedLogo width={88} height={88} className="md:hidden" />
+              <AnimatedLogo width={112} height={112} className="hidden md:block" />
             </motion.div>
 
             <motion.div
@@ -403,13 +404,13 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <Badge variant="outline" className="mb-4">
+              <Badge variant="outline" className="mb-4 hidden md:inline-flex">
                 Pour tous les pros du bâtiment
               </Badge>
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-6xl font-bold tracking-tight leading-tight uppercase"
+              className="text-5xl md:text-7xl font-bold tracking-tight leading-tight uppercase"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -418,7 +419,13 @@ export default function LandingPage() {
                 words={["Créer", "Organiser", "Partager", "Commenter", "Valider", "Avancer"]}
               />
               <br />
-              <span className="text-foreground whitespace-nowrap text-3xl md:text-6xl">
+              {/* Mobile : 3 lignes */}
+              <span className="md:hidden">
+                <span className="block text-foreground text-4xl">vos projets,</span>
+                <span className="block text-foreground text-4xl">simplement</span>
+              </span>
+              {/* Desktop : 1 ligne */}
+              <span className="hidden md:inline text-foreground whitespace-nowrap md:text-7xl">
                 vos projets simplement
               </span>
             </motion.h1>
