@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Building2, Wrench, Zap, Hammer, HardHat } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
+import { createDemoProject } from "@/lib/create-demo-project"
 
 const professions = [
   {
@@ -75,6 +76,8 @@ export default function OnboardingPage() {
         })
         .eq("id", user.id)
 
+      await createDemoProject(supabase, user.id, selected)
+
       analytics.onboardingCompleted(selected)
       router.push("/dashboard")
     } finally {
@@ -124,7 +127,7 @@ export default function OnboardingPage() {
         </div>
 
         <Button className="w-full" disabled={!selected || loading} onClick={handleContinue}>
-          {loading ? "Enregistrement..." : "Continuer →"}
+          {loading ? "Préparation de votre espace..." : "Continuer →"}
         </Button>
       </div>
     </div>

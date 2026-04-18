@@ -5,6 +5,7 @@ import { FolderOpen } from "lucide-react"
 import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 import Link from "next/link"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -12,17 +13,32 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: projects } = await supabase
-    .from("projects")
-    .select("id, status, name, client_name, created_at")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })
+  const [{ data: projects }, { data: profile }] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("id, status, name, client_name, created_at")
+      .eq("user_id", user!.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("demo_project_id, onboarding_completed")
+      .eq("id", user!.id)
+      .single(),
+  ])
 
   const projectIds = projects?.map((p) => p.id) ?? []
-  const { data: documents } =
+  const [{ data: documents }, { count: documentSentCount }] = await Promise.all([
     projectIds.length > 0
-      ? await supabase.from("documents").select("status").in("project_id", projectIds)
-      : { data: [] }
+      ? supabase.from("documents").select("status").in("project_id", projectIds)
+      : Promise.resolve({ data: [] as { status: string }[] }),
+    projectIds.length > 0
+      ? supabase
+          .from("documents")
+          .select("*", { count: "exact", head: true })
+          .in("project_id", projectIds)
+          .in("status", ["sent", "approved", "rejected"])
+      : Promise.resolve({ count: 0 }),
+  ])
 
   const initialCounts = {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
@@ -40,6 +56,12 @@ export default async function DashboardPage() {
         </FadeIn>
 
         <DashboardStats userId={user!.id} initialCounts={initialCounts} />
+
+        <OnboardingChecklist
+          userId={user!.id}
+          demoProjectId={profile?.demo_project_id}
+          documentSentCount={documentSentCount ?? 0}
+        />
 
         {/* Projets récents */}
         <FadeIn delay={0.2}>
