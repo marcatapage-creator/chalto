@@ -146,7 +146,7 @@ export function NotificationsForm({ profile }: NotificationsFormProps) {
               value={form.notif_email_frequency}
               onValueChange={(v) => updateField("notif_email_frequency", v)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

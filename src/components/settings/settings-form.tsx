@@ -114,7 +114,7 @@ export function SettingsForm({
         <TabsTrigger value="profil">Profil</TabsTrigger>
         <TabsTrigger value="entreprise">Entreprise</TabsTrigger>
         <TabsTrigger value="compte">Compte</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        <TabsTrigger value="notifications">Notifs</TabsTrigger>
       </TabsList>
 
       {/* Onglet Profil */}
