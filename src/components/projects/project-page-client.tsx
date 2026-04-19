@@ -342,7 +342,6 @@ export function ProjectPageClient({
                 userId={userId}
                 phase={phase}
                 clientName={project.client_name}
-                clientEmail={project.client_email}
                 onClose={() => setSelectedDoc(null)}
                 onStatusChange={handleDocStatusChange}
               />
@@ -380,7 +379,6 @@ export function ProjectPageClient({
                 userId={userId}
                 phase={phase}
                 clientName={project.client_name}
-                clientEmail={project.client_email}
                 onClose={() => setSelectedDoc(null)}
                 onStatusChange={handleDocStatusChange}
               />

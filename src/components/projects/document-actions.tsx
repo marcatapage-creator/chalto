@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,6 @@ interface DocumentActionsProps {
   documentName: string
   projectId: string
   clientName?: string
-  clientEmail?: string
   status: string
   className?: string
   onSent?: () => void
@@ -39,7 +39,6 @@ export function DocumentActions({
   documentName,
   projectId,
   clientName,
-  clientEmail,
   status,
   className,
   onSent,
@@ -48,6 +47,7 @@ export function DocumentActions({
   const [audience, setAudience] = useState<"client" | "contributor">("client")
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
+  const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
@@ -73,15 +73,10 @@ export function DocumentActions({
 
     try {
       if (audience === "client") {
-        await supabase
-          .from("documents")
-          .update({ status: "sent", audience: "client" })
-          .eq("id", documentId)
-
         await fetch("/api/send-validation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ documentId, clientEmail, clientName, documentName }),
+          body: JSON.stringify({ documentId, message: message || null }),
         })
 
         haptics.success()
@@ -110,6 +105,7 @@ export function DocumentActions({
         toast.success(`Document partagé avec ${selectedContributors.length} prestataire(s) ✅`)
       }
 
+      setMessage("")
       setOpen(false)
       onSent?.()
     } catch (error) {
@@ -235,6 +231,19 @@ export function DocumentActions({
                 )}
               </div>
             )}
+
+            {/* Message facultatif */}
+            <Textarea
+              placeholder={
+                audience === "client"
+                  ? "Ajouter un mot pour le client (facultatif)..."
+                  : "Ajouter un mot pour le(s) prestataire(s) (facultatif)..."
+              }
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={2}
+              className="resize-none text-sm"
+            />
 
             {/* Bouton envoyer */}
             <Button

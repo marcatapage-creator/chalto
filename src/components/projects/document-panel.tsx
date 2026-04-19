@@ -43,7 +43,7 @@ interface DocumentPanelProps {
   document: Document
   userId: string
   clientName?: string
-  clientEmail?: string
+
   phase?: string
   onClose: () => void
   onStatusChange?: (docId: string, status: string, version?: number) => void
@@ -82,7 +82,6 @@ export function DocumentPanel({
   document,
   userId,
   clientName,
-  clientEmail,
   phase,
   onClose,
   onStatusChange,
@@ -413,10 +412,10 @@ export function DocumentPanel({
           </p>
           {!isChantier && (
             <Textarea
-              placeholder="Ajouter un mot pour le client (optionnel)..."
+              placeholder="Ajouter un mot pour le client (facultatif)..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={3}
+              rows={2}
               className="resize-none text-sm"
             />
           )}
@@ -426,7 +425,6 @@ export function DocumentPanel({
               documentName={document.name}
               projectId={document.project_id}
               clientName={clientName}
-              clientEmail={clientEmail}
               status={localStatus}
               className="w-full"
               onSent={() => setLocalStatus("sent")}
