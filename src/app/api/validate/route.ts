@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendApprovalEmail } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -37,11 +38,25 @@ export async function POST(request: Request) {
     // Notifier le pro par email
     const { data: proProfile } = await admin
       .from("profiles")
-      .select("email, full_name")
+      .select("email, full_name, notif_email_approved, notif_email_rejected, notif_email_frequency")
       .eq("id", document.projects.user_id)
       .single()
 
-    if (proProfile?.email) {
+    await createNotification({
+      userId: document.projects.user_id,
+      type: status === "approved" ? "document_approved" : "document_rejected",
+      title: status === "approved" ? "✅ Document approuvé" : "❌ Document refusé",
+      body: `${document.projects.client_name ?? "Votre client"} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
+      link: `/projects/${document.project_id}`,
+    })
+
+    const shouldSendEmail =
+      proProfile?.notif_email_frequency !== "never" &&
+      (status === "approved"
+        ? proProfile?.notif_email_approved !== false
+        : proProfile?.notif_email_rejected !== false)
+
+    if (proProfile?.email && shouldSendEmail) {
       const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/projects/${document.project_id}`
       await sendApprovalEmail({
         proEmail: proProfile.email,

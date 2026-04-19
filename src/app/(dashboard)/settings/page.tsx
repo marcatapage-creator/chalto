@@ -23,7 +23,19 @@ export default async function SettingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
           <p className="text-muted-foreground">Gérez votre profil et vos préférences</p>
         </FadeIn>
-        <SettingsForm profile={profile} professions={professions ?? []} />
+        <SettingsForm
+          profile={profile}
+          professions={professions ?? []}
+          notifProfile={{
+            id: profile?.id ?? "",
+            notif_email_approved: profile?.notif_email_approved ?? true,
+            notif_email_rejected: profile?.notif_email_rejected ?? true,
+            notif_email_message: profile?.notif_email_message ?? true,
+            notif_email_task: profile?.notif_email_task ?? true,
+            notif_email_frequency: profile?.notif_email_frequency ?? "immediate",
+            notif_inapp_enabled: profile?.notif_inapp_enabled ?? true,
+          }}
+        />
       </div>
     </div>
   )

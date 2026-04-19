@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { NotificationBell } from "@/components/dashboard/notification-bell"
+import { useNotifications } from "@/hooks/use-notifications"
 
 import { useState, useEffect, useTransition } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -22,6 +24,8 @@ type Profile = {
 
 type Counts = { projects: number; contacts: number }
 
+type NotifProps = ReturnType<typeof useNotifications>
+
 const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, countKey: null },
   { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
@@ -32,10 +36,14 @@ const navigation = [
 function SidebarContent({
   profile,
   counts,
+  notifProps,
+  showBell = true,
   onNavigate,
 }: {
   profile: Profile
   counts: Counts
+  notifProps: NotifProps
+  showBell?: boolean
   onNavigate?: () => void
 }) {
   const pathname = usePathname()
@@ -67,14 +75,17 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 min-h-25">
-        <div className="flex items-center gap-2">
-          <AnimatedLogo width={28} height={28} />
-          <span className="font-bold text-lg">Chalto</span>
+      <div className="px-6 min-h-25 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <AnimatedLogo width={28} height={28} />
+            <span className="font-bold text-lg">Chalto</span>
+          </div>
+          {profile?.professions && (
+            <p className="text-xs text-muted-foreground mt-1 ml-9">{profile.professions.label}</p>
+          )}
         </div>
-        {profile?.professions && (
-          <p className="text-xs text-muted-foreground mt-1 ml-9">{profile.professions.label}</p>
-        )}
+        {showBell && <NotificationBell {...notifProps} popoverAlign="start" />}
       </div>
 
       <Separator />
@@ -142,14 +153,23 @@ function SidebarContent({
   )
 }
 
-export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts }) {
+export function Sidebar({
+  profile,
+  counts,
+  userId,
+}: {
+  profile: Profile
+  counts: Counts
+  userId: string
+}) {
   const [open, setOpen] = useState(false)
+  const notifProps = useNotifications(userId)
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-64 border-r bg-card flex-col h-full">
-        <SidebarContent profile={profile} counts={counts} />
+        <SidebarContent profile={profile} counts={counts} notifProps={notifProps} />
       </aside>
 
       {/* Mobile header + burger */}
@@ -158,9 +178,12 @@ export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts 
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-          <Menu className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell {...notifProps} />
+          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Mobile menu panel */}
@@ -184,7 +207,13 @@ export function Sidebar({ profile, counts }: { profile: Profile; counts: Counts 
               transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
               className="md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
             >
-              <SidebarContent profile={profile} counts={counts} onNavigate={() => setOpen(false)} />
+              <SidebarContent
+                profile={profile}
+                counts={counts}
+                notifProps={notifProps}
+                showBell={false}
+                onNavigate={() => setOpen(false)}
+              />
             </motion.div>
           </>
         )}

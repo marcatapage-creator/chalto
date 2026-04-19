@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendApprovalEmail } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -28,6 +29,17 @@ export async function POST(request: Request) {
         approved_at: status === "approved" ? new Date().toISOString() : null,
       }),
     ])
+
+    await createNotification({
+      userId: document.projects.user_id,
+      type: status === "approved" ? "document_approved" : "document_rejected",
+      title:
+        status === "approved"
+          ? "✅ Document approuvé par un prestataire"
+          : "❌ Document refusé par un prestataire",
+      body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
+      link: `/projects/${document.project_id}`,
+    })
 
     const proEmail = document.projects?.profiles?.email
     const proName = document.projects?.profiles?.full_name

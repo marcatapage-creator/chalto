@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { HoverButton } from "@/components/ui/motion"
+import { NotificationsForm } from "@/components/settings/notifications-form"
 
 interface Profession {
   id: string
@@ -48,9 +49,11 @@ interface Profile {
 export function SettingsForm({
   profile,
   professions,
+  notifProfile,
 }: {
   profile: Profile
   professions: Profession[]
+  notifProfile: React.ComponentProps<typeof NotificationsForm>["profile"]
 }) {
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -111,6 +114,7 @@ export function SettingsForm({
         <TabsTrigger value="profil">Profil</TabsTrigger>
         <TabsTrigger value="entreprise">Entreprise</TabsTrigger>
         <TabsTrigger value="compte">Compte</TabsTrigger>
+        <TabsTrigger value="notifications">Notifications</TabsTrigger>
       </TabsList>
 
       {/* Onglet Profil */}
@@ -262,6 +266,11 @@ export function SettingsForm({
             </AlertDialog>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      {/* Onglet Notifications */}
+      <TabsContent value="notifications">
+        <NotificationsForm profile={notifProfile} />
       </TabsContent>
     </Tabs>
   )

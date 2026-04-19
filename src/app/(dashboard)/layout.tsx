@@ -23,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Sidebar
         profile={profile}
         counts={{ projects: projectsCount ?? 0, contacts: contactsCount ?? 0 }}
+        userId={user.id}
       />
       <main className="flex-1 flex flex-col overflow-hidden md:ml-0">
         {/* Spacer mobile pour le header fixe */}
