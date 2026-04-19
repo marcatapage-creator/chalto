@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       createNotification({
         userId,
         type: status === "approved" ? "document_approved" : "document_rejected",
-        title: status === "approved" ? "✅ Document approuvé" : "❌ Document refusé",
+        title: status === "approved" ? "Document approuvé" : "Document refusé",
         body: `${document.projects.client_name ?? "Votre client"} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
         link: `/projects/${document.project_id}`,
         inAppEnabled: proProfile?.notif_inapp_enabled,

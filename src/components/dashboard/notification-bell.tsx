@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/hooks/use-notifications"
 import { formatDistanceToNow } from "date-fns"
@@ -62,7 +61,7 @@ export function NotificationBell({
           )}
         </div>
 
-        <ScrollArea className="max-h-100">
+        <div className="overflow-y-auto max-h-100">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Bell className="h-8 w-8 text-muted-foreground mb-2" />
@@ -101,7 +100,7 @@ export function NotificationBell({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   )

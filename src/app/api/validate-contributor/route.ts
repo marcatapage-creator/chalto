@@ -51,8 +51,8 @@ export async function POST(request: Request) {
         type: status === "approved" ? "document_approved" : "document_rejected",
         title:
           status === "approved"
-            ? "✅ Document approuvé par un prestataire"
-            : "❌ Document refusé par un prestataire",
+            ? "Document approuvé par un prestataire"
+            : "Document refusé par un prestataire",
         body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
         link: `/projects/${document.project_id}`,
         inAppEnabled: proProfile?.notif_inapp_enabled,
