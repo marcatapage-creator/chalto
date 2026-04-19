@@ -116,7 +116,7 @@ export function ContributorSpace({
       .select("document_id, documents(id, name, type, status, file_url, file_name, file_type)")
       .eq("contributor_id", contributor.id)
       .then(({ data }) => {
-        if (data) setDocs(data as DocRow[])
+        if (data) setDocs(data as unknown as DocRow[])
       })
   }, [contributor.id, supabase])
 
