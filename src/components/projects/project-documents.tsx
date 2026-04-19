@@ -117,7 +117,7 @@ export function ProjectDocuments({
                               <FileText className="h-4 w-4 text-muted-foreground" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="sm:hidden mb-0.5">
+                              <div className="sm:hidden mb-2">
                                 <Badge
                                   variant={docStatus.variant}
                                   className={cn("text-xs", docStatus.className)}
