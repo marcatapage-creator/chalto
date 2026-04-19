@@ -69,7 +69,7 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<ProjectInfo>({ ...project })
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const isDesktop = useMediaQuery("(min-width: 1280px)")
 
   const supabase = createClient()
 

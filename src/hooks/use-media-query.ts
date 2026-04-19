@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react"
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window === "undefined") return false
-    return window.matchMedia(query).matches
-  })
+  const [matches, setMatches] = useState(false)
 
   useEffect(() => {
     const media = window.matchMedia(query)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMatches(media.matches)
     const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
     media.addEventListener("change", handler)
     return () => media.removeEventListener("change", handler)

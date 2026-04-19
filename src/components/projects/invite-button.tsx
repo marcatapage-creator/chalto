@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Mail, Check } from "lucide-react"
@@ -13,6 +14,7 @@ interface InviteButtonProps {
 }
 
 export function InviteButton({ contactId, projectId, contactName }: InviteButtonProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
@@ -29,6 +31,7 @@ export function InviteButton({ contactId, projectId, contactName }: InviteButton
       analytics.providerInvited()
       toast.success(`Invitation envoyée à ${contactName} ✅`)
       setSent(true)
+      router.refresh()
     } else {
       const data = await res.json()
       if (data.error === "Email manquant") {

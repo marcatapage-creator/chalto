@@ -25,9 +25,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         counts={{ projects: projectsCount ?? 0, contacts: contactsCount ?? 0 }}
         userId={user.id}
       />
-      <main className="flex-1 flex flex-col overflow-hidden md:ml-0">
+      <main className="flex-1 flex flex-col overflow-hidden xl:ml-0">
         {/* Spacer mobile pour le header fixe */}
-        <div className="md:hidden h-14 shrink-0" />
+        <div className="xl:hidden h-14 shrink-0" />
         {children}
       </main>
     </div>

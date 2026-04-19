@@ -78,6 +78,11 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+/* Fix calendar picker icon in dark mode */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.5);
+}
+
 /* Prevent iOS auto-zoom on input focus (triggers when font-size < 16px) */
 @media screen and (max-width: 639px) {
   input, textarea, select, [data-slot="select-trigger"] {

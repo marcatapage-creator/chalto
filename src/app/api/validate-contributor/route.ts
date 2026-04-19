@@ -19,7 +19,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Document introuvable" }, { status: 404 })
     }
 
-    await Promise.all([
+    const userId = document.projects.user_id
+
+    const [, , { data: proProfile }] = await Promise.all([
       admin.from("documents").update({ status }).eq("id", documentId),
       admin.from("validations").insert({
         document_id: documentId,
@@ -28,24 +30,14 @@ export async function POST(request: Request) {
         client_name: contributorName,
         approved_at: status === "approved" ? new Date().toISOString() : null,
       }),
+      admin
+        .from("profiles")
+        .select(
+          "email, full_name, notif_inapp_enabled, notif_email_approved, notif_email_rejected, notif_email_frequency"
+        )
+        .eq("id", userId)
+        .single(),
     ])
-
-    await createNotification({
-      userId: document.projects.user_id,
-      type: status === "approved" ? "document_approved" : "document_rejected",
-      title:
-        status === "approved"
-          ? "✅ Document approuvé par un prestataire"
-          : "❌ Document refusé par un prestataire",
-      body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
-      link: `/projects/${document.project_id}`,
-    })
-
-    const { data: proProfile } = await admin
-      .from("profiles")
-      .select("email, full_name, notif_email_approved, notif_email_rejected, notif_email_frequency")
-      .eq("id", document.projects.user_id)
-      .single()
 
     const shouldSendEmail =
       proProfile?.notif_email_frequency !== "never" &&
@@ -53,19 +45,31 @@ export async function POST(request: Request) {
         ? proProfile?.notif_email_approved !== false
         : proProfile?.notif_email_rejected !== false)
 
-    if (proProfile?.email && shouldSendEmail) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"
-      await sendApprovalEmail({
-        proEmail: proProfile.email,
-        proName: proProfile.full_name ?? "Professionnel",
-        clientName: contributorName ?? "Un prestataire",
-        projectName: document.projects?.name ?? "Projet",
-        documentName: document.name,
-        status,
-        comment,
-        projectUrl: `${appUrl}/projects/${document.project_id}`,
-      })
-    }
+    await Promise.all([
+      createNotification({
+        userId,
+        type: status === "approved" ? "document_approved" : "document_rejected",
+        title:
+          status === "approved"
+            ? "✅ Document approuvé par un prestataire"
+            : "❌ Document refusé par un prestataire",
+        body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
+        link: `/projects/${document.project_id}`,
+        inAppEnabled: proProfile?.notif_inapp_enabled,
+      }),
+      proProfile?.email && shouldSendEmail
+        ? sendApprovalEmail({
+            proEmail: proProfile.email,
+            proName: proProfile.full_name ?? "Professionnel",
+            clientName: contributorName ?? "Un prestataire",
+            projectName: document.projects?.name ?? "Projet",
+            documentName: document.name,
+            status,
+            comment,
+            projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
+          })
+        : Promise.resolve(),
+    ])
 
     return NextResponse.json({ success: true })
   } catch (error) {

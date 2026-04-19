@@ -21,7 +21,7 @@ import { toast } from "sonner"
 interface Contributor {
   id: string
   name: string
-  trade: string
+  professions?: { label: string }[] | null
 }
 
 interface DocumentActionsProps {
@@ -55,7 +55,7 @@ export function DocumentActions({
     if (!open) return
     supabase
       .from("contributors")
-      .select("id, name, trade")
+      .select("id, name, professions(label)")
       .eq("project_id", projectId)
       .then(({ data }) => {
         if (data) setContributors(data)
@@ -224,7 +224,7 @@ export function DocumentActions({
                       </div>
                       <div>
                         <p className="text-sm font-medium">{c.name}</p>
-                        <p className="text-xs text-muted-foreground">{c.trade}</p>
+                        <p className="text-xs text-muted-foreground">{c.professions?.[0]?.label}</p>
                       </div>
                     </button>
                   ))

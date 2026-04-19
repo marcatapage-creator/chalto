@@ -5,14 +5,20 @@ import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const THRESHOLD = 80
+const TRIGGER_THRESHOLD = 130 // drag distance (px) required to trigger
+const HEADER_HEIGHT = 56 // mobile header h-14
+const INDICATOR_SIZE = 36 // h-9 w-9
+// Straddle header/content boundary: center of indicator sits at header bottom
+const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2 // 38px
+// Total visual travel from hidden (-INDICATOR_SIZE) to snapped (SNAP_Y)
+const TOTAL_TRAVEL = INDICATOR_SIZE + SNAP_Y // 74px
 
 export function PullToRefresh() {
   const router = useRouter()
-  const [pullY, setPullY] = useState(0)
+  const [dragY, setDragY] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const startYRef = useRef<number | null>(null)
-  const pullYRef = useRef(0)
+  const dragYRef = useRef(0)
   const activeRef = useRef(false)
 
   useEffect(() => {
@@ -27,26 +33,26 @@ export function PullToRefresh() {
       if (!activeRef.current || startYRef.current === null) return
       const delta = e.touches[0].clientY - startYRef.current
       if (delta > 0) {
-        pullYRef.current = Math.min(delta, THRESHOLD)
-        setPullY(pullYRef.current)
+        dragYRef.current = delta
+        setDragY(delta)
       } else {
         activeRef.current = false
-        pullYRef.current = 0
-        setPullY(0)
+        dragYRef.current = 0
+        setDragY(0)
       }
     }
 
     const onTouchEnd = () => {
       if (!activeRef.current) return
       activeRef.current = false
-      const snap = pullYRef.current
-      pullYRef.current = 0
-      setPullY(0)
+      const drag = dragYRef.current
+      dragYRef.current = 0
+      setDragY(0)
       startYRef.current = null
-      if (snap >= THRESHOLD) {
+      if (drag >= TRIGGER_THRESHOLD) {
         setRefreshing(true)
         router.refresh()
-        setTimeout(() => setRefreshing(false), 1000)
+        setTimeout(() => setRefreshing(false), 1200)
       }
     }
 
@@ -61,16 +67,19 @@ export function PullToRefresh() {
     }
   }, [router])
 
-  const progress = Math.min(pullY / THRESHOLD, 1)
+  // Indicator starts hidden above screen (-INDICATOR_SIZE) and slides down
+  // with resistance (moves slower than finger) until it reaches SNAP_Y
+  const visualY = Math.min(SNAP_Y, -INDICATOR_SIZE + (dragY / TRIGGER_THRESHOLD) * TOTAL_TRAVEL)
+  const progress = Math.min(dragY / TRIGGER_THRESHOLD, 1)
 
-  if (pullY === 0 && !refreshing) return null
+  if (dragY === 0 && !refreshing) return null
 
   return (
     <div
       className="fixed top-0 inset-x-0 z-50 flex justify-center pointer-events-none"
       style={{
-        transform: `translateY(${refreshing ? 56 : pullY * 0.5}px)`,
-        transition: refreshing ? "transform 0.15s ease" : "none",
+        transform: `translateY(${refreshing ? SNAP_Y : visualY}px)`,
+        transition: refreshing ? "transform 0.2s ease" : "none",
       }}
     >
       <div className="bg-card border rounded-full h-9 w-9 flex items-center justify-center shadow-md">

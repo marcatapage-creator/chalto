@@ -6,6 +6,7 @@ interface CreateNotificationParams {
   title: string
   body?: string
   link?: string
+  inAppEnabled?: boolean
 }
 
 export async function createNotification({
@@ -14,16 +15,20 @@ export async function createNotification({
   title,
   body,
   link,
+  inAppEnabled,
 }: CreateNotificationParams) {
   const admin = createAdminClient()
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("notif_inapp_enabled")
-    .eq("id", userId)
-    .single()
-
-  if (profile?.notif_inapp_enabled === false) return
+  if (inAppEnabled === undefined) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("notif_inapp_enabled")
+      .eq("id", userId)
+      .single()
+    if (profile?.notif_inapp_enabled === false) return
+  } else if (inAppEnabled === false) {
+    return
+  }
 
   const { error } = await admin.from("notifications").insert({
     user_id: userId,
