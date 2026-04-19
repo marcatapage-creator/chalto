@@ -57,11 +57,14 @@ export default async function DashboardPage() {
 
         <DashboardStats userId={user!.id} initialCounts={initialCounts} />
 
-        <OnboardingChecklist
-          userId={user!.id}
-          demoProjectId={profile?.demo_project_id}
-          documentSentCount={documentSentCount ?? 0}
-        />
+        {!profile?.onboarding_completed && (
+          <OnboardingChecklist
+            userId={user!.id}
+            demoProjectId={profile?.demo_project_id}
+            documentSentCount={documentSentCount ?? 0}
+            onboardingCompleted={profile?.onboarding_completed ?? false}
+          />
+        )}
 
         {/* Projets récents */}
         <FadeIn delay={0.2}>

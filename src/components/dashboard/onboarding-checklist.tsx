@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Circle, ChevronRight, X } from "lucide-react"
@@ -23,19 +24,20 @@ interface OnboardingChecklistProps {
   userId: string
   demoProjectId?: string | null
   documentSentCount: number
+  onboardingCompleted?: boolean
 }
 
 export function OnboardingChecklist({
   userId,
   demoProjectId,
   documentSentCount,
+  onboardingCompleted,
 }: OnboardingChecklistProps) {
-  const [dismissed, setDismissed] = useState(
-    () => typeof window !== "undefined" && !!localStorage.getItem(`checklist_dismissed_${userId}`)
-  )
+  const [dismissed, setDismissed] = useState(false)
   const [projectVisited, setProjectVisited] = useState(
     () => typeof window !== "undefined" && !!localStorage.getItem(`demo_visited_${userId}`)
   )
+  const supabase = createClient()
   const router = useRouter()
 
   const steps: Step[] = [
@@ -82,12 +84,12 @@ export function OnboardingChecklist({
     router.push(step.action.href)
   }
 
-  const handleDismiss = () => {
-    localStorage.setItem(`checklist_dismissed_${userId}`, "true")
+  const handleDismiss = async () => {
     setDismissed(true)
+    await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", userId)
   }
 
-  if (dismissed) return null
+  if (onboardingCompleted || dismissed) return null
 
   return (
     <FadeIn>
