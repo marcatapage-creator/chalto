@@ -42,6 +42,8 @@ interface Document {
 interface DocumentPanelProps {
   document: Document
   userId: string
+  clientName?: string
+  clientEmail?: string
   onClose: () => void
   onStatusChange?: (docId: string, status: string, version?: number) => void
 }
@@ -75,7 +77,14 @@ interface PrevVersion {
   file_type?: string
 }
 
-export function DocumentPanel({ document, userId, onClose, onStatusChange }: DocumentPanelProps) {
+export function DocumentPanel({
+  document,
+  userId,
+  clientName,
+  clientEmail,
+  onClose,
+  onStatusChange,
+}: DocumentPanelProps) {
   const [localStatus, setLocalStatus] = useState(document.status)
   const [localVersion, setLocalVersion] = useState(document.version ?? 1)
   // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
@@ -243,7 +252,14 @@ export function DocumentPanel({ document, userId, onClose, onStatusChange }: Doc
             {docStatus.label}
             {localVersion > 1 && ` · v${localVersion}`}
           </Badge>
-          <DocumentActions doc={document} />
+          <DocumentActions
+            documentId={document.id}
+            documentName={document.name}
+            projectId={document.project_id}
+            clientName={clientName}
+            clientEmail={clientEmail}
+            status={localStatus}
+          />
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-3.5 w-3.5" />
           </Button>
