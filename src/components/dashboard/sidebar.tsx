@@ -178,7 +178,7 @@ export function Sidebar({
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <NotificationBell {...notifProps} />
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
             <Menu className="h-5 w-5" />
