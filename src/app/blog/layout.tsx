@@ -16,7 +16,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button size="sm" asChild>
-              <Link href="/register">Commencer gratuitement</Link>
+              <Link href="/#waitlist">Commencer gratuitement</Link>
             </Button>
           </div>
         </div>

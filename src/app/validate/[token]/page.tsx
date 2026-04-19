@@ -46,7 +46,9 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-bold">Chalto</h1>
+          <div className="flex justify-center mb-3">
+            <Image src="/Logo.svg" alt="Chalto" width={36} height={36} />
+          </div>
           <p className="text-muted-foreground mt-1">Validation de document</p>
         </div>
         <ValidationClient document={document} token={token} />

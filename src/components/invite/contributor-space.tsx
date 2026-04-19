@@ -496,7 +496,7 @@ export function ContributorSpace({
               ))}
             </div>
             <Button className="w-full" asChild>
-              <Link href="/register">
+              <Link href="/#waitlist">
                 Créer mon compte gratuitement
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

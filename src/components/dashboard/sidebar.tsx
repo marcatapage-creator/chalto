@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, X, Users } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 import { useState, useEffect, useTransition } from "react"

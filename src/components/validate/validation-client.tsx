@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
 import { FileViewer } from "@/components/projects/file-viewer"
 import { ProjectStepper } from "@/components/projects/project-stepper"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 type Document = {
   id: string
@@ -17,6 +19,7 @@ type Document = {
   name: string
   type: string
   status: string
+  version?: number
   file_url?: string
   file_name?: string
   file_type?: string
@@ -24,21 +27,50 @@ type Document = {
   projects?: { name: string; client_name?: string | null; phase?: string | null } | null
 }
 
+interface DocumentVersion {
+  id: string
+  version: number
+  file_url: string | null
+  file_name: string | null
+  file_type: string | null
+  created_at: string
+}
+
 export function ValidationClient({ document, token }: { document: Document; token: string }) {
   const [comment, setComment] = useState("")
   const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(document.status === "approved" || document.status === "rejected")
+  const [versions, setVersions] = useState<DocumentVersion[]>([])
+  const [activeVersion, setActiveVersion] = useState<number | null>(null)
+  const supabase = useMemo(() => createClient(), [])
+
+  useEffect(() => {
+    supabase
+      .from("document_versions")
+      .select("*")
+      .eq("document_id", document.id)
+      .order("version", { ascending: true })
+      .then(({ data }) => {
+        if (data) setVersions(data)
+      })
+  }, [document.id, supabase])
+
+  const activeVersionData =
+    activeVersion !== null ? (versions.find((v) => v.version === activeVersion) ?? null) : null
+
+  const currentFileUrl = activeVersionData?.file_url ?? document.file_url
+  const currentFileName = activeVersionData?.file_name ?? document.file_name
+  const currentFileType = activeVersionData?.file_type ?? document.file_type
+  const isLatestVersion = activeVersion === null
 
   const handleValidation = async (decision: "approved" | "rejected") => {
     setLoading(true)
-
     await fetch("/api/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
-
     if (decision === "approved") {
       haptics.success()
       analytics.documentApproved()
@@ -127,60 +159,112 @@ export function ValidationClient({ document, token }: { document: Document; toke
       )}
 
       {/* Visionneuse */}
-      {document.file_url && (
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Document
-            </p>
-            <FileViewer
-              fileUrl={document.file_url}
-              fileName={document.file_name ?? document.name}
-              fileType={document.file_type ?? "application/pdf"}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Commentaire */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Votre commentaire (optionnel)</CardTitle>
-          <CardDescription>
-            Laissez un message au professionnel avant de valider ou refuser
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            placeholder="Tout me semble correct... / Je souhaite modifier..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={4}
-          />
+        <CardContent className="p-4 space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Document
+          </p>
+
+          {/* Onglets versions */}
+          {versions.length > 0 && (
+            <div className="flex text-xs border rounded-lg overflow-hidden">
+              {versions.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setActiveVersion(v.version)}
+                  className={cn(
+                    "flex-1 px-3 py-1.5 transition-colors border-r",
+                    activeVersion === v.version
+                      ? "bg-background font-medium"
+                      : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  V{v.version}
+                </button>
+              ))}
+              <button
+                onClick={() => setActiveVersion(null)}
+                className={cn(
+                  "flex-1 px-3 py-1.5 transition-colors",
+                  isLatestVersion
+                    ? "bg-background font-medium"
+                    : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                )}
+              >
+                V{document.version ?? 1} · Actuelle
+              </button>
+            </div>
+          )}
+
+          {currentFileUrl ? (
+            <FileViewer
+              fileUrl={currentFileUrl}
+              fileName={currentFileName ?? document.name}
+              fileType={currentFileType ?? "application/pdf"}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-6">
+              Aucun fichier pour cette version
+            </p>
+          )}
+
+          {!isLatestVersion && (
+            <p className="text-xs text-muted-foreground text-center">
+              Version archivée —{" "}
+              <button
+                onClick={() => setActiveVersion(null)}
+                className="text-primary hover:underline"
+              >
+                revenir à la version actuelle
+              </button>
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          size="lg"
-          className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          onClick={() => handleValidation("rejected")}
-          loading={loading}
-        >
-          <XCircle className="h-4 w-4 mr-2" />
-          Refuser
-        </Button>
-        <Button size="lg" onClick={() => handleValidation("approved")} loading={loading}>
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Approuver
-        </Button>
-      </div>
+      {/* Commentaire + boutons — uniquement sur la version actuelle */}
+      {isLatestVersion && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Votre commentaire (optionnel)</CardTitle>
+              <CardDescription>
+                Laissez un message au professionnel avant de valider ou refuser
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Tout me semble correct... / Je souhaite modifier..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+              />
+            </CardContent>
+          </Card>
 
-      <p className="text-xs text-muted-foreground text-center">
-        En approuvant ce document, vous confirmez en avoir pris connaissance et validez son contenu.
-      </p>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => handleValidation("rejected")}
+              loading={loading}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Refuser
+            </Button>
+            <Button size="lg" onClick={() => handleValidation("approved")} loading={loading}>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Approuver
+            </Button>
+          </div>
+
+          <p className="text-xs text-muted-foreground text-center">
+            En approuvant ce document, vous confirmez en avoir pris connaissance et validez son
+            contenu.
+          </p>
+        </>
+      )}
     </div>
   )
 }

@@ -262,7 +262,7 @@ export default function ArticlePage() {
             bancaire.
           </p>
           <Button asChild>
-            <Link href="/register">
+            <Link href="/#waitlist">
               Commencer gratuitement
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

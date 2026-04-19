@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 import { ArrowLeft, User, MapPin, Mail, ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, isChantierPhase } from "@/lib/utils"
 import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
@@ -81,7 +81,6 @@ export function ProjectPageClient({
 }: ProjectPageClientProps) {
   const { label: statusLabel, variant: statusVariant } =
     statusMap[project.status] ?? statusMap.draft
-  const isChantierPhase = ["chantier", "reception", "cloture"].includes(phase)
   const supabase = useMemo(() => createClient(), [])
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [localDocs, setLocalDocs] = useState(documents)
@@ -138,7 +137,7 @@ export function ProjectPageClient({
     }
   }, [project.id, supabase])
   const [detailsOpen, setDetailsOpen] = useState(true)
-  const [docsOpen, setDocsOpen] = useState(!isChantierPhase)
+  const [docsOpen, setDocsOpen] = useState(!isChantierPhase(phase))
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,
@@ -257,7 +256,7 @@ export function ProjectPageClient({
                       projectId={project.id}
                       currentPhase={phase}
                       onPhaseChange={(newPhase) => {
-                        if (["chantier", "reception", "cloture"].includes(newPhase)) {
+                        if (isChantierPhase(newPhase)) {
                           setDocsOpen(false)
                         }
                       }}
@@ -285,7 +284,7 @@ export function ProjectPageClient({
           />
 
           {/* Kanban tâches — phases chantier et au-delà */}
-          {isChantierPhase && (
+          {isChantierPhase(phase) && (
             <>
               <div className="-mx-6 md:-mx-8 h-px bg-border" />
               <ProjectTasks
@@ -323,6 +322,9 @@ export function ProjectPageClient({
                 key={selectedDoc.id}
                 document={selectedDoc}
                 userId={userId}
+                phase={phase}
+                clientName={project.client_name}
+                clientEmail={project.client_email}
                 onClose={() => setSelectedDoc(null)}
                 onStatusChange={handleDocStatusChange}
               />
@@ -358,6 +360,9 @@ export function ProjectPageClient({
                 key={selectedDoc.id}
                 document={selectedDoc}
                 userId={userId}
+                phase={phase}
+                clientName={project.client_name}
+                clientEmail={project.client_email}
                 onClose={() => setSelectedDoc(null)}
                 onStatusChange={handleDocStatusChange}
               />

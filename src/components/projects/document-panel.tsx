@@ -22,7 +22,7 @@ import {
   Link2,
   RotateCcw,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
 
 interface Document {
@@ -44,6 +44,7 @@ interface DocumentPanelProps {
   userId: string
   clientName?: string
   clientEmail?: string
+  phase?: string
   onClose: () => void
   onStatusChange?: (docId: string, status: string, version?: number) => void
 }
@@ -82,15 +83,29 @@ export function DocumentPanel({
   userId,
   clientName,
   clientEmail,
+  phase,
   onClose,
   onStatusChange,
 }: DocumentPanelProps) {
+  const isChantier = isChantierPhase(phase)
   const [localStatus, setLocalStatus] = useState(document.status)
   const [localVersion, setLocalVersion] = useState(document.version ?? 1)
   // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
   const [localFileUrl, setLocalFileUrl] = useState<string | null | undefined>(undefined)
-  const [prevVersions, setPrevVersions] = useState<PrevVersion[]>([])
-  const [activeVersionTab, setActiveVersionTab] = useState<number | null>(null)
+  const [prevVersions, setPrevVersions] = useState<PrevVersion[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const saved = localStorage.getItem(`doc_prev_versions_${document.id}`)
+      return saved ? (JSON.parse(saved) as PrevVersion[]) : []
+    } catch {
+      return []
+    }
+  })
+  const [activeVersionTab, setActiveVersionTab] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null
+    const saved = localStorage.getItem(`doc_version_${document.id}`)
+    return saved !== null ? Number(saved) : null
+  })
   const onStatusChangeRef = useRef(onStatusChange)
   useEffect(() => {
     onStatusChangeRef.current = onStatusChange
@@ -102,6 +117,18 @@ export function DocumentPanel({
   const [message, setMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [proposing, setProposing] = useState(false)
+
+  const handleVersionTabChange = useCallback(
+    (version: number | null) => {
+      setActiveVersionTab(version)
+      if (version === null) {
+        localStorage.removeItem(`doc_version_${document.id}`)
+      } else {
+        localStorage.setItem(`doc_version_${document.id}`, String(version))
+      }
+    },
+    [document.id]
+  )
 
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -188,8 +215,8 @@ export function DocumentPanel({
     setProposing(true)
     const newVersion = localVersion + 1
 
-    setPrevVersions((prev) =>
-      [
+    setPrevVersions((prev) => {
+      const next = [
         {
           version: localVersion,
           file_url: fileUrl ?? null,
@@ -198,26 +225,38 @@ export function DocumentPanel({
         },
         ...prev,
       ].slice(0, 3)
-    )
+      localStorage.setItem(`doc_prev_versions_${document.id}`, JSON.stringify(next))
+      return next
+    })
     setLocalVersion(newVersion)
     setLocalStatus("draft")
     setLocalFileUrl(null)
-    setActiveVersionTab(null)
+    handleVersionTabChange(null)
     onStatusChange?.(document.id, "draft", newVersion)
 
     const newToken = crypto.randomUUID()
-    await supabase
-      .from("documents")
-      .update({
-        status: "draft",
-        version: newVersion,
-        file_url: null,
-        file_name: null,
-        file_type: null,
-        file_size: null,
-        validation_token: newToken,
-      })
-      .eq("id", document.id)
+    await Promise.all([
+      supabase.from("document_versions").insert({
+        document_id: document.id,
+        version: localVersion,
+        file_url: fileUrl ?? null,
+        file_name: document.file_name ?? null,
+        file_type: document.file_type ?? null,
+        file_size: document.file_size ?? null,
+      }),
+      supabase
+        .from("documents")
+        .update({
+          status: "draft",
+          version: newVersion,
+          file_url: null,
+          file_name: null,
+          file_type: null,
+          file_size: null,
+          validation_token: newToken,
+        })
+        .eq("id", document.id),
+    ])
     router.refresh()
     setProposing(false)
     toast.success(`Version ${newVersion} créée — uploadez le nouveau fichier`)
@@ -249,17 +288,10 @@ export function DocumentPanel({
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <Badge variant={docStatus.variant} className={cn("text-xs", docStatus.className)}>
-            {docStatus.label}
-            {localVersion > 1 && ` · v${localVersion}`}
+            {localVersion > 1
+              ? `V${localVersion} ${docStatus.label.toLowerCase()}`
+              : docStatus.label}
           </Badge>
-          <DocumentActions
-            documentId={document.id}
-            documentName={document.name}
-            projectId={document.project_id}
-            clientName={clientName}
-            clientEmail={clientEmail}
-            status={localStatus}
-          />
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-3.5 w-3.5" />
           </Button>
@@ -318,7 +350,7 @@ export function DocumentPanel({
           {prevVersions.length > 0 && (
             <div className="flex text-xs border rounded-lg overflow-hidden">
               <button
-                onClick={() => setActiveVersionTab(null)}
+                onClick={() => handleVersionTabChange(null)}
                 className={cn(
                   "flex-1 px-3 py-1.5 transition-colors",
                   activeVersionTab === null
@@ -331,7 +363,7 @@ export function DocumentPanel({
               {prevVersions.map((pv) => (
                 <button
                   key={pv.version}
-                  onClick={() => setActiveVersionTab(pv.version)}
+                  onClick={() => handleVersionTabChange(pv.version)}
                   className={cn(
                     "flex-1 px-3 py-1.5 transition-colors border-l",
                     activeVersionTab === pv.version
@@ -379,17 +411,32 @@ export function DocumentPanel({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Envoyer pour validation
           </p>
-          <Textarea
-            placeholder="Ajouter un mot pour le client (optionnel)..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={3}
-            className="resize-none text-sm"
-          />
-          <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">
-            <Send className="h-4 w-4 mr-2" />
-            {sending ? "Envoi..." : "Envoyer au client"}
-          </Button>
+          {!isChantier && (
+            <Textarea
+              placeholder="Ajouter un mot pour le client (optionnel)..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+              className="resize-none text-sm"
+            />
+          )}
+          {isChantier ? (
+            <DocumentActions
+              documentId={document.id}
+              documentName={document.name}
+              projectId={document.project_id}
+              clientName={clientName}
+              clientEmail={clientEmail}
+              status={localStatus}
+              className="w-full"
+              onSent={() => setLocalStatus("sent")}
+            />
+          ) : (
+            <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">
+              <Send className="h-4 w-4 mr-2" />
+              {sending ? "Envoi..." : "Envoyer au client"}
+            </Button>
+          )}
         </div>
       )}
 

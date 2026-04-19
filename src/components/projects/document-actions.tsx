@@ -30,6 +30,8 @@ interface DocumentActionsProps {
   clientName?: string
   clientEmail?: string
   status: string
+  className?: string
+  onSent?: () => void
 }
 
 export function DocumentActions({
@@ -39,6 +41,8 @@ export function DocumentActions({
   clientName,
   clientEmail,
   status,
+  className,
+  onSent,
 }: DocumentActionsProps) {
   const [open, setOpen] = useState(false)
   const [audience, setAudience] = useState<"client" | "contributor">("client")
@@ -107,6 +111,7 @@ export function DocumentActions({
       }
 
       setOpen(false)
+      onSent?.()
     } catch (error) {
       console.error(error)
       toast.error("Une erreur est survenue")
@@ -128,16 +133,17 @@ export function DocumentActions({
     <>
       <Button
         size="sm"
-        variant="outline"
+        variant="default"
         onClick={() => setOpen(true)}
         disabled={status === "sent"}
+        className={cn(className)}
       >
         <Send className="h-4 w-4 mr-2" />
         {status === "sent" ? "Envoyé" : "Envoyer"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Envoyer ce document</DialogTitle>
             <DialogDescription>
