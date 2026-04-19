@@ -1,17 +1,31 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { CheckSquare, ArrowRight, Plus, Check, Clock, Zap, FileText, Users } from "lucide-react"
+import {
+  CheckSquare,
+  ArrowRight,
+  Plus,
+  Check,
+  Clock,
+  Zap,
+  FileText,
+  Users,
+  CheckCircle,
+  XCircle,
+} from "lucide-react"
 import { TaskComments } from "@/components/projects/task-comments"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
+import { FileViewer } from "@/components/projects/file-viewer"
+import { haptics } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -78,6 +92,33 @@ export function ContributorSpace({
   const [suggesting, setSuggesting] = useState(false)
   const [showSuggestForm, setShowSuggestForm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
+
+  type DocRow = {
+    document_id: string
+    documents: {
+      id: string
+      name: string
+      type: string
+      status: string
+      file_url?: string | null
+      file_name?: string | null
+      file_type?: string | null
+    } | null
+  }
+  const [docs, setDocs] = useState<DocRow[]>([])
+  const [docDecision, setDocDecision] = useState<Record<string, "approved" | "rejected" | null>>({})
+  const [docComment, setDocComment] = useState<Record<string, string>>({})
+  const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    supabase
+      .from("document_contributors")
+      .select("document_id, documents(id, name, type, status, file_url, file_name, file_type)")
+      .eq("contributor_id", contributor.id)
+      .then(({ data }) => {
+        if (data) setDocs(data as DocRow[])
+      })
+  }, [contributor.id, supabase])
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
@@ -273,6 +314,111 @@ export function ContributorSpace({
           authorName={contributor.name}
           authorRole="prestataire"
         />
+
+        {/* Documents à valider */}
+        {docs.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Documents à valider
+            </h3>
+            {docs.map((dc) => {
+              const doc = dc.documents
+              if (!doc) return null
+              const decision = docDecision[doc.id]
+              return (
+                <Card key={doc.id}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{doc.name}</p>
+                        <p className="text-xs text-muted-foreground">{doc.type}</p>
+                      </div>
+                      {decision && (
+                        <Badge variant={decision === "approved" ? "default" : "destructive"}>
+                          {decision === "approved" ? "Approuvé" : "Refusé"}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {doc.file_url && (
+                      <FileViewer
+                        fileUrl={doc.file_url}
+                        fileName={doc.file_name ?? doc.name}
+                        fileType={doc.file_type ?? ""}
+                      />
+                    )}
+
+                    {!decision && (
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="Commentaire (optionnel)"
+                          value={docComment[doc.id] ?? ""}
+                          onChange={(e) =>
+                            setDocComment((prev) => ({ ...prev, [doc.id]: e.target.value }))
+                          }
+                          rows={2}
+                          className="text-sm resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            disabled={docLoading[doc.id]}
+                            onClick={async () => {
+                              setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
+                              await fetch("/api/validate-contributor", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  documentId: doc.id,
+                                  status: "approved",
+                                  comment: docComment[doc.id] ?? null,
+                                  contributorName: contributor.name,
+                                }),
+                              })
+                              haptics.success()
+                              setDocDecision((prev) => ({ ...prev, [doc.id]: "approved" }))
+                              setDocLoading((prev) => ({ ...prev, [doc.id]: false }))
+                            }}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approuver
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="flex-1"
+                            disabled={docLoading[doc.id]}
+                            onClick={async () => {
+                              setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
+                              await fetch("/api/validate-contributor", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  documentId: doc.id,
+                                  status: "rejected",
+                                  comment: docComment[doc.id] ?? null,
+                                  contributorName: contributor.name,
+                                }),
+                              })
+                              haptics.error()
+                              setDocDecision((prev) => ({ ...prev, [doc.id]: "rejected" }))
+                              setDocLoading((prev) => ({ ...prev, [doc.id]: false }))
+                            }}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Refuser
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
 
         {/* Suggérer une tâche */}
         <Card>
