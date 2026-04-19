@@ -16,6 +16,15 @@ export async function createNotification({
   link,
 }: CreateNotificationParams) {
   const admin = createAdminClient()
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("notif_inapp_enabled")
+    .eq("id", userId)
+    .single()
+
+  if (profile?.notif_inapp_enabled === false) return
+
   const { error } = await admin.from("notifications").insert({
     user_id: userId,
     type,

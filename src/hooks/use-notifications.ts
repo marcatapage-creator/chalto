@@ -24,16 +24,19 @@ export function useNotifications(userId: string) {
     if (!userId) return
 
     isInitialLoad.current = true
-    supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(20)
         if (data) setNotifications(data)
+      } finally {
         isInitialLoad.current = false
-      })
+      }
+    })()
 
     const channel = supabase
       .channel(`notifications:${userId}`)
@@ -47,13 +50,19 @@ export function useNotifications(userId: string) {
         },
         (payload) => {
           const notif = payload.new as Notification
-          setNotifications((prev) => [notif, ...prev])
+          setNotifications((prev) => [notif, ...prev].slice(0, 20))
           if (!isInitialLoad.current) {
             toast(notif.title, { description: notif.body })
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.error(
+            "Notifications realtime: échec abonnement — vérifier Realtime activé sur la table"
+          )
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)

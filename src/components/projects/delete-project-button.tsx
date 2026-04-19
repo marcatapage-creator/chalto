@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 export function DeleteProjectButton({
@@ -54,6 +54,10 @@ export function DeleteProjectButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuItem onClick={() => router.push(`/projects/${projectId}/edit`)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Modifier
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setConfirmOpen(true)}
             className="text-destructive focus:text-destructive"

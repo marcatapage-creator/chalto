@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     const { data: document } = await admin
       .from("documents")
-      .select("*, projects(name, user_id, profiles(email, full_name))")
+      .select("*, projects(name, user_id)")
       .eq("id", documentId)
       .single()
 
@@ -41,14 +41,23 @@ export async function POST(request: Request) {
       link: `/projects/${document.project_id}`,
     })
 
-    const proEmail = document.projects?.profiles?.email
-    const proName = document.projects?.profiles?.full_name
+    const { data: proProfile } = await admin
+      .from("profiles")
+      .select("email, full_name, notif_email_approved, notif_email_rejected, notif_email_frequency")
+      .eq("id", document.projects.user_id)
+      .single()
 
-    if (proEmail) {
+    const shouldSendEmail =
+      proProfile?.notif_email_frequency !== "never" &&
+      (status === "approved"
+        ? proProfile?.notif_email_approved !== false
+        : proProfile?.notif_email_rejected !== false)
+
+    if (proProfile?.email && shouldSendEmail) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"
       await sendApprovalEmail({
-        proEmail,
-        proName: proName ?? "Professionnel",
+        proEmail: proProfile.email,
+        proName: proProfile.full_name ?? "Professionnel",
         clientName: contributorName ?? "Un prestataire",
         projectName: document.projects?.name ?? "Projet",
         documentName: document.name,

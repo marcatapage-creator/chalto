@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
-import { Plus, Users, Phone, Mail, MoreHorizontal, Trash2, Building2 } from "lucide-react"
+import { Plus, Users, Phone, Mail, MoreHorizontal, Pencil, Trash2, Building2 } from "lucide-react"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 
 interface Profession {
@@ -68,6 +68,16 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
     profession_id: "",
     notes: "",
   })
+  const [editContact, setEditContact] = useState<Contact | null>(null)
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    company_name: "",
+    profession_id: "",
+    notes: "",
+  })
+  const [editLoading, setEditLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -101,6 +111,47 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
       router.refresh()
     }
     setLoading(false)
+  }
+
+  const openEdit = (contact: Contact) => {
+    setEditContact(contact)
+    setEditForm({
+      name: contact.name ?? "",
+      email: contact.email ?? "",
+      phone: contact.phone ?? "",
+      company_name: contact.company_name ?? "",
+      profession_id: contact.profession_id ?? "",
+      notes: contact.notes ?? "",
+    })
+  }
+
+  const handleUpdate = async () => {
+    if (!editContact) return
+    if (!editForm.name) {
+      toast.error("Le nom est obligatoire")
+      return
+    }
+    setEditLoading(true)
+    const { error } = await supabase
+      .from("contacts")
+      .update({
+        name: editForm.name,
+        email: editForm.email || null,
+        phone: editForm.phone || null,
+        company_name: editForm.company_name || null,
+        profession_id: editForm.profession_id || null,
+        notes: editForm.notes || null,
+      })
+      .eq("id", editContact.id)
+
+    if (error) {
+      toast.error("Erreur lors de la mise à jour")
+    } else {
+      toast.success("Contact mis à jour ✅")
+      setEditContact(null)
+      router.refresh()
+    }
+    setEditLoading(false)
   }
 
   const handleDelete = async (id: string) => {
@@ -258,6 +309,10 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEdit(contact)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Modifier
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(contact.id)}
                           className="text-destructive focus:text-destructive"
@@ -311,6 +366,92 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
           </CardContent>
         </Card>
       )}
+      {/* Dialog édition */}
+      <Dialog open={!!editContact} onOpenChange={(v) => !v && setEditContact(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nom *</Label>
+                <Input
+                  name="name"
+                  placeholder="Marc Dupuis"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Entreprise</Label>
+                <Input
+                  name="company_name"
+                  placeholder="Dupuis Plomberie"
+                  value={editForm.company_name}
+                  onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Métier</Label>
+              <Select
+                value={editForm.profession_id}
+                onValueChange={(v) => setEditForm({ ...editForm, profession_id: v })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner un métier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {professions.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="marc@exemple.fr"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Téléphone</Label>
+                <Input
+                  name="phone"
+                  placeholder="06 00 00 00 00"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Input
+                name="notes"
+                placeholder="Disponible le matin, spécialiste rénovation..."
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditContact(null)}>
+              Annuler
+            </Button>
+            <Button onClick={handleUpdate} loading={editLoading}>
+              {editLoading ? "Sauvegarde..." : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

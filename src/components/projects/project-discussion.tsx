@@ -151,7 +151,10 @@ export function ProjectDiscussion({ projectId, authorName, authorRole }: Project
               ) : (
                 messages.map((msg, index) => {
                   const isPro = msg.author_role === "pro"
-                  const isFirst = index === 0 || messages[index - 1].author_name !== msg.author_name
+                  const isFirst =
+                    index === 0 ||
+                    messages[index - 1].author_name !== msg.author_name ||
+                    messages[index - 1].author_role !== msg.author_role
 
                   return (
                     <div

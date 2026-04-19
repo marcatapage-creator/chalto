@@ -67,7 +67,7 @@ export default async function ProjectsPage() {
                             <FolderOpen className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="sm:hidden mb-0.5">
+                            <div className="sm:hidden mb-2">
                               <Badge variant={status.variant}>{status.label}</Badge>
                             </div>
                             <p className="font-medium text-sm">{project.name}</p>

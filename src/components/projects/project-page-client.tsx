@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-import { ArrowLeft, User, MapPin, Mail, ChevronDown } from "lucide-react"
+import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
@@ -183,6 +183,16 @@ export function ProjectPageClient({
                 Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:inline-flex shrink-0 text-muted-foreground"
+              asChild
+            >
+              <Link href={`/projects/${project.id}/edit`}>
+                <Pencil className="h-4 w-4" />
+              </Link>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
