@@ -78,6 +78,13 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+/* Prevent iOS auto-zoom on input focus (triggers when font-size < 16px) */
+@media screen and (max-width: 639px) {
+  input, textarea, select, [data-slot="select-trigger"] {
+    font-size: 1rem !important;
+  }
+}
+
 /* Fix popover / dialog backgrounds */
 [data-radix-popper-content-wrapper] {
   z-index: 50 !important;
