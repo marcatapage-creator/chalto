@@ -28,12 +28,12 @@ export default async function SettingsPage() {
           professions={professions ?? []}
           notifProfile={{
             id: profile?.id ?? "",
-            notif_email_approved: profile?.notif_email_approved ?? true,
-            notif_email_rejected: profile?.notif_email_rejected ?? true,
-            notif_email_message: profile?.notif_email_message ?? true,
-            notif_email_task: profile?.notif_email_task ?? true,
+            notif_email_approved: profile?.notif_email_approved !== false,
+            notif_email_rejected: profile?.notif_email_rejected !== false,
+            notif_email_message: profile?.notif_email_message !== false,
+            notif_email_task: profile?.notif_email_task !== false,
             notif_email_frequency: profile?.notif_email_frequency ?? "immediate",
-            notif_inapp_enabled: profile?.notif_inapp_enabled ?? true,
+            notif_inapp_enabled: profile?.notif_inapp_enabled !== false,
           }}
         />
       </div>

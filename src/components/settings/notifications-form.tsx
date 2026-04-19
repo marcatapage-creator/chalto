@@ -19,12 +19,12 @@ import { Bell, Mail, Smartphone } from "lucide-react"
 interface NotificationsFormProps {
   profile: {
     id: string
-    notif_email_approved: boolean
-    notif_email_rejected: boolean
-    notif_email_message: boolean
-    notif_email_task: boolean
-    notif_email_frequency: string
-    notif_inapp_enabled: boolean
+    notif_email_approved: boolean | null | undefined
+    notif_email_rejected: boolean | null | undefined
+    notif_email_message: boolean | null | undefined
+    notif_email_task: boolean | null | undefined
+    notif_email_frequency: string | null | undefined
+    notif_inapp_enabled: boolean | null | undefined
   }
 }
 
@@ -60,12 +60,12 @@ const frequencyHints: Record<string, string> = {
 
 export function NotificationsForm({ profile }: NotificationsFormProps) {
   const [form, setForm] = useState({
-    notif_email_approved: profile.notif_email_approved ?? true,
-    notif_email_rejected: profile.notif_email_rejected ?? true,
-    notif_email_message: profile.notif_email_message ?? true,
-    notif_email_task: profile.notif_email_task ?? true,
+    notif_email_approved: profile.notif_email_approved !== false,
+    notif_email_rejected: profile.notif_email_rejected !== false,
+    notif_email_message: profile.notif_email_message !== false,
+    notif_email_task: profile.notif_email_task !== false,
     notif_email_frequency: profile.notif_email_frequency ?? "immediate",
-    notif_inapp_enabled: profile.notif_inapp_enabled ?? true,
+    notif_inapp_enabled: profile.notif_inapp_enabled !== false,
   })
   const [saving, setSaving] = useState(false)
   const supabase = useMemo(() => createClient(), [])
