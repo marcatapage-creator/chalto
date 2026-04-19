@@ -68,7 +68,7 @@ export function ProjectDocuments({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className={cn("flex items-center justify-between", isOpen && "mb-4")}>
         <button onClick={onToggle} className="flex items-center gap-1.5 group" disabled={!onToggle}>
           <ChevronDown
             className={cn(
@@ -89,10 +89,10 @@ export function ProjectDocuments({
         {isOpen && (
           <motion.div
             key="docs-list"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
             <div className="p-0.5">

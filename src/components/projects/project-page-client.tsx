@@ -269,32 +269,40 @@ export function ProjectPageClient({
         </div>
 
         {/* Corps scrollable */}
-        <div className="flex-1 overflow-auto px-6 md:px-8 py-6 md:py-8 space-y-6">
+        <div className="flex-1 overflow-auto divide-y divide-border">
           {/* Documents */}
-          <ProjectDocuments
-            documents={localDocs}
-            projectId={project.id}
-            selectedDocId={selectedDoc?.id ?? null}
-            onSelectDoc={setSelectedDoc}
-            isOpen={docsOpen}
-            onToggle={() => {
-              if (docsOpen) setSelectedDoc(null)
-              setDocsOpen((v) => !v)
-            }}
-          />
+          <div className="px-6 md:px-8 py-6 md:py-8">
+            <ProjectDocuments
+              documents={localDocs}
+              projectId={project.id}
+              selectedDocId={selectedDoc?.id ?? null}
+              onSelectDoc={setSelectedDoc}
+              isOpen={docsOpen}
+              onToggle={() => {
+                if (docsOpen) setSelectedDoc(null)
+                setDocsOpen((v) => !v)
+              }}
+            />
+          </div>
 
           {/* Kanban tâches — phases chantier et au-delà */}
           {isChantierPhase(phase) && (
             <>
-              <div className="-mx-6 md:-mx-8 h-px bg-border" />
-              <ProjectTasks
-                projectId={project.id}
-                userId={userId}
-                contacts={contacts}
-                authorName={authorName}
-              />
-              <div className="-mx-6 md:-mx-8 h-px bg-border" />
-              <ProjectDiscussion projectId={project.id} authorName={authorName} authorRole="pro" />
+              <div className="px-6 md:px-8 py-6 md:py-8">
+                <ProjectTasks
+                  projectId={project.id}
+                  userId={userId}
+                  contacts={contacts}
+                  authorName={authorName}
+                />
+              </div>
+              <div className="px-6 md:px-8 py-6 md:py-8">
+                <ProjectDiscussion
+                  projectId={project.id}
+                  authorName={authorName}
+                  authorRole="pro"
+                />
+              </div>
             </>
           )}
         </div>
