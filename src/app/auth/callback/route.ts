@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
         if (!profile?.profession_id) {
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
-          void sendWelcomeEmail({ email: user.email!, fullName })
+          await sendWelcomeEmail({ email: user.email!, fullName }).catch(() => null)
           return NextResponse.redirect(`${origin}/onboarding`)
         }
       }
