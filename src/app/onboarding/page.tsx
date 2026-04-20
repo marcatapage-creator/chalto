@@ -73,9 +73,11 @@ export default function OnboardingPage() {
         .update({ profession_id: profession?.id ?? null })
         .eq("id", user.id)
 
-      await createDemoProject(supabase, user.id, selected)
+      await createDemoProject(supabase, user.id, selected).catch(() => null)
 
       analytics.onboardingCompleted(selected)
+      router.push("/dashboard")
+    } catch {
       router.push("/dashboard")
     } finally {
       setLoading(false)
