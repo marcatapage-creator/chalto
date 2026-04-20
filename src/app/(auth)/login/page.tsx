@@ -57,10 +57,11 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
+    document.cookie = "oauth_source=login; max-age=300; path=/"
     analytics.login("google")
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?source=login` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
   }
 
