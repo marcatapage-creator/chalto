@@ -70,10 +70,7 @@ export default function OnboardingPage() {
 
       await supabase
         .from("profiles")
-        .update({
-          profession_id: profession?.id ?? null,
-          onboarding_completed: true,
-        })
+        .update({ profession_id: profession?.id ?? null })
         .eq("id", user.id)
 
       await createDemoProject(supabase, user.id, selected)
