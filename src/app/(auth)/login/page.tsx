@@ -18,6 +18,7 @@ import {
 import { AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { analytics } from "@/lib/analytics"
+import { AnimatedLogo } from "@/components/ui/animated-logo"
 
 function SessionExpiredBanner() {
   const searchParams = useSearchParams()
@@ -86,7 +87,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       {googleLoading && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-sm">
-          <Image src="/Logo.svg" alt="Chalto" width={36} height={36} className="animate-spin" />
+          <AnimatedLogo width={36} height={36} loop />
           <p className="text-sm text-muted-foreground">Connexion en cours…</p>
         </div>
       )}
