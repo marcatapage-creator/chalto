@@ -50,7 +50,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // Connecté → vérifier onboarding (profession_id = sélection faite)
-  if (user && !isPublic && pathname !== "/onboarding") {
+  // Les routes API ne sont pas soumises à la vérification onboarding
+  if (user && !isPublic && pathname !== "/onboarding" && !pathname.startsWith("/api/")) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("profession_id")
