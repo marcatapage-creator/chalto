@@ -505,13 +505,13 @@ export default function LandingPage() {
                 words={["Créer", "Organiser", "Partager", "Commenter", "Valider", "Avancer"]}
               />
               <br />
-              {/* Mobile : 3 lignes */}
-              <span className="md:hidden">
-                <span className="block text-foreground text-4xl">vos projets,</span>
-                <span className="block text-foreground text-4xl">simplement</span>
+              {/* Mobile + tablette : 2 lignes */}
+              <span className="xl:hidden">
+                <span className="block text-foreground text-4xl md:text-5xl">vos projets,</span>
+                <span className="block text-foreground text-4xl md:text-5xl">simplement</span>
               </span>
               {/* Desktop : 1 ligne */}
-              <span className="hidden md:inline text-foreground whitespace-nowrap md:text-6xl">
+              <span className="hidden xl:inline text-foreground whitespace-nowrap">
                 vos projets, simplement
               </span>
             </motion.h1>

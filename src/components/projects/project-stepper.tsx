@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
+import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
 import {
   ClipboardList,
@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 
 const CHANTIER_DISMISSED_KEY = "chantier_onboarding_dismissed"
+const CLOTURE_DISMISSED_KEY = "cloture_warning_dismissed"
 
 const phases = [
   { id: "cadrage", label: "Cadrage", icon: ClipboardList },
@@ -56,19 +57,51 @@ export function ProjectStepper({
   const [loading, setLoading] = useState(false)
   const [showChantierDialog, setShowChantierDialog] = useState(false)
   const [dontShowAgain, setDontShowAgain] = useState(false)
+  const [showClotureDialog, setShowClotureDialog] = useState(false)
+  const [dontShowClotureAgain, setDontShowClotureAgain] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   const currentIndex = phases.findIndex((p) => p.id === phase)
   const nextPhase = phases[currentIndex + 1]
 
+  const doGoBack = async (targetPhase: string) => {
+    setLoading(true)
+    const update: Record<string, string> = { phase: targetPhase }
+    if (phase === "cloture") update.status = "active"
+
+    const { error } = await supabase.from("projects").update(update).eq("id", projectId)
+
+    if (error) {
+      toast.error("Erreur lors du changement de phase")
+    } else {
+      setPhase(targetPhase)
+      onPhaseChange?.(targetPhase)
+      const label = phases.find((p) => p.id === targetPhase)?.label
+      toast.success(`Retour en phase "${label}"`)
+      router.refresh()
+    }
+    setLoading(false)
+  }
+
+  const chantierIndex = phases.findIndex((p) => p.id === "chantier")
+
+  const handlePhaseClick = (targetId: string, targetIndex: number) => {
+    if (readOnly || targetIndex >= currentIndex) return
+    if (isChantierPhase(phase) && targetIndex < chantierIndex) {
+      toast.warning("Retour impossible : le chantier est déjà amorcé.")
+      return
+    }
+    void doGoBack(targetId)
+  }
+
   const doAdvance = async () => {
     if (!nextPhase) return
     setLoading(true)
-    const { error } = await supabase
-      .from("projects")
-      .update({ phase: nextPhase.id })
-      .eq("id", projectId)
+    const update: Record<string, string> = { phase: nextPhase.id }
+    if (nextPhase.id === "cloture") update.status = "completed"
+
+    const { error } = await supabase.from("projects").update(update).eq("id", projectId)
 
     if (error) {
       toast.error("Erreur lors du changement de phase")
@@ -90,14 +123,25 @@ export function ProjectStepper({
         return
       }
     }
+    if (nextPhase.id === "cloture" && typeof window !== "undefined") {
+      const dismissed = localStorage.getItem(CLOTURE_DISMISSED_KEY) === "true"
+      if (!dismissed) {
+        setShowClotureDialog(true)
+        return
+      }
+    }
     void doAdvance()
   }
 
   const handleChantierConfirm = () => {
-    if (dontShowAgain) {
-      localStorage.setItem(CHANTIER_DISMISSED_KEY, "true")
-    }
+    if (dontShowAgain) localStorage.setItem(CHANTIER_DISMISSED_KEY, "true")
     setShowChantierDialog(false)
+    void doAdvance()
+  }
+
+  const handleClotureConfirm = () => {
+    if (dontShowClotureAgain) localStorage.setItem(CLOTURE_DISMISSED_KEY, "true")
+    setShowClotureDialog(false)
     void doAdvance()
   }
 
@@ -150,6 +194,53 @@ export function ProjectStepper({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={showClotureDialog} onOpenChange={setShowClotureDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="h-5 w-5 text-primary" />
+              Clôturer le projet
+            </DialogTitle>
+            <DialogDescription>
+              Cette action va marquer le projet comme <strong>Terminé</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            <div className="flex items-start gap-3 rounded-lg border p-3 bg-muted/40">
+              <CheckSquare className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Statut mis à jour</p>
+                <p className="text-xs text-muted-foreground">
+                  Le statut du projet passera de <strong>En cours</strong> à{" "}
+                  <strong>Terminé</strong>. Il restera accessible en consultation.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col gap-3 sm:flex-col">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground self-start">
+              <Checkbox
+                checked={dontShowClotureAgain}
+                onCheckedChange={(v) => setDontShowClotureAgain(v === true)}
+              />
+              Ne plus afficher ce message
+            </label>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowClotureDialog(false)}
+              >
+                Annuler
+              </Button>
+              <Button className="flex-1" onClick={handleClotureConfirm}>
+                Clôturer
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -183,14 +274,16 @@ export function ProjectStepper({
                 <div
                   className={cn(
                     "flex flex-col items-center gap-1.5 shrink-0 transition-opacity duration-200",
-                    isFuture && "opacity-35"
+                    isFuture && "opacity-35",
+                    isCompleted && !readOnly && "cursor-pointer"
                   )}
+                  onClick={() => isCompleted && handlePhaseClick(p.id, index)}
                 >
                   <div
                     className={cn(
                       "h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
                       isCompleted
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/80"
                         : isActive
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "bg-muted text-muted-foreground"

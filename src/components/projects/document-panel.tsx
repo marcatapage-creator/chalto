@@ -91,15 +91,7 @@ export function DocumentPanel({
   const [localVersion, setLocalVersion] = useState(document.version ?? 1)
   // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
   const [localFileUrl, setLocalFileUrl] = useState<string | null | undefined>(undefined)
-  const [prevVersions, setPrevVersions] = useState<PrevVersion[]>(() => {
-    if (typeof window === "undefined") return []
-    try {
-      const saved = localStorage.getItem(`doc_prev_versions_${document.id}`)
-      return saved ? (JSON.parse(saved) as PrevVersion[]) : []
-    } catch {
-      return []
-    }
-  })
+  const [prevVersions, setPrevVersions] = useState<PrevVersion[]>([])
   const [activeVersionTab, setActiveVersionTab] = useState<number | null>(() => {
     if (typeof window === "undefined") return null
     const saved = localStorage.getItem(`doc_version_${document.id}`)
@@ -109,6 +101,7 @@ export function DocumentPanel({
   useEffect(() => {
     onStatusChangeRef.current = onStatusChange
   }, [onStatusChange])
+
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
     data: { status: string; comment?: string; approved_at?: string } | null
@@ -131,6 +124,17 @@ export function DocumentPanel({
 
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
+
+  useEffect(() => {
+    supabase
+      .from("document_versions")
+      .select("version, file_url, file_name")
+      .eq("document_id", document.id)
+      .order("version", { ascending: false })
+      .then(({ data }) => {
+        if (data) setPrevVersions(data)
+      })
+  }, [document.id, supabase])
 
   const validation = validationEntry.docId === document.id ? validationEntry.data : null
   const docStatus = docStatusMap[localStatus] ?? docStatusMap.draft
@@ -214,8 +218,8 @@ export function DocumentPanel({
     setProposing(true)
     const newVersion = localVersion + 1
 
-    setPrevVersions((prev) => {
-      const next = [
+    setPrevVersions((prev) =>
+      [
         {
           version: localVersion,
           file_url: fileUrl ?? null,
@@ -224,9 +228,7 @@ export function DocumentPanel({
         },
         ...prev,
       ].slice(0, 3)
-      localStorage.setItem(`doc_prev_versions_${document.id}`, JSON.stringify(next))
-      return next
-    })
+    )
     setLocalVersion(newVersion)
     setLocalStatus("draft")
     setLocalFileUrl(null)
