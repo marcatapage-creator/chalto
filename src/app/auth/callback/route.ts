@@ -25,15 +25,6 @@ export async function GET(request: NextRequest) {
           .eq("id", user.id)
           .single()
 
-        console.log(
-          "[auth/callback] user:",
-          user.id,
-          "source:",
-          source,
-          "profession_id:",
-          profile?.profession_id
-        )
-
         if (!profile?.profession_id) {
           if (source === "login") {
             await createAdminClient()
