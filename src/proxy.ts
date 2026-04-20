@@ -49,15 +49,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Connecté → vérifier onboarding
+  // Connecté → vérifier onboarding (profession_id = sélection faite)
   if (user && !isPublic && pathname !== "/onboarding") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("onboarding_completed")
+      .select("profession_id")
       .eq("id", user.id)
       .single()
 
-    if (profile && !profile.onboarding_completed) {
+    if (profile && !profile.profession_id) {
       const url = request.nextUrl.clone()
       url.pathname = "/onboarding"
       return NextResponse.redirect(url)
