@@ -29,12 +29,9 @@ export default function RegisterPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     analytics.signUp("google")
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
+    window.location.href = "/api/auth/google?source=register"
   }
 
   const handleRegister = async (e: React.SyntheticEvent<HTMLFormElement>) => {

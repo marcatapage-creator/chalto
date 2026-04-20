@@ -10,6 +10,7 @@ interface OnboardingTooltipProps {
   title: string
   description: string
   position?: "top" | "bottom" | "left" | "right"
+  align?: "start" | "center" | "end"
   children: React.ReactNode
   disabled?: boolean
   className?: string
@@ -20,6 +21,7 @@ export function OnboardingTooltip({
   title,
   description,
   position = "bottom",
+  align = "center",
   children,
   disabled = false,
   className,
@@ -54,17 +56,34 @@ export function OnboardingTooltip({
     setVisible(false)
   }
 
+  const axisAlign = {
+    start: "left-0",
+    center: "left-1/2 -translate-x-1/2",
+    end: "right-0",
+  }
+
   const positionClasses = {
-    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
-    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
+    top: cn("bottom-full mb-2", axisAlign[align]),
+    bottom: cn("top-full mt-2", axisAlign[align]),
     left: "right-full top-1/2 -translate-y-1/2 mr-2",
     right: "left-full top-1/2 -translate-y-1/2 ml-2",
   }
 
+  const arrowAlign = {
+    start: "left-3",
+    center: "left-1/2 -translate-x-1/2",
+    end: "right-3",
+  }
+
   const arrowClasses = {
-    top: "top-full left-1/2 -translate-x-1/2 border-t-primary border-l-transparent border-r-transparent border-b-transparent",
-    bottom:
-      "bottom-full left-1/2 -translate-x-1/2 border-b-primary border-l-transparent border-r-transparent border-t-transparent",
+    top: cn(
+      "top-full border-t-primary border-l-transparent border-r-transparent border-b-transparent",
+      arrowAlign[align]
+    ),
+    bottom: cn(
+      "bottom-full border-b-primary border-l-transparent border-r-transparent border-t-transparent",
+      arrowAlign[align]
+    ),
     left: "left-full top-1/2 -translate-y-1/2 border-l-primary border-t-transparent border-b-transparent border-r-transparent",
     right:
       "right-full top-1/2 -translate-y-1/2 border-r-primary border-t-transparent border-b-transparent border-l-transparent",

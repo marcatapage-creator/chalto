@@ -249,6 +249,7 @@ export function ProjectStepper({
             title="Phases du projet"
             description="Suivez l'avancement de votre projet de la conception à la réception — phase par phase."
             position="bottom"
+            align="start"
           >
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Phase du projet

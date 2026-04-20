@@ -132,7 +132,9 @@ export function DocumentActions({
         id="send-document"
         title="Envoyez au client"
         description="Envoyez un lien sécurisé à votre client — il valide sans créer de compte."
-        position="bottom"
+        position="top"
+        align="start"
+        className="w-full"
       >
         <Button
           size="sm"

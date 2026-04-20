@@ -60,6 +60,7 @@ export function InviteButton({ contactId, projectId, contactName }: InviteButton
       title="Invitez vos prestataires"
       description="Vos prestataires accèdent à leurs tâches via un lien — sans créer de compte."
       position="bottom"
+      align="start"
     >
       <Button
         variant="outline"
