@@ -9,6 +9,7 @@ import { Building2, Wrench, Zap, Hammer, HardHat } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
 import { createDemoProject } from "@/lib/create-demo-project"
+import { toast } from "sonner"
 
 const professions = [
   {
@@ -77,7 +78,8 @@ export default function OnboardingPage() {
 
       analytics.onboardingCompleted(selected)
       router.push("/dashboard")
-    } catch {
+    } catch (err) {
+      toast.error(`Erreur: ${String(err)}`)
       router.push("/dashboard")
     } finally {
       setLoading(false)
