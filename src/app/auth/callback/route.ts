@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { sendWelcomeEmail } from "@/lib/email"
 
@@ -35,7 +36,9 @@ export async function GET(request: Request) {
 
         if (!profile?.profession_id) {
           if (source === "login") {
-            await supabase.auth.signOut()
+            await createAdminClient()
+              .auth.admin.deleteUser(user.id)
+              .catch(() => null)
             return NextResponse.redirect(`${origin}/login?error=no_account`)
           }
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
