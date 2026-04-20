@@ -52,33 +52,42 @@ export default function OnboardingPage() {
 
   const handleContinue = async () => {
     if (!selected) return
+    console.log("[onboarding] start", selected)
     setLoading(true)
 
     try {
+      console.log("[onboarding] getUser...")
       const {
         data: { user },
       } = await supabase.auth.getUser()
+      console.log("[onboarding] user", user?.id ?? "null")
       if (!user) {
         router.push("/login")
         return
       }
 
+      console.log("[onboarding] fetching profession...")
       const { data: profession } = await supabase
         .from("professions")
         .select("id")
         .eq("slug", selected)
         .single()
+      console.log("[onboarding] profession", profession)
 
+      console.log("[onboarding] updating profile...")
       await supabase
         .from("profiles")
         .update({ profession_id: profession?.id ?? null })
         .eq("id", user.id)
 
+      console.log("[onboarding] createDemoProject...")
       await createDemoProject(supabase, user.id, selected).catch(() => null)
 
+      console.log("[onboarding] redirecting to dashboard...")
       analytics.onboardingCompleted(selected)
       router.push("/dashboard")
     } catch (err) {
+      console.error("[onboarding] error", err)
       toast.error(`Erreur: ${String(err)}`)
       router.push("/dashboard")
     } finally {
