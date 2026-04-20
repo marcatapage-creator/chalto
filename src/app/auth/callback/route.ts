@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/dashboard"
+  const source = searchParams.get("source")
 
   if (code) {
     const supabase = await createClient()
@@ -24,6 +25,9 @@ export async function GET(request: Request) {
           .single()
 
         if (!profile?.profession_id) {
+          if (source === "login") {
+            return NextResponse.redirect(`${origin}/login?error=no_account`)
+          }
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
           await sendWelcomeEmail({ email: user.email!, fullName }).catch(() => null)
           return NextResponse.redirect(`${origin}/onboarding`)

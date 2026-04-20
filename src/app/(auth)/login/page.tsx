@@ -21,13 +21,23 @@ import { analytics } from "@/lib/analytics"
 
 function SessionExpiredBanner() {
   const searchParams = useSearchParams()
-  if (searchParams.get("reason") !== "session_expired") return null
-  return (
-    <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400">
-      <AlertCircle className="h-4 w-4 shrink-0" />
-      Votre session a expiré. Reconnectez-vous pour continuer.
-    </div>
-  )
+  if (searchParams.get("reason") === "session_expired") {
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400">
+        <AlertCircle className="h-4 w-4 shrink-0" />
+        Votre session a expiré. Reconnectez-vous pour continuer.
+      </div>
+    )
+  }
+  if (searchParams.get("error") === "no_account") {
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm dark:bg-red-950/30 dark:border-red-800 dark:text-red-400">
+        <AlertCircle className="h-4 w-4 shrink-0" />
+        Aucun compte trouvé. Rejoignez la liste d&apos;attente pour accéder à Chalto.
+      </div>
+    )
+  }
+  return null
 }
 
 export default function LoginPage() {
@@ -50,7 +60,7 @@ export default function LoginPage() {
     analytics.login("google")
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?source=login` },
     })
   }
 
