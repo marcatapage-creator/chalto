@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { sendWelcomeEmail } from "@/lib/email"
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -23,6 +24,8 @@ export async function GET(request: Request) {
           .single()
 
         if (!profile?.profession_id) {
+          const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
+          void sendWelcomeEmail({ email: user.email!, fullName })
           return NextResponse.redirect(`${origin}/onboarding`)
         }
       }
