@@ -24,6 +24,15 @@ export async function GET(request: Request) {
           .eq("id", user.id)
           .single()
 
+        console.log(
+          "[auth/callback] user:",
+          user.id,
+          "source:",
+          source,
+          "profession_id:",
+          profile?.profession_id
+        )
+
         if (!profile?.profession_id) {
           if (source === "login") {
             await supabase.auth.signOut()
