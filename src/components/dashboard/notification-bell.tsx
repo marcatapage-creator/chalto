@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -31,15 +32,17 @@ export function NotificationBell({
   markAllAsRead,
   popoverAlign = "end",
 }: NotificationBellProps) {
+  const [open, setOpen] = useState(false)
   const router = useRouter()
 
   const handleClick = async (notif: Notification) => {
+    setOpen(false)
     await markAsRead(notif.id)
     if (notif.link) router.push(notif.link)
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
