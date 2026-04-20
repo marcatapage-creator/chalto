@@ -19,7 +19,11 @@ export async function POST(request: Request) {
         .select("*, projects(name, client_email, client_name)")
         .eq("id", documentId)
         .single(),
-      supabase.from("profiles").select("full_name, email").eq("id", user.id).single(),
+      supabase
+        .from("profiles")
+        .select("full_name, email, logo_url, company_name, branding_enabled")
+        .eq("id", user.id)
+        .single(),
     ])
 
     if (!document) {
@@ -40,6 +44,8 @@ export async function POST(request: Request) {
       documentName: document.name,
       validationUrl,
       message: message ?? undefined,
+      logoUrl: profile?.branding_enabled ? (profile.logo_url ?? null) : null,
+      companyName: profile?.branding_enabled ? (profile.company_name ?? null) : null,
     })
 
     if (emailError) {

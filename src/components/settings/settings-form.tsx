@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner"
 import { HoverButton } from "@/components/ui/motion"
 import { NotificationsForm } from "@/components/settings/notifications-form"
+import { BrandingForm } from "@/components/settings/branding-form"
 
 interface Profession {
   id: string
@@ -50,16 +51,17 @@ export function SettingsForm({
   profile,
   professions,
   notifProfile,
+  brandingProfile,
 }: {
   profile: Profile
   professions: Profession[]
   notifProfile: React.ComponentProps<typeof NotificationsForm>["profile"]
+  brandingProfile: React.ComponentProps<typeof BrandingForm>["profile"]
 }) {
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [form, setForm] = useState({
     full_name: profile?.full_name ?? "",
-    company_name: profile?.company_name ?? "",
     phone: profile?.phone ?? "",
     profession_id: profile?.profession_id ?? "",
   })
@@ -92,7 +94,6 @@ export function SettingsForm({
       .from("profiles")
       .update({
         full_name: form.full_name,
-        company_name: form.company_name,
         phone: form.phone,
         profession_id: form.profession_id,
       })
@@ -185,30 +186,8 @@ export function SettingsForm({
       </TabsContent>
 
       {/* Onglet Entreprise */}
-      <TabsContent value="entreprise" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informations entreprise</CardTitle>
-            <CardDescription>Apparaissent sur vos documents professionnels</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nom de l&apos;entreprise</Label>
-              <Input
-                name="company_name"
-                placeholder="Mon Agence Architecture"
-                value={form.company_name}
-                onChange={handleChange}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <HoverButton>
-          <Button onClick={handleSave} loading={loading} className="w-full">
-            {loading ? "Sauvegarde..." : "Sauvegarder les modifications"}
-          </Button>
-        </HoverButton>
+      <TabsContent value="entreprise">
+        <BrandingForm profile={brandingProfile} />
       </TabsContent>
 
       {/* Onglet Compte */}

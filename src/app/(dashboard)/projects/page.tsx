@@ -200,7 +200,7 @@ export default async function ProjectsPage() {
                           />
                           <Indicator icon={Users} value={c.contributors} title="Prestataires" />
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center gap-6 shrink-0 pl-6">
                           <p className="text-xs text-muted-foreground hidden xl:block">
                             {new Date(project.created_at).toLocaleDateString("fr-FR")}
                           </p>

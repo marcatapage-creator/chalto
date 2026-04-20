@@ -14,6 +14,8 @@ export async function sendValidationEmail({
   documentName,
   validationUrl,
   message,
+  logoUrl,
+  companyName,
 }: {
   clientEmail: string
   clientName: string
@@ -22,19 +24,29 @@ export async function sendValidationEmail({
   documentName: string
   validationUrl: string
   message?: string
+  logoUrl?: string | null
+  companyName?: string | null
 }) {
+  const brandHeader = logoUrl
+    ? `<img src="${logoUrl}" alt="${companyName ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
+    : `<div style="display: inline-flex; align-items: center; gap: 8px;">
+        <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+        <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+       </div>`
+
+  const senderName = companyName ?? proName
+
   return getResend().emails.send({
     from: FROM,
     to: clientEmail,
-    subject: `${proName} vous soumet un document à valider`,
+    subject: `${senderName} vous soumet un document à valider`,
     html: `
       <!DOCTYPE html>
       <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
-            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          <div style="margin-bottom: 32px;">
+            ${brandHeader}
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">

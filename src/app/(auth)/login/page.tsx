@@ -18,7 +18,7 @@ import {
 import { AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { analytics } from "@/lib/analytics"
-import { AnimatedLogo } from "@/components/ui/animated-logo"
+import { motion, AnimatePresence } from "framer-motion"
 
 function SessionExpiredBanner() {
   const searchParams = useSearchParams()
@@ -85,12 +85,33 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      {googleLoading && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-sm">
-          <AnimatedLogo width={36} height={36} loop />
-          <p className="text-sm text-muted-foreground">Connexion en cours…</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {googleLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm"
+          >
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/Logo.svg" alt="Chalto" width={64} height={64} />
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="text-sm text-muted-foreground"
+            >
+              Connexion en cours…
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2">

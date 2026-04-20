@@ -11,7 +11,9 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
 
   const { data: document } = await admin
     .from("documents")
-    .select("*, projects(name, client_name, phase)")
+    .select(
+      "*, projects(name, client_name, phase, profiles(logo_url, company_name, full_name, branding_enabled))"
+    )
     .eq("validation_token", token)
     .single()
 
@@ -46,10 +48,31 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          <div className="flex justify-center mb-3">
-            <Image src="/Logo.svg" alt="Chalto" width={36} height={36} />
-          </div>
-          <p className="text-muted-foreground mt-1">Validation de document</p>
+          {document.projects?.profiles?.branding_enabled &&
+          document.projects?.profiles?.logo_url ? (
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <Image
+                src={document.projects.profiles.logo_url}
+                alt={document.projects.profiles.company_name ?? "Logo"}
+                width={160}
+                height={64}
+                className="object-contain max-h-16"
+              />
+              <p className="text-xs text-muted-foreground">
+                Propulsé par{" "}
+                <a href="https://chalto.fr" className="text-primary hover:underline">
+                  Chalto
+                </a>
+              </p>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <div className="flex justify-center mb-3">
+                <Image src="/Logo.svg" alt="Chalto" width={36} height={36} />
+              </div>
+              <p className="text-muted-foreground mt-1">Validation de document</p>
+            </div>
+          )}
         </div>
         <ValidationClient document={document} token={token} />
       </div>

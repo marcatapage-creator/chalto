@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Mail, Check } from "lucide-react"
 import { analytics } from "@/lib/analytics"
+import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 
 interface InviteButtonProps {
   contactId: string
@@ -54,15 +55,22 @@ export function InviteButton({ contactId, projectId, contactName }: InviteButton
   }
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-7 text-xs"
-      onClick={handleInvite}
-      loading={loading}
+    <OnboardingTooltip
+      id="invite-contributor"
+      title="Invitez vos prestataires"
+      description="Vos prestataires accèdent à leurs tâches via un lien — sans créer de compte."
+      position="bottom"
     >
-      <Mail className="h-3 w-3 mr-1.5" />
-      {loading ? "Envoi..." : "Inviter"}
-    </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
+        onClick={handleInvite}
+        loading={loading}
+      >
+        <Mail className="h-3 w-3 mr-1.5" />
+        {loading ? "Envoi..." : "Inviter"}
+      </Button>
+    </OnboardingTooltip>
   )
 }

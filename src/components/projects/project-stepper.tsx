@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
+import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 import {
   ClipboardList,
   Pencil,
@@ -241,89 +242,97 @@ export function ProjectStepper({
         </DialogContent>
       </Dialog>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Phase du projet
-          </p>
-          {nextPhase && !readOnly && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-7"
-              onClick={handleAdvance}
-              loading={loading}
-            >
-              Passer à : {nextPhase.label}
-              <ChevronRight className="ml-1 h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+      <OnboardingTooltip
+        id="project-stepper"
+        title="Phases du projet"
+        description="Suivez l'avancement de votre projet de la conception à la réception — phase par phase."
+        position="right"
+        className="block"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Phase du projet
+            </p>
+            {nextPhase && !readOnly && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-7"
+                onClick={handleAdvance}
+                loading={loading}
+              >
+                Passer à : {nextPhase.label}
+                <ChevronRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
 
-        {/* Stepper horizontal */}
-        <div className="flex items-start overflow-x-auto pb-1">
-          {phases.map((p, index) => {
-            const Icon = p.icon
-            const isCompleted = index < currentIndex
-            const isActive = p.id === phase
-            const isFuture = index > currentIndex
+          {/* Stepper horizontal */}
+          <div className="flex items-start overflow-x-auto pb-1">
+            {phases.map((p, index) => {
+              const Icon = p.icon
+              const isCompleted = index < currentIndex
+              const isActive = p.id === phase
+              const isFuture = index > currentIndex
 
-            return (
-              <Fragment key={p.id}>
-                {/* Étape */}
-                <div
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 shrink-0 transition-opacity duration-200",
-                    isFuture && "opacity-35",
-                    isCompleted && !readOnly && "cursor-pointer"
-                  )}
-                  onClick={() => isCompleted && handlePhaseClick(p.id, index)}
-                >
+              return (
+                <Fragment key={p.id}>
+                  {/* Étape */}
                   <div
                     className={cn(
-                      "h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
-                      isCompleted
-                        ? "bg-primary text-primary-foreground hover:bg-primary/80"
-                        : isActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted text-muted-foreground"
+                      "flex flex-col items-center gap-1.5 shrink-0 transition-opacity duration-200",
+                      isFuture && "opacity-35",
+                      isCompleted && !readOnly && "cursor-pointer"
                     )}
+                    onClick={() => isCompleted && handlePhaseClick(p.id, index)}
                   >
-                    {isCompleted ? (
-                      <Check className="h-3.5 w-3.5" />
-                    ) : (
-                      <Icon className="h-3.5 w-3.5" />
-                    )}
+                    <div
+                      className={cn(
+                        "h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
+                        isCompleted
+                          ? "bg-primary text-primary-foreground hover:bg-primary/80"
+                          : isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {isCompleted ? (
+                        <Check className="h-3.5 w-3.5" />
+                      ) : (
+                        <Icon className="h-3.5 w-3.5" />
+                      )}
+                    </div>
+                    <p
+                      className={cn(
+                        "text-xs font-medium text-center leading-tight",
+                        isActive ? "text-primary" : "text-muted-foreground",
+                        !isActive && "hidden sm:block"
+                      )}
+                    >
+                      {p.label}
+                    </p>
                   </div>
-                  <p
-                    className={cn(
-                      "text-xs font-medium text-center leading-tight",
-                      isActive ? "text-primary" : "text-muted-foreground",
-                      !isActive && "hidden sm:block"
-                    )}
-                  >
-                    {p.label}
-                  </p>
-                </div>
 
-                {/* Connecteur */}
-                {index < phases.length - 1 && (
-                  <div
-                    className={cn(
-                      "flex-1 mt-3.5 transition-all duration-300 border-t",
-                      index < currentIndex - 1
-                        ? "border-primary"
-                        : index === currentIndex - 1
-                          ? "border-primary/40"
-                          : "border-border"
-                    )}
-                  />
-                )}
-              </Fragment>
-            )
-          })}
+                  {/* Connecteur */}
+                  {index < phases.length - 1 && (
+                    <div
+                      className={cn(
+                        "flex-1 mt-3.5 transition-all duration-300 border-t",
+                        index < currentIndex - 1
+                          ? "border-primary"
+                          : index === currentIndex - 1
+                            ? "border-primary/40"
+                            : "border-border"
+                      )}
+                    />
+                  )}
+                </Fragment>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      </OnboardingTooltip>
     </>
   )
 }

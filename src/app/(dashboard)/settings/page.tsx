@@ -35,6 +35,12 @@ export default async function SettingsPage() {
             notif_email_frequency: profile?.notif_email_frequency ?? "immediate",
             notif_inapp_enabled: profile?.notif_inapp_enabled !== false,
           }}
+          brandingProfile={{
+            id: profile?.id ?? "",
+            logo_url: profile?.logo_url ?? null,
+            company_name: profile?.company_name ?? null,
+            branding_enabled: profile?.branding_enabled ?? false,
+          }}
         />
       </div>
     </div>

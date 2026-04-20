@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
 import { toast } from "sonner"
+import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 
 interface Contributor {
   id: string
@@ -127,16 +128,23 @@ export function DocumentActions({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="default"
-        onClick={() => setOpen(true)}
-        disabled={status === "sent"}
-        className={cn(className)}
+      <OnboardingTooltip
+        id="send-document"
+        title="Envoyez au client"
+        description="Envoyez un lien sécurisé à votre client — il valide sans créer de compte."
+        position="bottom"
       >
-        <Send className="h-4 w-4 mr-2" />
-        {status === "sent" ? "Envoyé" : "Envoyer"}
-      </Button>
+        <Button
+          size="sm"
+          variant="default"
+          onClick={() => setOpen(true)}
+          disabled={status === "sent"}
+          className={cn(className)}
+        >
+          <Send className="h-4 w-4 mr-2" />
+          {status === "sent" ? "Envoyé" : "Envoyer"}
+        </Button>
+      </OnboardingTooltip>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
