@@ -51,6 +51,7 @@ export async function proxy(request: NextRequest) {
     "/validate",
     "/invite",
     "/blog",
+    "/api/auth/google",
     "/api/waitlist",
     "/api/send-welcome",
     "/api/validate",

@@ -55,13 +55,10 @@ export default function LoginPage() {
     })
   }, [supabase, router])
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setGoogleLoading(true)
     analytics.login("google")
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?source=login` },
-    })
+    window.location.href = "/api/auth/google?source=login"
   }
 
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
