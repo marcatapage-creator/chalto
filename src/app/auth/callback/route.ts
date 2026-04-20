@@ -26,6 +26,7 @@ export async function GET(request: Request) {
 
         if (!profile?.profession_id) {
           if (source === "login") {
+            await supabase.auth.signOut()
             return NextResponse.redirect(`${origin}/login?error=no_account`)
           }
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
