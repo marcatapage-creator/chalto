@@ -25,10 +25,7 @@ export async function GET(request: Request) {
 
         if (!profile?.profession_id) {
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
-          const emailResult = await sendWelcomeEmail({ email: user.email!, fullName }).catch(
-            (err) => ({ error: err })
-          )
-          console.log("[auth/callback] welcome email result:", JSON.stringify(emailResult))
+          await sendWelcomeEmail({ email: user.email!, fullName }).catch(() => null)
           return NextResponse.redirect(`${origin}/onboarding`)
         }
       }
