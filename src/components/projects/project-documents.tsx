@@ -83,7 +83,7 @@ export function ProjectDocuments({
             {documents.length}
           </span>
         </button>
-        <AddDocumentDialog projectId={projectId} disabled={readOnly} />
+        {!readOnly && <AddDocumentDialog projectId={projectId} />}
       </div>
 
       {/* Liste collapsible */}

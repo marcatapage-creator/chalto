@@ -268,12 +268,14 @@ export function ProjectTasks({
             }
           }}
         >
-          <DialogTrigger asChild>
-            <Button size="sm" disabled={readOnly}>
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Nouvelle tâche</span>
-            </Button>
-          </DialogTrigger>
+          {!readOnly && (
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Nouvelle tâche</span>
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             {dialogView === "task" ? (
               <>

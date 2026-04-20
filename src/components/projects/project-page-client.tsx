@@ -183,16 +183,18 @@ export function ProjectPageClient({
                 Créé le {new Date(project.created_at).toLocaleDateString("fr-FR")}
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden md:inline-flex shrink-0 text-muted-foreground"
-              asChild
-            >
-              <Link href={`/projects/${project.id}/edit`}>
-                <Pencil className="h-4 w-4" />
-              </Link>
-            </Button>
+            {phase !== "cloture" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden md:inline-flex shrink-0 text-muted-foreground"
+                asChild
+              >
+                <Link href={`/projects/${project.id}/edit`}>
+                  <Pencil className="h-4 w-4" />
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -227,11 +229,13 @@ export function ProjectPageClient({
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
                       </p>
-                      <ProjectDetailsDialog
-                        projectId={project.id}
-                        project={projectInfo}
-                        onSave={(updated) => setProjectInfo(updated)}
-                      />
+                      {phase !== "cloture" && (
+                        <ProjectDetailsDialog
+                          projectId={project.id}
+                          project={projectInfo}
+                          onSave={(updated) => setProjectInfo(updated)}
+                        />
+                      )}
                     </div>
                     {projectInfo.client_name && (
                       <div className="flex items-center gap-2 text-sm">
