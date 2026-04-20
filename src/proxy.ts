@@ -29,6 +29,15 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
+  // Code OAuth sur la landing (mauvaise config Supabase redirect) → renvoyer vers /auth/callback
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone()
+    const code = url.searchParams.get("code")
+    url.pathname = "/auth/callback"
+    url.search = `?code=${code}`
+    return NextResponse.redirect(url)
+  }
+
   // Routes publiques — toujours accessibles
   const publicRoutes = [
     "/",
