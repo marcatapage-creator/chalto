@@ -72,6 +72,7 @@ interface ProjectTasksProps {
   userId: string
   contacts: Contact[]
   authorName: string
+  readOnly?: boolean
 }
 
 const columns = [
@@ -80,7 +81,13 @@ const columns = [
   { id: "done", label: "Terminé", color: "text-primary" },
 ]
 
-export function ProjectTasks({ projectId, userId, contacts, authorName }: ProjectTasksProps) {
+export function ProjectTasks({
+  projectId,
+  userId,
+  contacts,
+  authorName,
+  readOnly = false,
+}: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -262,7 +269,7 @@ export function ProjectTasks({ projectId, userId, contacts, authorName }: Projec
           }}
         >
           <DialogTrigger asChild>
-            <Button size="sm">
+            <Button size="sm" disabled={readOnly}>
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Nouvelle tâche</span>
             </Button>

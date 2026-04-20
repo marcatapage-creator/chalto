@@ -292,6 +292,7 @@ export function ProjectPageClient({
                 if (docsOpen) setSelectedDoc(null)
                 setDocsOpen((v) => !v)
               }}
+              readOnly={phase === "cloture"}
             />
           </div>
 
@@ -304,6 +305,7 @@ export function ProjectPageClient({
                   userId={userId}
                   contacts={contacts}
                   authorName={authorName}
+                  readOnly={phase === "cloture"}
                 />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
@@ -311,6 +313,7 @@ export function ProjectPageClient({
                   projectId={project.id}
                   authorName={authorName}
                   authorRole="pro"
+                  readOnly={phase === "cloture"}
                 />
               </div>
             </>

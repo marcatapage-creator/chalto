@@ -30,6 +30,7 @@ interface ProjectDocumentsProps {
   onSelectDoc: (doc: Document) => void
   isOpen?: boolean
   onToggle?: () => void
+  readOnly?: boolean
 }
 
 const docStatusMap: Record<
@@ -64,6 +65,7 @@ export function ProjectDocuments({
   onSelectDoc,
   isOpen = true,
   onToggle,
+  readOnly = false,
 }: ProjectDocumentsProps) {
   return (
     <>
@@ -81,7 +83,7 @@ export function ProjectDocuments({
             {documents.length}
           </span>
         </button>
-        <AddDocumentDialog projectId={projectId} />
+        <AddDocumentDialog projectId={projectId} disabled={readOnly} />
       </div>
 
       {/* Liste collapsible */}

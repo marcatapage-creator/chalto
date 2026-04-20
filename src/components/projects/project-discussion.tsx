@@ -21,9 +21,15 @@ interface ProjectDiscussionProps {
   projectId: string
   authorName: string
   authorRole: "pro" | "prestataire"
+  readOnly?: boolean
 }
 
-export function ProjectDiscussion({ projectId, authorName, authorRole }: ProjectDiscussionProps) {
+export function ProjectDiscussion({
+  projectId,
+  authorName,
+  authorRole,
+  readOnly = false,
+}: ProjectDiscussionProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
@@ -210,22 +216,24 @@ export function ProjectDiscussion({ projectId, authorName, authorRole }: Project
               <div ref={bottomRef} />
             </div>
 
-            <div className="border-t pt-3 space-y-2">
-              <Textarea
-                placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={2}
-                className="resize-none text-sm"
-              />
-              <div className="flex justify-end">
-                <Button size="sm" onClick={handleSend} disabled={loading || !content.trim()}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Envoyer
-                </Button>
+            {!readOnly && (
+              <div className="border-t pt-3 space-y-2">
+                <Textarea
+                  placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  rows={2}
+                  className="resize-none text-sm"
+                />
+                <div className="flex justify-end">
+                  <Button size="sm" onClick={handleSend} disabled={loading || !content.trim()}>
+                    <Send className="h-4 w-4 mr-2" />
+                    Envoyer
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </FadeIn>
       )}
