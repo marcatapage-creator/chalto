@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Bell, Mail, Smartphone } from "lucide-react"
+import { Mail, Smartphone } from "lucide-react"
 
 interface NotificationsFormProps {
   profile: {
@@ -53,8 +53,6 @@ const emailItems = [
 
 const frequencyHints: Record<string, string> = {
   immediate: "Vous recevez un email à chaque événement.",
-  daily: "Un résumé de vos notifications est envoyé chaque soir à 18h.",
-  weekly: "Un résumé hebdomadaire est envoyé chaque lundi matin.",
   never: "Aucun email — consultez la cloche pour vos notifications.",
 }
 
@@ -64,7 +62,9 @@ export function NotificationsForm({ profile }: NotificationsFormProps) {
     notif_email_rejected: profile.notif_email_rejected !== false,
     notif_email_message: profile.notif_email_message !== false,
     notif_email_task: profile.notif_email_task !== false,
-    notif_email_frequency: profile.notif_email_frequency ?? "immediate",
+    notif_email_frequency: ["immediate", "never"].includes(profile.notif_email_frequency ?? "")
+      ? (profile.notif_email_frequency ?? "immediate")
+      : "immediate",
     notif_inapp_enabled: profile.notif_inapp_enabled !== false,
   })
   const [saving, setSaving] = useState(false)
@@ -151,26 +151,11 @@ export function NotificationsForm({ profile }: NotificationsFormProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="immediate">Immédiatement — dès que ça se passe</SelectItem>
-                <SelectItem value="daily">Résumé quotidien — 1 email par jour max</SelectItem>
-                <SelectItem value="weekly">Résumé hebdomadaire — 1 email par semaine</SelectItem>
                 <SelectItem value="never">Jamais — notifications in-app uniquement</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
               {frequencyHints[form.notif_email_frequency]}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Note */}
-      <Card className="bg-muted/30">
-        <CardContent className="pt-4">
-          <div className="flex items-start gap-3">
-            <Bell className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Les notifications importantes (document refusé, validation urgente) sont toujours
-              envoyées immédiatement, quelle que soit la fréquence choisie.
             </p>
           </div>
         </CardContent>

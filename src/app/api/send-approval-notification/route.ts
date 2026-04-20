@@ -19,12 +19,22 @@ export async function POST(request: Request) {
 
     const { data: proProfile } = await supabase
       .from("profiles")
-      .select("email, full_name")
+      .select("email, full_name, notif_email_frequency, notif_email_approved, notif_email_rejected")
       .eq("id", document.projects.user_id)
       .single()
 
     if (!proProfile?.email) {
       return NextResponse.json({ error: "Pro introuvable" }, { status: 404 })
+    }
+
+    const shouldSendEmail =
+      proProfile.notif_email_frequency !== "never" &&
+      (status === "approved"
+        ? proProfile.notif_email_approved !== false
+        : proProfile.notif_email_rejected !== false)
+
+    if (!shouldSendEmail) {
+      return NextResponse.json({ success: true })
     }
 
     const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/projects/${document.project_id}`
