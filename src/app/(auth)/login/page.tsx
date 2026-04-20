@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { analytics } from "@/lib/analytics"
 
@@ -84,6 +84,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      {googleLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-sm">
+          <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Connexion en cours…</p>
+        </div>
+      )}
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2">
