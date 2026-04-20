@@ -75,7 +75,7 @@ export function OnboardingTooltip({
       {children}
 
       {visible && (
-        <FadeIn className={cn("absolute z-50 w-64", positionClasses[position])}>
+        <FadeIn className={cn("absolute z-200 w-64", positionClasses[position])}>
           <div className={cn("absolute w-0 h-0 border-4", arrowClasses[position])} />
           <div className="bg-primary text-primary-foreground rounded-xl p-3 shadow-lg space-y-2">
             <div className="flex items-start justify-between gap-2">
