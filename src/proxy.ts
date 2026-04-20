@@ -33,9 +33,9 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
     const url = request.nextUrl.clone()
     const code = url.searchParams.get("code")
-    const oauthSource = request.cookies.get("oauth_source")?.value
+    const source = url.searchParams.get("source") ?? request.cookies.get("oauth_source")?.value
     url.pathname = "/auth/callback"
-    url.search = oauthSource ? `?code=${code}&source=${oauthSource}` : `?code=${code}`
+    url.search = source ? `?code=${code}&source=${source}` : `?code=${code}`
     const response = NextResponse.redirect(url)
     response.cookies.delete("oauth_source")
     return response
