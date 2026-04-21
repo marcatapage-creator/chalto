@@ -80,17 +80,17 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Fix calendar picker icon in dark mode */
-.dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.5);
-}
-
 /* iOS Safari: date input — force color-scheme to match app theme, not iOS system theme */
 input[type="date"] {
+  display: block !important;
   height: auto !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  -webkit-appearance: none;
+  appearance: none;
   color-scheme: light;
 }
 
@@ -204,6 +204,15 @@ input[type="date"]::-webkit-date-and-time-value {
 
 *:hover {
   scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
+}
+
+/* Smooth dark/light mode transition */
+@media (prefers-reduced-motion: no-preference) {
+  *, *::before, *::after {
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 250ms;
+    transition-timing-function: ease;
+  }
 }
 
 /* Touch feedback — mobile uniquement */

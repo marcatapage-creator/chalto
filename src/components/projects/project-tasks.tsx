@@ -239,6 +239,11 @@ export function ProjectTasks({
     setContactLoading(false)
   }
 
+  const todayMin = useMemo(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  }, [])
+
   const getTasksByStatus = (status: string) => tasks.filter((t) => t.status === status)
 
   return (
@@ -334,6 +339,7 @@ export function ProjectTasks({
                     <Input
                       type="date"
                       value={form.due_date}
+                      min={todayMin}
                       onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                     />
                   </div>
