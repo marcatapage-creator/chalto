@@ -1,9 +1,35 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ValidationClient } from "@/components/validate/validation-client"
 import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>
+}): Promise<Metadata> {
+  const { token } = await params
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("documents")
+    .select("name, projects(name)")
+    .eq("validation_token", token)
+    .single()
+
+  const projectName = (data?.projects as { name?: string } | null)?.name
+  const title = projectName ? `Validation — ${projectName}` : "Validation de document"
+
+  return {
+    title,
+    openGraph: {
+      title: `${title} | Chalto`,
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+  }
+}
 
 export default async function ValidatePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
