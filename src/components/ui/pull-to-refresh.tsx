@@ -5,13 +5,23 @@ import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const TRIGGER_THRESHOLD = 130 // drag distance (px) required to trigger
-const HEADER_HEIGHT = 56 // mobile header h-14
-const INDICATOR_SIZE = 36 // h-9 w-9
-// Straddle header/content boundary: center of indicator sits at header bottom
-const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2 // 38px
-// Total visual travel from hidden (-INDICATOR_SIZE) to snapped (SNAP_Y)
-const TOTAL_TRAVEL = INDICATOR_SIZE + SNAP_Y // 74px
+const TRIGGER_THRESHOLD = 130
+const SHOW_THRESHOLD = 15 // dead zone before indicator appears
+const HEADER_HEIGHT = 56
+const INDICATOR_SIZE = 36
+const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2
+const TOTAL_TRAVEL = INDICATOR_SIZE + SNAP_Y
+
+// Walk up the DOM: return true if a scrollable ancestor has content scrolled above the top
+function hasScrollableParentAbove(target: Element): boolean {
+  let el: Element | null = target
+  while (el && el !== document.body && el !== document.documentElement) {
+    const { overflowY } = window.getComputedStyle(el)
+    if ((overflowY === "auto" || overflowY === "scroll") && el.scrollTop > 0) return true
+    el = el.parentElement
+  }
+  return false
+}
 
 export function PullToRefresh() {
   const router = useRouter()
@@ -23,10 +33,11 @@ export function PullToRefresh() {
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
-      if (window.scrollY === 0 && !activeRef.current) {
-        startYRef.current = e.touches[0].clientY
-        activeRef.current = true
-      }
+      if (activeRef.current) return
+      if (window.scrollY > 0) return
+      if (hasScrollableParentAbove(e.target as Element)) return
+      startYRef.current = e.touches[0].clientY
+      activeRef.current = true
     }
 
     const onTouchMove = (e: TouchEvent) => {
@@ -67,12 +78,15 @@ export function PullToRefresh() {
     }
   }, [router])
 
-  // Indicator starts hidden above screen (-INDICATOR_SIZE) and slides down
-  // with resistance (moves slower than finger) until it reaches SNAP_Y
-  const visualY = Math.min(SNAP_Y, -INDICATOR_SIZE + (dragY / TRIGGER_THRESHOLD) * TOTAL_TRAVEL)
+  const effectiveDrag = Math.max(0, dragY - SHOW_THRESHOLD)
+  const effectiveRange = TRIGGER_THRESHOLD - SHOW_THRESHOLD
+  const visualY = Math.min(
+    SNAP_Y,
+    -INDICATOR_SIZE + (effectiveDrag / effectiveRange) * TOTAL_TRAVEL
+  )
   const progress = Math.min(dragY / TRIGGER_THRESHOLD, 1)
 
-  if (dragY === 0 && !refreshing) return null
+  if (dragY < SHOW_THRESHOLD && !refreshing) return null
 
   return (
     <div

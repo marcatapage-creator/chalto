@@ -58,6 +58,9 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
+  alternates: {
+    canonical: "https://chalto.fr",
+  },
   manifest: "/manifest.json",
   icons: {
     icon: [
