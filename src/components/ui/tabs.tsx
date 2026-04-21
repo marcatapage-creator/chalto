@@ -62,13 +62,13 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
         "border border-transparent",
         "transition-all duration-150 ease-out",
         // Inactive
-        "bg-white text-muted-foreground dark:bg-neutral-800",
+        "bg-white text-muted-foreground dark:bg-muted",
         // Hover
-        "hover:text-foreground hover:bg-white hover:shadow-xs dark:hover:bg-neutral-700",
+        "hover:text-foreground hover:bg-white hover:shadow-xs dark:hover:bg-muted",
         // Active
         "data-[state=active]:bg-neutral-900 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=active]:border-transparent",
         // Dark mode active
-        "dark:data-[state=active]:bg-neutral-900 dark:data-[state=active]:text-white dark:data-[state=active]:border-transparent",
+        "dark:data-[state=active]:bg-neutral-600 dark:data-[state=active]:text-white dark:data-[state=active]:border-transparent",
         // Focus
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         // Disabled

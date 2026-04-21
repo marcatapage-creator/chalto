@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 import { Bell } from "lucide-react"
@@ -34,7 +34,15 @@ export function NotificationBell({
   popoverAlign = "end",
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   const handleClick = async (notif: Notification) => {
     setOpen(false)
@@ -44,13 +52,13 @@ export function NotificationBell({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <OnboardingTooltip
-          id="notification-bell"
-          title="Notifications en temps réel"
-          description="Soyez notifié instantanément de chaque validation client et message chantier."
-          position="bottom"
-        >
+      <OnboardingTooltip
+        id="notification-bell"
+        title="Notifications en temps réel"
+        description="Soyez notifié instantanément de chaque validation client et message chantier."
+        position="bottom"
+      >
+        <PopoverTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
@@ -59,10 +67,14 @@ export function NotificationBell({
               </span>
             )}
           </Button>
-        </OnboardingTooltip>
-      </PopoverTrigger>
+        </PopoverTrigger>
+      </OnboardingTooltip>
 
-      <PopoverContent className="w-80 p-0" align={popoverAlign}>
+      <PopoverContent
+        className={isMobile ? "w-[calc(100vw-2rem)] p-0" : "w-80 p-0"}
+        align={isMobile ? "center" : popoverAlign}
+        collisionPadding={isMobile ? 16 : 0}
+      >
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <p className="font-semibold text-sm">Notifications</p>
           {unreadCount > 0 && (
