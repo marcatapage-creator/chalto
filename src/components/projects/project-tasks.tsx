@@ -332,6 +332,7 @@ export function ProjectTasks({
                       type="date"
                       value={form.due_date}
                       onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                      className="scheme-light dark:scheme-dark"
                     />
                   </div>
                 </div>
