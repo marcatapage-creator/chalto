@@ -245,7 +245,10 @@ export function ProjectTasks({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <button onClick={() => setTasksOpen((v) => !v)} className="flex items-center gap-1.5 group">
+        <button
+          onClick={() => setTasksOpen((v) => !v)}
+          className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
+        >
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",

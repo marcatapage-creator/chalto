@@ -71,7 +71,11 @@ export function ProjectDocuments({
     <>
       {/* Header */}
       <div className={cn("flex items-center justify-between", isOpen && "mb-4")}>
-        <button onClick={onToggle} className="flex items-center gap-1.5 group" disabled={!onToggle}>
+        <button
+          onClick={onToggle}
+          className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors disabled:pointer-events-none"
+          disabled={!onToggle}
+        >
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
