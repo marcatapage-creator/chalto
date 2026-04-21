@@ -88,6 +88,9 @@ body {
 /* iOS Safari: date input — force color-scheme to match app theme, not iOS system theme */
 input[type="date"] {
   height: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
   color-scheme: light;
 }
 

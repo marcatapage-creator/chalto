@@ -23,8 +23,10 @@ export function useNotifications(userId: string) {
   useEffect(() => {
     if (!userId) return
 
-    isInitialLoad.current = true
-    void (async () => {
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    const setup = async () => {
+      isInitialLoad.current = true
       try {
         const { data } = await supabase
           .from("notifications")
@@ -36,36 +38,47 @@ export function useNotifications(userId: string) {
       } finally {
         isInitialLoad.current = false
       }
-    })()
 
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const notif = payload.new as Notification
-          setNotifications((prev) => [notif, ...prev].slice(0, 20))
-          if (!isInitialLoad.current) {
-            toast(notif.title, { description: notif.body })
+      // Inject auth token into the Realtime WS before subscribing —
+      // @supabase/ssr uses cookies and the WS may connect before the token is set
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token)
+      }
+
+      channel = supabase
+        .channel(`notifications:${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            const notif = payload.new as Notification
+            setNotifications((prev) => [notif, ...prev].slice(0, 20))
+            if (!isInitialLoad.current) {
+              toast(notif.title, { description: notif.body })
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.error(
-            "Notifications realtime: échec abonnement — vérifier Realtime activé sur la table"
-          )
-        }
-      })
+        )
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR") {
+            console.error(
+              "Notifications realtime: échec abonnement — vérifier Realtime activé sur la table"
+            )
+          }
+        })
+    }
+
+    void setup()
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [userId, supabase])
 
