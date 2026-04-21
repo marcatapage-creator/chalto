@@ -18,6 +18,7 @@ import {
   ProjectDetailsDialog,
   type ProjectInfo,
 } from "@/components/projects/project-details-dialog"
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 
 interface Document {
   id: string
@@ -350,6 +351,7 @@ export function ProjectPageClient({
                 phase={phase}
                 clientName={project.client_name}
                 onClose={() => setSelectedDoc(null)}
+                showClose
                 onStatusChange={handleDocStatusChange}
               />
             </motion.div>
@@ -357,42 +359,28 @@ export function ProjectPageClient({
         )}
       </AnimatePresence>
 
-      {/* Panel mobile/tablette — drawer bottom Framer Motion */}
-      <AnimatePresence>
-        {!isDesktop && selectedDoc && (
-          <>
-            {/* Overlay */}
-            <motion.div
-              key="mobile-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/10 backdrop-blur-xs"
-              onClick={() => setSelectedDoc(null)}
+      {/* Panel mobile/tablette — Vaul Drawer (swipe-to-dismiss natif) */}
+      <Drawer
+        open={!isDesktop && !!selectedDoc}
+        onOpenChange={(open) => {
+          if (!open) setSelectedDoc(null)
+        }}
+      >
+        <DrawerContent className="h-[85dvh] p-0">
+          <DrawerTitle className="sr-only">Document</DrawerTitle>
+          {selectedDoc && (
+            <DocumentPanel
+              key={selectedDoc.id}
+              document={selectedDoc}
+              userId={userId}
+              phase={phase}
+              clientName={project.client_name}
+              onClose={() => setSelectedDoc(null)}
+              onStatusChange={handleDocStatusChange}
             />
-            {/* Drawer */}
-            <motion.div
-              key="mobile-drawer"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-              className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] bg-popover rounded-t-xl flex flex-col overflow-hidden shadow-lg"
-            >
-              <DocumentPanel
-                key={selectedDoc.id}
-                document={selectedDoc}
-                userId={userId}
-                phase={phase}
-                clientName={project.client_name}
-                onClose={() => setSelectedDoc(null)}
-                onStatusChange={handleDocStatusChange}
-              />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }

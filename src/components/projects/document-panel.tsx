@@ -43,9 +43,9 @@ interface DocumentPanelProps {
   document: Document
   userId: string
   clientName?: string
-
   phase?: string
   onClose: () => void
+  showClose?: boolean
   onStatusChange?: (docId: string, status: string, version?: number) => void
 }
 
@@ -84,6 +84,7 @@ export function DocumentPanel({
   clientName,
   phase,
   onClose,
+  showClose,
   onStatusChange,
 }: DocumentPanelProps) {
   const isChantier = isChantierPhase(phase)
@@ -293,9 +294,11 @@ export function DocumentPanel({
               ? `V${localVersion} ${docStatus.label.toLowerCase()}`
               : docStatus.label}
           </Badge>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-            <X className="h-3.5 w-3.5" />
-          </Button>
+          {showClose && (
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
