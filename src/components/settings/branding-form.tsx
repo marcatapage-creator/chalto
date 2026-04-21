@@ -114,7 +114,7 @@ export function BrandingForm({ profile }: BrandingFormProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div className="space-y-1">
               <CardTitle className="text-base flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -238,7 +238,7 @@ export function BrandingForm({ profile }: BrandingFormProps) {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} loading={saving}>
+      <Button onClick={handleSave} loading={saving} className="w-full">
         {saving ? "Sauvegarde..." : "Sauvegarder"}
       </Button>
     </div>

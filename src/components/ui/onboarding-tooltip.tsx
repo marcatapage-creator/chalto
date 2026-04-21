@@ -1,5 +1,8 @@
 "use client"
 
+// Set to true to re-enable onboarding tooltips when ready
+const TOOLTIPS_ENABLED = false
+
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
@@ -31,7 +34,7 @@ export function OnboardingTooltip({
   const storageKey = `chalto_tooltip_${id}`
 
   useEffect(() => {
-    if (disabled) return
+    if (disabled || !TOOLTIPS_ENABLED) return
     const seen = localStorage.getItem(storageKey)
     if (!seen) {
       const timer = setTimeout(() => setVisible(true), 800)

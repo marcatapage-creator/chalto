@@ -161,7 +161,7 @@ export function NotificationsForm({ profile }: NotificationsFormProps) {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} loading={saving}>
+      <Button onClick={handleSave} loading={saving} className="w-full">
         {saving ? "Sauvegarde..." : "Sauvegarder les préférences"}
       </Button>
     </div>
