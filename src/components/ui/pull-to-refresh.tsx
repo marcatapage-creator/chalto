@@ -23,6 +23,11 @@ function hasScrollableParentAbove(target: Element): boolean {
   return false
 }
 
+// Vaul mounts the overlay in a portal only when a drawer is open
+function isAnyDrawerOpen(): boolean {
+  return !!document.querySelector('[data-slot="drawer-overlay"]')
+}
+
 export function PullToRefresh() {
   const router = useRouter()
   const [dragY, setDragY] = useState(0)
@@ -35,6 +40,7 @@ export function PullToRefresh() {
     const onTouchStart = (e: TouchEvent) => {
       if (activeRef.current) return
       if (window.scrollY > 0) return
+      if (isAnyDrawerOpen()) return
       if (hasScrollableParentAbove(e.target as Element)) return
       startYRef.current = e.touches[0].clientY
       activeRef.current = true
