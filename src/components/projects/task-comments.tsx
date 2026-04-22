@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Send, MessageSquare } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { FadeIn } from "@/components/ui/motion"
+import { toast } from "sonner"
 
 interface Comment {
   id: string
@@ -21,9 +22,15 @@ interface TaskCommentsProps {
   taskId: string
   authorName: string
   authorRole: "pro" | "prestataire"
+  contributorToken?: string
 }
 
-export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsProps) {
+export function TaskComments({
+  taskId,
+  authorName,
+  authorRole,
+  contributorToken,
+}: TaskCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [count, setCount] = useState(0)
   const [content, setContent] = useState("")
@@ -97,20 +104,43 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
     if (!content.trim()) return
     setLoading(true)
 
-    const { data: newComment } = await supabase
-      .from("task_comments")
-      .insert({
-        task_id: taskId,
-        author_name: authorName,
-        author_role: authorRole,
-        content: content.trim(),
+    let newComment: Comment | null = null
+
+    if (contributorToken) {
+      const res = await fetch("/api/task-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, authorName, content, contributorToken }),
       })
-      .select()
-      .single()
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error("Erreur lors de l'envoi de la note")
+        setLoading(false)
+        return
+      }
+      newComment = data.comment
+    } else {
+      const { data, error } = await supabase
+        .from("task_comments")
+        .insert({
+          task_id: taskId,
+          author_name: authorName,
+          author_role: authorRole,
+          content: content.trim(),
+        })
+        .select()
+        .single()
+      if (error) {
+        toast.error("Erreur lors de l'envoi de la note")
+        setLoading(false)
+        return
+      }
+      newComment = data
+    }
 
     if (newComment)
       setComments((prev) =>
-        prev.some((c) => c.id === newComment.id) ? prev : [...prev, newComment]
+        prev.some((c) => c.id === newComment!.id) ? prev : [...prev, newComment!]
       )
 
     setContent("")

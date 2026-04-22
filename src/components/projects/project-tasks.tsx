@@ -126,12 +126,41 @@ export function ProjectTasks({
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "tasks",
           filter: `project_id=eq.${projectId}`,
         },
         () => void fetchTasks()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tasks",
+        },
+        (payload) => {
+          const updated = payload.new as { id: string; project_id: string; status: string }
+          if (updated.project_id !== projectId) return
+          setTasks((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)))
+          setSuggestions((prev) =>
+            prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
+          )
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "tasks",
+        },
+        (payload) => {
+          const deleted = payload.old as { id: string }
+          setTasks((prev) => prev.filter((t) => t.id !== deleted.id))
+          setSuggestions((prev) => prev.filter((t) => t.id !== deleted.id))
+        }
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") void fetchTasks()

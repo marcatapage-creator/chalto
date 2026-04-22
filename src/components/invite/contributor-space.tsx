@@ -43,6 +43,7 @@ interface ContributorSpaceProps {
     name: string
     project_id: string
     contact_id: string
+    invite_token: string
     projects?: {
       id: string
       name: string
@@ -314,6 +315,7 @@ export function ContributorSpace({
                       taskId={task.id}
                       authorName={contributor.name}
                       authorRole="prestataire"
+                      contributorToken={contributor.invite_token}
                     />
                   </Card>
                 )
