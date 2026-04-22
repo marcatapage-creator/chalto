@@ -151,7 +151,10 @@ export function DocumentPanel({
       .maybeSingle()
       .then(({ data }) => {
         setValidationEntry({ docId: document.id, data: data ?? null })
-        if (data?.status) setLocalStatus(data.status)
+        if (data?.status) {
+          setLocalStatus(data.status)
+          onStatusChangeRef.current?.(document.id, data.status)
+        }
       })
   }, [document.id, supabase])
 
