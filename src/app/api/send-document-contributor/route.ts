@@ -6,7 +6,8 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
   try {
-    const { contributorIds, documentName, projectId, message } = await request.json()
+    const { contributorIds, documentName, projectId, message, requestType } = await request.json()
+    const isTransmission = requestType === "transmission"
 
     if (!contributorIds?.length || !documentName || !projectId) {
       return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
@@ -25,7 +26,11 @@ export async function POST(request: Request) {
         .in("id", contributorIds)
         .eq("project_id", projectId),
       supabase.from("projects").select("name").eq("id", projectId).single(),
-      supabase.from("profiles").select("full_name, company_name").eq("id", user.id).single(),
+      supabase
+        .from("profiles")
+        .select("full_name, company_name, logo_url, branding_enabled")
+        .eq("id", user.id)
+        .single(),
     ])
 
     if (!contributors?.length) {
@@ -35,6 +40,10 @@ export async function POST(request: Request) {
     const proName = proProfile?.full_name ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
     const projectName = project?.name ?? "le projet"
+    const logoUrl = proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null
+    const brandHeader = logoUrl
+      ? `<img src="${logoUrl}" alt="${proProfile?.company_name ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
+      : `<div style="display:inline-flex;align-items:center;gap:8px;"><img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display:block;" /><span style="font-weight:700;font-size:16px;color:#111;">Chalto</span></div>`
 
     const sends = contributors
       .filter((c) => c.email && c.invite_token)
@@ -43,16 +52,15 @@ export async function POST(request: Request) {
         return resend.emails.send({
           from: "Chalto <noreply@chalto.fr>",
           to: c.email,
-          subject: `${proName} vous a partagé un document — ${documentName}`,
+          subject: isTransmission
+            ? `${proName} vous a transmis un document — ${documentName}`
+            : `${proName} vous demande de valider un document — ${documentName}`,
           html: `
             <!DOCTYPE html>
             <html>
               <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-                <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
-                  <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-                  <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
-                </div>
+                <div style="margin-bottom: 32px;">${brandHeader}</div>
 
                 <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
                   Nouveau document partagé

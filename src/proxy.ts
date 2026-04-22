@@ -56,6 +56,10 @@ export async function proxy(request: NextRequest) {
     "/api/send-welcome",
     "/api/validate",
     "/api/validate-contributor",
+    "/api/task-status",
+    "/api/task-suggest",
+    "/api/task-comment",
+    "/api/project-message",
   ]
   const isPublic = publicRoutes.some((r) => (r === "/" ? pathname === "/" : pathname.startsWith(r)))
 

@@ -48,6 +48,7 @@ export function DocumentActions({
   const [audience, setAudience] = useState<"client" | "contributor">("client")
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
+  const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
@@ -99,6 +100,7 @@ export function DocumentActions({
             selectedContributors.map((contributorId) => ({
               document_id: documentId,
               contributor_id: contributorId,
+              request_type: requestType,
             }))
           ),
           fetch("/api/send-document-contributor", {
@@ -109,6 +111,7 @@ export function DocumentActions({
               documentName,
               projectId,
               message: message || null,
+              requestType,
             }),
           }),
         ])
@@ -250,6 +253,34 @@ export function DocumentActions({
                     </button>
                   ))
                 )}
+              </div>
+            )}
+
+            {/* Type de demande (prestataires uniquement) */}
+            {audience === "contributor" && (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setRequestType("validation")}
+                  className={cn(
+                    "text-sm px-3 py-2 rounded-lg border-2 transition-all text-center",
+                    requestType === "validation"
+                      ? "border-primary bg-primary/5 font-medium"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  Pour validation
+                </button>
+                <button
+                  onClick={() => setRequestType("transmission")}
+                  className={cn(
+                    "text-sm px-3 py-2 rounded-lg border-2 transition-all text-center",
+                    requestType === "transmission"
+                      ? "border-primary bg-primary/5 font-medium"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  Pour information
+                </button>
               </div>
             )}
 

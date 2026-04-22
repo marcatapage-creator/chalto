@@ -170,6 +170,10 @@ export function ProjectPageClient({
             )
           }
         )
+        .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
+          const { documentId, status } = payload as { documentId: string; status: string }
+          setLocalDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, status } : d)))
+        })
         .subscribe()
     })
 

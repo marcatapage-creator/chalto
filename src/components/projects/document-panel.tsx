@@ -69,6 +69,10 @@ const docStatusMap: Record<
     variant: "outline",
     className: "bg-red-50 text-red-600 border-red-200",
   },
+  commented: {
+    label: "Lu",
+    variant: "secondary",
+  },
 }
 
 interface PrevVersion {
@@ -105,8 +109,12 @@ export function DocumentPanel({
 
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
-    data: { status: string; comment?: string; approved_at?: string } | null
+    data: { status: string; comment?: string; approved_at?: string; client_name?: string } | null
   }>({ docId: document.id, data: null })
+  const [audienceInfo, setAudienceInfo] = useState<{
+    requestType: "validation" | "transmission" | null
+    names: string[]
+  }>({ requestType: null, names: [] })
   const [message, setMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [proposing, setProposing] = useState(false)
@@ -143,16 +151,19 @@ export function DocumentPanel({
   useEffect(() => {
     supabase
       .from("validations")
-      .select("status, comment, approved_at")
+      .select("status, comment, approved_at, client_name")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
         setValidationEntry({ docId: document.id, data: data ?? null })
-        // Don't apply validation status when document is "draft" (new version) or "sent"
-        // (just dispatched — any existing validation belongs to a previous version).
-        if (data?.status && document.status !== "draft" && document.status !== "sent") {
+        // "approved"/"rejected" on a "sent" or "draft" doc belong to a previous version — skip.
+        // "commented" (transmission) is always current: it can only appear after the current send.
+        const isLegacy =
+          document.status === "draft" ||
+          (document.status === "sent" && data?.status !== "commented")
+        if (data?.status && !isLegacy) {
           setLocalStatus(data.status)
           onStatusChangeRef.current?.(document.id, data.status)
         }
@@ -162,7 +173,7 @@ export function DocumentPanel({
   const fetchValidation = useCallback(async () => {
     const { data } = await supabase
       .from("validations")
-      .select("status, comment, approved_at")
+      .select("status, comment, approved_at, client_name")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -175,8 +186,43 @@ export function DocumentPanel({
   }, [document.id, supabase])
 
   useEffect(() => {
+    if (localStatus !== "sent") return
+    supabase
+      .from("document_contributors")
+      .select("request_type, contributor_id")
+      .eq("document_id", document.id)
+      .then(async ({ data: dcData, error }) => {
+        if (error || !dcData?.length) return
+        const reqType = (dcData[0].request_type as "validation" | "transmission") ?? "validation"
+        const ids = dcData.map((d) => d.contributor_id)
+        const { data: contribs } = await supabase.from("contributors").select("name").in("id", ids)
+        setAudienceInfo({
+          requestType: reqType,
+          names: contribs?.map((c) => c.name) ?? [],
+        })
+      })
+  }, [document.id, localStatus, supabase])
+
+  useEffect(() => {
     const channel = supabase
-      .channel(`validation:${document.id}`)
+      .channel(`document-watch:${document.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "documents",
+          filter: `id=eq.${document.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as { status: string }
+          setLocalStatus(updated.status)
+          onStatusChangeRef.current?.(document.id, updated.status)
+          if (updated.status !== "draft" && updated.status !== "sent") {
+            void fetchValidation()
+          }
+        }
+      )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "validations" },
@@ -313,42 +359,67 @@ export function DocumentPanel({
       {/* Résultat validation */}
       {validation && localStatus !== "sent" && localStatus !== "draft" && (
         <div className="px-4 py-3 border-b shrink-0">
-          <div
-            className={cn(
-              "flex items-start gap-3 p-3 rounded-lg",
-              validation.status === "approved" ? "bg-primary/10" : "bg-destructive/10"
-            )}
-          >
-            {validation.status === "approved" ? (
-              <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-            ) : (
-              <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-            )}
-            <div className="space-y-1">
-              <p className="text-sm font-medium">
-                {validation.status === "approved"
-                  ? "Approuvé par le client"
-                  : "Refusé par le client"}
-              </p>
-              {validation.comment && (
-                <div className="flex items-start gap-2">
-                  <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>
-                </div>
-              )}
-              {validation.approved_at && (
-                <p className="text-xs text-muted-foreground">
-                  {new Date(validation.approved_at).toLocaleDateString("fr-FR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+          {validation.status === "commented" ? (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <MessageSquare className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                  Commenté par {validation.client_name ?? "le prestataire"}
                 </p>
-              )}
+                {validation.comment && (
+                  <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>
+                )}
+                {validation.approved_at && (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(validation.approved_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div
+              className={cn(
+                "flex items-start gap-3 p-3 rounded-lg",
+                validation.status === "approved" ? "bg-primary/10" : "bg-destructive/10"
+              )}
+            >
+              {validation.status === "approved" ? (
+                <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              ) : (
+                <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+              )}
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {validation.status === "approved"
+                    ? `Approuvé par ${validation.client_name ?? "le client"}`
+                    : `Refusé par ${validation.client_name ?? "le client"}`}
+                </p>
+                {validation.comment && (
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>
+                  </div>
+                )}
+                {validation.approved_at && (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(validation.approved_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -421,7 +492,7 @@ export function DocumentPanel({
       {localStatus === "draft" && (
         <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Envoyer pour validation
+            {isChantier ? "Envoyer pour validation ou transmission" : "Envoyer pour validation"}
           </p>
           {!isChantier && (
             <Textarea
@@ -457,16 +528,24 @@ export function DocumentPanel({
       {localStatus === "sent" && (
         <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Validation
+            {audienceInfo.requestType === "transmission" ? "Transmission" : "Validation"}
           </p>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>En attente de réponse du client</span>
+            <span>
+              {audienceInfo.requestType === "transmission"
+                ? `En attente de lecture de ${audienceInfo.names.join(", ") || "du destinataire"}`
+                : audienceInfo.names.length > 0
+                  ? `En attente de validation de ${audienceInfo.names.join(", ")}`
+                  : `En attente de réponse de ${clientName ?? "du client"}`}
+            </span>
           </div>
-          <Button variant="outline" size="sm" className="w-full" onClick={handleCopyLink}>
-            <Link2 className="h-4 w-4 mr-2" />
-            Copier le lien de validation
-          </Button>
+          {!audienceInfo.requestType && (
+            <Button variant="outline" size="sm" className="w-full" onClick={handleCopyLink}>
+              <Link2 className="h-4 w-4 mr-2" />
+              Copier le lien de validation
+            </Button>
+          )}
         </div>
       )}
 

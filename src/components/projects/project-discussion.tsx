@@ -24,6 +24,8 @@ interface ProjectDiscussionProps {
   readOnly?: boolean
   onSend?: (content: string) => Promise<Message | null>
   autoOpen?: boolean
+  controlledOpen?: boolean
+  onControlledOpenChange?: (v: boolean) => void
 }
 
 export function ProjectDiscussion({
@@ -33,14 +35,23 @@ export function ProjectDiscussion({
   readOnly = false,
   onSend,
   autoOpen = false,
+  controlledOpen,
+  onControlledOpenChange,
 }: ProjectDiscussionProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(autoOpen)
+  const [internalOpen, setInternalOpen] = useState(autoOpen)
+  const open = controlledOpen ?? internalOpen
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const supabase = useMemo(() => createClient(), [])
+
+  const handleToggle = () => {
+    const next = !open
+    setInternalOpen(next)
+    onControlledOpenChange?.(next)
+  }
 
   useEffect(() => {
     supabase
@@ -136,7 +147,7 @@ export function ProjectDiscussion({
   return (
     <div ref={containerRef} className="space-y-2">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
       >
         <ChevronDown

@@ -5,7 +5,8 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { documentId, status, comment, contributorName } = await request.json()
+    const { documentId, status, comment, contributorName, requestType } = await request.json()
+    const isTransmission = requestType === "transmission"
 
     const admin = createAdminClient()
 
@@ -20,15 +21,16 @@ export async function POST(request: Request) {
     }
 
     const userId = document.projects.user_id
+    const effectiveStatus = isTransmission ? "commented" : status
 
     const [, , { data: proProfile }] = await Promise.all([
-      admin.from("documents").update({ status }).eq("id", documentId),
+      admin.from("documents").update({ status: effectiveStatus }).eq("id", documentId),
       admin.from("validations").insert({
         document_id: documentId,
-        status,
+        status: effectiveStatus,
         comment: comment || null,
         client_name: contributorName,
-        approved_at: status === "approved" ? new Date().toISOString() : null,
+        approved_at: new Date().toISOString(),
       }),
       admin
         .from("profiles")
@@ -39,37 +41,48 @@ export async function POST(request: Request) {
         .single(),
     ])
 
-    const shouldSendEmail =
-      proProfile?.notif_email_frequency !== "never" &&
-      (status === "approved"
-        ? proProfile?.notif_email_approved !== false
-        : proProfile?.notif_email_rejected !== false)
-
-    await Promise.all([
-      createNotification({
+    if (isTransmission) {
+      await createNotification({
         userId,
-        type: status === "approved" ? "document_approved" : "document_rejected",
-        title:
-          status === "approved"
-            ? "Document approuvé par un prestataire"
-            : "Document refusé par un prestataire",
-        body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
+        type: "document_approved",
+        title: "Document lu par un prestataire",
+        body: `${contributorName} a lu « ${document.name} »${comment ? ` et a laissé un commentaire` : ""}`,
         link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
         inAppEnabled: proProfile?.notif_inapp_enabled,
-      }),
-      proProfile?.email && shouldSendEmail
-        ? sendApprovalEmail({
-            proEmail: proProfile.email,
-            proName: proProfile.full_name ?? "Professionnel",
-            clientName: contributorName ?? "Un prestataire",
-            projectName: document.projects?.name ?? "Projet",
-            documentName: document.name,
-            status,
-            comment,
-            projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
-          })
-        : Promise.resolve(),
-    ])
+      })
+    } else {
+      const shouldSendEmail =
+        proProfile?.notif_email_frequency !== "never" &&
+        (status === "approved"
+          ? proProfile?.notif_email_approved !== false
+          : proProfile?.notif_email_rejected !== false)
+
+      await Promise.all([
+        createNotification({
+          userId,
+          type: status === "approved" ? "document_approved" : "document_rejected",
+          title:
+            status === "approved"
+              ? "Document approuvé par un prestataire"
+              : "Document refusé par un prestataire",
+          body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} « ${document.name} »`,
+          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+          inAppEnabled: proProfile?.notif_inapp_enabled,
+        }),
+        proProfile?.email && shouldSendEmail
+          ? sendApprovalEmail({
+              proEmail: proProfile.email,
+              proName: proProfile.full_name ?? "Professionnel",
+              clientName: contributorName ?? "Un prestataire",
+              projectName: document.projects?.name ?? "Projet",
+              documentName: document.name,
+              status,
+              comment,
+              projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
+            })
+          : Promise.resolve(),
+      ])
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

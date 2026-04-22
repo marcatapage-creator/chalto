@@ -58,6 +58,11 @@ const docStatusMap: Record<
     className: "bg-red-50 text-red-600 border-red-200",
     dot: "bg-red-400",
   },
+  commented: {
+    label: "Lu",
+    variant: "secondary",
+    dot: "bg-blue-400",
+  },
 }
 
 export function ProjectDocuments({
