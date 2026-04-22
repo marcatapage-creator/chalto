@@ -14,7 +14,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
       supabase
         .from("documents")
-        .select("*")
+        .select("*, validations(status, created_at)")
         .eq("project_id", id)
         .order("created_at", { ascending: false }),
       supabase
@@ -29,10 +29,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const authorName = profile?.full_name ?? profile?.email ?? "Pro"
 
+  const resolvedDocuments = (documents ?? []).map(({ validations, ...doc }) => {
+    const latest = (validations as { status: string; created_at: string }[] | null)
+      ?.slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+    return { ...doc, status: latest?.status ?? doc.status }
+  })
+
   return (
     <ProjectPageClient
       project={project}
-      documents={documents ?? []}
+      documents={resolvedDocuments}
       contacts={contacts ?? []}
       userId={user!.id}
       phase={project.phase ?? "cadrage"}

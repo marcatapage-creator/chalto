@@ -25,22 +25,26 @@ export async function POST(request: Request) {
 
     const userId = document.projects.user_id
 
-    const [, , { data: proProfile }] = await Promise.all([
-      admin.from("validations").insert({
-        document_id: document.id,
-        status,
-        comment: comment || null,
-        approved_at: status === "approved" ? new Date().toISOString() : null,
-      }),
-      admin.from("documents").update({ status }).eq("id", document.id),
-      admin
-        .from("profiles")
-        .select(
-          "email, full_name, notif_inapp_enabled, notif_email_approved, notif_email_rejected, notif_email_frequency"
-        )
-        .eq("id", userId)
-        .single(),
-    ])
+    const [{ error: validationError }, { error: docUpdateError }, { data: proProfile }] =
+      await Promise.all([
+        admin.from("validations").insert({
+          document_id: document.id,
+          status,
+          comment: comment || null,
+          approved_at: status === "approved" ? new Date().toISOString() : null,
+        }),
+        admin.from("documents").update({ status }).eq("id", document.id),
+        admin
+          .from("profiles")
+          .select(
+            "email, full_name, notif_inapp_enabled, notif_email_approved, notif_email_rejected, notif_email_frequency"
+          )
+          .eq("id", userId)
+          .single(),
+      ])
+
+    if (validationError) console.error("[validate] validations insert error:", validationError)
+    if (docUpdateError) console.error("[validate] documents update error:", docUpdateError)
 
     const shouldSendEmail =
       proProfile?.notif_email_frequency !== "never" &&
