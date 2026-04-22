@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useSyncExternalStore } from "react"
 import { motion, useInView, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
@@ -23,8 +23,18 @@ import {
   X,
 } from "lucide-react"
 
+const noop = () => () => {}
+function useIsClient() {
+  return useSyncExternalStore(
+    noop,
+    () => true,
+    () => false
+  )
+}
+
 function AnimatedWord({ words }: { words: string[] }) {
   const [index, setIndex] = useState(0)
+  const isClient = useIsClient()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,6 +42,10 @@ function AnimatedWord({ words }: { words: string[] }) {
     }, 4000)
     return () => clearInterval(interval)
   }, [words])
+
+  if (!isClient) {
+    return <span className="text-primary inline-block text-4xl md:text-6xl">{words[0]}</span>
+  }
 
   return (
     <span className="text-primary inline-block text-4xl md:text-6xl relative">
@@ -43,6 +57,7 @@ function AnimatedWord({ words }: { words: string[] }) {
           exit={{ opacity: 0, filter: "blur(16px)" }}
           transition={{ duration: 1.1, ease: "easeInOut" }}
           className="inline-block"
+          style={{ willChange: "opacity, filter" }}
         >
           {words[index]}
         </motion.span>
