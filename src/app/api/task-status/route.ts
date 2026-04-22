@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     const { data: task } = await admin
       .from("tasks")
-      .select("project_id, title, projects(user_id)")
+      .select("project_id, title")
       .eq("id", taskId)
       .single()
     if (!task) return NextResponse.json({ error: "Tâche introuvable" }, { status: 404 })
@@ -41,7 +41,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 })
     }
 
-    const userId = (task.projects as unknown as { user_id: string } | null)?.user_id
+    const { data: project } = await admin
+      .from("projects")
+      .select("user_id")
+      .eq("id", task.project_id)
+      .single()
+    const userId = project?.user_id
     if (userId) {
       void createNotification({
         userId,
