@@ -37,11 +37,18 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
 
   const { data: document } = await admin
     .from("documents")
-    .select(
-      "*, projects(name, client_name, phase, profiles(logo_url, company_name, full_name, branding_enabled))"
-    )
+    .select("*, projects(name, client_name, phase, user_id)")
     .eq("validation_token", token)
     .single()
+
+  const userId = (document?.projects as { user_id?: string } | null)?.user_id
+  const { data: proProfile } = userId
+    ? await admin
+        .from("profiles")
+        .select("logo_url, company_name, branding_enabled")
+        .eq("id", userId)
+        .single()
+    : { data: null }
 
   if (!document) {
     return (
@@ -74,12 +81,11 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          {document.projects?.profiles?.branding_enabled &&
-          document.projects?.profiles?.logo_url ? (
+          {proProfile?.branding_enabled && proProfile?.logo_url ? (
             <div className="flex flex-col items-center gap-3 mb-6">
               <Image
-                src={document.projects.profiles.logo_url}
-                alt={document.projects.profiles.company_name ?? "Logo"}
+                src={proProfile.logo_url}
+                alt={proProfile.company_name ?? "Logo"}
                 width={160}
                 height={64}
                 className="object-contain max-h-16"
