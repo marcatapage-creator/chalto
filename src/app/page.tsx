@@ -25,29 +25,28 @@ import {
 
 function AnimatedWord({ words }: { words: string[] }) {
   const [index, setIndex] = useState(0)
-  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setIndex((prev) => (prev + 1) % words.length)
-        setVisible(true)
-      }, 300)
-    }, 1800)
-
+      setIndex((prev) => (prev + 1) % words.length)
+    }, 4000)
     return () => clearInterval(interval)
   }, [words])
 
   return (
-    <span
-      className="text-primary inline-block transition-all duration-300 text-4xl md:text-6xl"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(-8px)",
-      }}
-    >
-      {words[index]}
+    <span className="text-primary inline-block text-4xl md:text-6xl relative">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ opacity: 0, filter: "blur(16px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, filter: "blur(16px)" }}
+          transition={{ duration: 1.1, ease: "easeInOut" }}
+          className="inline-block"
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
     </span>
   )
 }
