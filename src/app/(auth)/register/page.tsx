@@ -57,7 +57,7 @@ export default function RegisterPage() {
       void fetch("/api/send-welcome", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, fullName }),
+        body: JSON.stringify({ fullName }),
       })
 
       if (data.session) {

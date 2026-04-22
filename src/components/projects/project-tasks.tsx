@@ -177,14 +177,25 @@ export function ProjectTasks({
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     haptics.medium()
-    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
-    await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
+    const prev = tasks.find((t) => t.id === taskId)?.status
+    setTasks((p) => p.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
+    const { error } = await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
+    if (error && prev) {
+      setTasks((p) => p.map((t) => (t.id === taskId ? { ...t, status: prev } : t)))
+      toast.error("Erreur lors de la mise à jour")
+    }
   }
 
   const handleDelete = async (taskId: string) => {
+    const backup = tasks.find((t) => t.id === taskId)
     setTasks((prev) => prev.filter((t) => t.id !== taskId))
-    await supabase.from("tasks").delete().eq("id", taskId)
-    toast.success("Tâche supprimée")
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId)
+    if (error) {
+      if (backup) setTasks((prev) => [...prev, backup])
+      toast.error("Erreur lors de la suppression")
+    } else {
+      toast.success("Tâche supprimée")
+    }
   }
 
   const handleApproveSuggestion = async (task: Task) => {

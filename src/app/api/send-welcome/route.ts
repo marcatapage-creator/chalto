@@ -1,11 +1,21 @@
+import { createClient } from "@/lib/supabase/server"
 import { sendWelcomeEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { email, fullName } = await request.json()
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    await sendWelcomeEmail({ email, fullName })
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+    }
+
+    const { fullName } = await request.json()
+
+    await sendWelcomeEmail({ email: user.email!, fullName })
 
     return NextResponse.json({ success: true })
   } catch (error) {

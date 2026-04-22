@@ -71,6 +71,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Erreur send-validation:", error)
-    return NextResponse.json({ error: "Erreur serveur", details: String(error) }, { status: 500 })
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }
