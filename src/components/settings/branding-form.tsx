@@ -64,8 +64,12 @@ export function BrandingForm({ profile }: BrandingFormProps) {
       const { data } = supabase.storage.from("logos").getPublicUrl(path)
 
       setLogoUrl(data.publicUrl)
+      setBrandingEnabled(true)
 
-      await supabase.from("profiles").update({ logo_url: data.publicUrl }).eq("id", profile.id)
+      await supabase
+        .from("profiles")
+        .update({ logo_url: data.publicUrl, branding_enabled: true })
+        .eq("id", profile.id)
 
       toast.success("Logo uploadé ✅")
     } catch (error) {

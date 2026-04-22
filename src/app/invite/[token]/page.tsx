@@ -24,12 +24,20 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       .order("created_at", { ascending: true }),
     admin
       .from("profiles")
-      .select("full_name, company_name")
+      .select("full_name, company_name, logo_url, branding_enabled")
       .eq("id", contributor.projects?.user_id)
       .single(),
   ])
 
   const proName = proProfile?.full_name ?? proProfile?.company_name ?? "Votre professionnel"
 
-  return <ContributorSpace contributor={contributor} proName={proName} tasks={tasks ?? []} />
+  return (
+    <ContributorSpace
+      contributor={contributor}
+      proName={proName}
+      tasks={tasks ?? []}
+      logoUrl={proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null}
+      companyName={proProfile?.company_name ?? null}
+    />
+  )
 }

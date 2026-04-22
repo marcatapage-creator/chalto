@@ -51,6 +51,8 @@ interface ContributorSpaceProps {
   }
   proName: string
   tasks: Task[]
+  logoUrl?: string | null
+  companyName?: string | null
 }
 
 const statusConfig: Record<
@@ -85,6 +87,8 @@ export function ContributorSpace({
   contributor,
   proName,
   tasks: initialTasks,
+  logoUrl,
+  companyName,
 }: ContributorSpaceProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [suggestion, setSuggestion] = useState("")
@@ -158,10 +162,20 @@ export function ContributorSpace({
       {/* Header */}
       <header className="border-b bg-card">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
-            <span className="font-bold">Chalto</span>
-          </div>
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={companyName ?? "Logo"}
+              width={120}
+              height={32}
+              className="object-contain max-h-8"
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
+              <span className="font-bold">Chalto</span>
+            </div>
+          )}
           <Badge variant="outline" className="text-xs">
             Espace prestataire
           </Badge>
