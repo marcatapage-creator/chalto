@@ -194,7 +194,7 @@ export function TaskComments({ taskId, authorName, authorRole }: TaskCommentsPro
           {/* Input */}
           <div className="flex gap-2">
             <Textarea
-              placeholder="Écrire une note... (Entrée pour envoyer)"
+              placeholder="Écrire une note..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}

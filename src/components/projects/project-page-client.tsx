@@ -102,39 +102,54 @@ export function ProjectPageClient({
   }, [documents])
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`documents:${project.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "documents",
-          filter: `project_id=eq.${project.id}`,
-        },
-        (payload) => {
-          const newDoc = payload.new as Document
-          setLocalDocs((prev) => (prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]))
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "documents",
-          filter: `project_id=eq.${project.id}`,
-        },
-        (payload) => {
-          const updated = payload.new as Document
-          setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
-          setSelectedDoc((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
-        }
-      )
-      .subscribe()
+    let channel: ReturnType<typeof supabase.channel>
+
+    const setup = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token)
+      }
+
+      channel = supabase
+        .channel(`documents:${project.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "documents",
+            filter: `project_id=eq.${project.id}`,
+          },
+          (payload) => {
+            const newDoc = payload.new as Document
+            setLocalDocs((prev) =>
+              prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]
+            )
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "documents",
+            filter: `project_id=eq.${project.id}`,
+          },
+          (payload) => {
+            const updated = payload.new as Document
+            setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+            setSelectedDoc((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
+          }
+        )
+        .subscribe()
+    }
+
+    void setup()
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [project.id, supabase])
   const [detailsOpen, setDetailsOpen] = useState(true)
