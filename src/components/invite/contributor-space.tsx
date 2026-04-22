@@ -35,6 +35,7 @@ interface Task {
   description?: string
   status: string
   due_date?: string
+  assigned_to?: string
 }
 
 interface ContributorSpaceProps {
@@ -125,9 +126,54 @@ export function ContributorSpace({
       })
   }, [contributor.id, supabase])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`tasks:${contributor.project_id}`)
+      .on("broadcast", { event: "task_updated" }, ({ payload }) => {
+        const { taskId, status } = payload as { taskId: string; status: string }
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)))
+      })
+      .on("broadcast", { event: "task_created" }, ({ payload }) => {
+        const task = payload as Task
+        if (
+          task.assigned_to === contributor.contact_id &&
+          task.status !== "suggestion" &&
+          task.status !== "rejected"
+        ) {
+          setTasks((prev) => (prev.some((t) => t.id === task.id) ? prev : [...prev, task]))
+        }
+      })
+      .on("broadcast", { event: "task_deleted" }, ({ payload }) => {
+        const { taskId } = payload as { taskId: string }
+        setTasks((prev) => prev.filter((t) => t.id !== taskId))
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, contributor.project_id, contributor.contact_id])
+
   const handleStatusChange = async (taskId: string, newStatus: string) => {
-    await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId)
+    const prevStatus = tasks.find((t) => t.id === taskId)?.status
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
+
+    const res = await fetch("/api/task-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        taskId,
+        status: newStatus,
+        contributorToken: contributor.invite_token,
+      }),
+    })
+
+    if (!res.ok) {
+      if (prevStatus !== undefined)
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: prevStatus } : t)))
+      toast.error("Erreur lors de la mise à jour")
+      return
+    }
     toast.success(newStatus === "done" ? "Tâche terminée ✅" : "Statut mis à jour")
   }
 
@@ -135,16 +181,19 @@ export function ContributorSpace({
     if (!suggestion.trim()) return
     setSuggesting(true)
 
-    const { error } = await supabase.from("tasks").insert({
-      project_id: contributor.project_id,
-      title: suggestion,
-      description: suggestionDesc || null,
-      status: "suggestion",
-      suggested_by: contributor.name,
-      assigned_to: contributor.contact_id,
+    const res = await fetch("/api/task-suggest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId: contributor.project_id,
+        title: suggestion,
+        description: suggestionDesc || null,
+        contributorToken: contributor.invite_token,
+        contributorName: contributor.name,
+      }),
     })
 
-    if (error) {
+    if (!res.ok) {
       toast.error("Erreur lors de l'envoi")
     } else {
       toast.success("Suggestion envoyée au professionnel ✅")
@@ -153,6 +202,22 @@ export function ContributorSpace({
       setShowSuggestForm(false)
     }
     setSuggesting(false)
+  }
+
+  const handleDiscussionSend = async (content: string) => {
+    const res = await fetch("/api/project-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId: contributor.project_id,
+        authorName: contributor.name,
+        content,
+        contributorToken: contributor.invite_token,
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.message ?? null
   }
 
   const doneTasks = tasks.filter((t) => t.status === "done").length
@@ -329,6 +394,7 @@ export function ContributorSpace({
           projectId={contributor.project_id}
           authorName={contributor.name}
           authorRole="prestataire"
+          onSend={handleDiscussionSend}
         />
 
         {/* Documents à valider */}

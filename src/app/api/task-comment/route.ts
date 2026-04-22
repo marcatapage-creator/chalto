@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -11,8 +12,11 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient()
 
-    // Valide que le token appartient bien à un contributeur sur le même projet que la tâche
-    const { data: task } = await admin.from("tasks").select("project_id").eq("id", taskId).single()
+    const { data: task } = await admin
+      .from("tasks")
+      .select("project_id, title, projects(user_id)")
+      .eq("id", taskId)
+      .single()
 
     if (!task) {
       return NextResponse.json({ error: "Tâche introuvable" }, { status: 404 })
@@ -43,6 +47,17 @@ export async function POST(request: Request) {
     if (error) {
       console.error("[task-comment]", error)
       return NextResponse.json({ error: "Erreur lors de l'envoi" }, { status: 500 })
+    }
+
+    const userId = (task.projects as unknown as { user_id: string } | null)?.user_id
+    if (userId) {
+      void createNotification({
+        userId,
+        type: "message_received",
+        title: `Note de ${authorName}`,
+        body: `Sur « ${task.title} » : ${content.trim().slice(0, 80)}`,
+        link: `/projects/${task.project_id}?highlight=task_${taskId}`,
+      })
     }
 
     return NextResponse.json({ comment })

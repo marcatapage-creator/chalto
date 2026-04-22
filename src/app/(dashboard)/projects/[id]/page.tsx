@@ -2,8 +2,14 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ProjectPageClient } from "@/components/projects/project-page-client"
 
-export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function ProjectPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ highlight?: string }>
+}) {
+  const [{ id }, { highlight }] = await Promise.all([params, searchParams])
   const supabase = await createClient()
   const {
     data: { user },
@@ -14,7 +20,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
       supabase
         .from("documents")
-        .select("*, validations(status, created_at)")
+        .select("*")
         .eq("project_id", id)
         .order("created_at", { ascending: false }),
       supabase
@@ -29,21 +35,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const authorName = profile?.full_name ?? profile?.email ?? "Pro"
 
-  const resolvedDocuments = (documents ?? []).map(({ validations, ...doc }) => {
-    const latest = (validations as { status: string; created_at: string }[] | null)
-      ?.slice()
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
-    return { ...doc, status: latest?.status ?? doc.status }
-  })
-
   return (
     <ProjectPageClient
       project={project}
-      documents={resolvedDocuments}
+      documents={documents ?? []}
       contacts={contacts ?? []}
       userId={user!.id}
       phase={project.phase ?? "cadrage"}
       authorName={authorName}
+      initialHighlightId={highlight ?? null}
     />
   )
 }

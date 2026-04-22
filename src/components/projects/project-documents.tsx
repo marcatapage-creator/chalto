@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +32,7 @@ interface ProjectDocumentsProps {
   isOpen?: boolean
   onToggle?: () => void
   readOnly?: boolean
+  highlightedId?: string | null
 }
 
 const docStatusMap: Record<
@@ -66,7 +68,17 @@ export function ProjectDocuments({
   isOpen = true,
   onToggle,
   readOnly = false,
+  highlightedId,
 }: ProjectDocumentsProps) {
+  useEffect(() => {
+    if (!highlightedId) return
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-doc-id="${highlightedId}"]`)
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 300)
+    return () => clearTimeout(t)
+  }, [highlightedId])
+
   return (
     <>
       {/* Header */}
@@ -101,7 +113,7 @@ export function ProjectDocuments({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="p-0.5">
+            <div className="p-1">
               {documents.length > 0 ? (
                 <StaggerList className="space-y-2">
                   {documents.map((doc) => {
@@ -111,10 +123,12 @@ export function ProjectDocuments({
                     return (
                       <StaggerItem key={doc.id}>
                         <Card
+                          data-doc-id={doc.id}
                           onClick={() => onSelectDoc(doc)}
                           className={cn(
-                            "cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50",
-                            isSelected && "border-primary"
+                            "cursor-pointer transition-all duration-500 hover:shadow-sm hover:bg-muted/50",
+                            isSelected && "border-primary",
+                            highlightedId === doc.id && "border-ring ring-3 ring-ring/50"
                           )}
                         >
                           <CardContent className="flex items-center gap-3 p-4">

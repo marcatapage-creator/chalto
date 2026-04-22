@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
-import { useRouter } from "next/navigation"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -123,7 +123,6 @@ export function DocumentPanel({
     [document.id]
   )
 
-  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
@@ -151,12 +150,14 @@ export function DocumentPanel({
       .maybeSingle()
       .then(({ data }) => {
         setValidationEntry({ docId: document.id, data: data ?? null })
-        if (data?.status) {
+        // Don't apply validation status when document is "draft" (new version) or "sent"
+        // (just dispatched — any existing validation belongs to a previous version).
+        if (data?.status && document.status !== "draft" && document.status !== "sent") {
           setLocalStatus(data.status)
           onStatusChangeRef.current?.(document.id, data.status)
         }
       })
-  }, [document.id, supabase])
+  }, [document.id, document.status, supabase])
 
   const fetchValidation = useCallback(async () => {
     const { data } = await supabase
@@ -178,13 +179,11 @@ export function DocumentPanel({
       .channel(`validation:${document.id}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "validations",
-          filter: `document_id=eq.${document.id}`,
-        },
-        () => void fetchValidation()
+        { event: "INSERT", schema: "public", table: "validations" },
+        (payload) => {
+          const v = payload.new as { document_id: string }
+          if (v.document_id === document.id) void fetchValidation()
+        }
       )
       .subscribe()
     return () => {
@@ -207,7 +206,6 @@ export function DocumentPanel({
       setMessage("")
       setLocalStatus("sent")
       onStatusChange?.(document.id, "sent")
-      router.refresh()
     } else if (data.error === "Erreur mise à jour document") {
       toast.error("Erreur lors de la mise à jour du document")
     } else if (data.error === "Pas d'email client") {
@@ -221,26 +219,9 @@ export function DocumentPanel({
   const handleProposeV2 = async () => {
     setProposing(true)
     const newVersion = localVersion + 1
-
-    setPrevVersions((prev) =>
-      [
-        {
-          version: localVersion,
-          file_url: fileUrl ?? null,
-          file_name: document.file_name,
-          file_type: document.file_type,
-        },
-        ...prev,
-      ].slice(0, 3)
-    )
-    setLocalVersion(newVersion)
-    setLocalStatus("draft")
-    setLocalFileUrl(null)
-    handleVersionTabChange(null)
-    onStatusChange?.(document.id, "draft", newVersion)
-
     const newToken = crypto.randomUUID()
-    await Promise.all([
+
+    const [, { error }] = await Promise.all([
       supabase.from("document_versions").insert({
         document_id: document.id,
         version: localVersion,
@@ -262,7 +243,31 @@ export function DocumentPanel({
         })
         .eq("id", document.id),
     ])
-    router.refresh()
+
+    if (error) {
+      console.error("[proposeV2]", error)
+      toast.error("Erreur lors de la création de la nouvelle version")
+      setProposing(false)
+      return
+    }
+
+    setPrevVersions((prev) =>
+      [
+        {
+          version: localVersion,
+          file_url: fileUrl ?? null,
+          file_name: document.file_name,
+          file_type: document.file_type,
+        },
+        ...prev,
+      ].slice(0, 3)
+    )
+    setLocalVersion(newVersion)
+    setLocalStatus("draft")
+    setLocalFileUrl(null)
+    handleVersionTabChange(null)
+    onStatusChange?.(document.id, "draft", newVersion)
+
     setProposing(false)
     toast.success(`Version ${newVersion} créée — uploadez le nouveau fichier`)
   }
@@ -306,7 +311,7 @@ export function DocumentPanel({
       </div>
 
       {/* Résultat validation */}
-      {validation && (
+      {validation && localStatus !== "sent" && localStatus !== "draft" && (
         <div className="px-4 py-3 border-b shrink-0">
           <div
             className={cn(
@@ -435,7 +440,10 @@ export function DocumentPanel({
               clientName={clientName}
               status={localStatus}
               className="w-full"
-              onSent={() => setLocalStatus("sent")}
+              onSent={() => {
+                setLocalStatus("sent")
+                onStatusChange?.(document.id, "sent")
+              }}
             />
           ) : (
             <Button onClick={handleSend} disabled={!fileUrl} loading={sending} className="w-full">

@@ -70,6 +70,7 @@ interface ProjectPageClientProps {
   phase: string
   contacts: Contact[]
   authorName: string
+  initialHighlightId?: string | null
 }
 
 export function ProjectPageClient({
@@ -79,21 +80,36 @@ export function ProjectPageClient({
   phase,
   contacts,
   authorName,
+  initialHighlightId,
 }: ProjectPageClientProps) {
   const { label: statusLabel, variant: statusVariant } =
     statusMap[project.status] ?? statusMap.draft
   const supabase = useMemo(() => createClient(), [])
-  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(
+    initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
+  )
   const [localDocs, setLocalDocs] = useState(documents)
+  const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
+
+  const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
+  const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
+  const openDiscussion = highlightedId === "discussion"
+
+  useEffect(() => {
+    if (!highlightedId) return
+    const t = setTimeout(() => setHighlightedId(null), 2500)
+    return () => clearTimeout(t)
+  }, [highlightedId])
+  const selectedDoc = useMemo(
+    () => localDocs.find((d) => d.id === selectedDocId) ?? null,
+    [localDocs, selectedDocId]
+  )
 
   const handleDocStatusChange = (docId: string, status: string, version?: number) => {
     setLocalDocs((prev) =>
       prev.map((d) =>
         d.id === docId ? { ...d, status, ...(version !== undefined && { version }) } : d
       )
-    )
-    setSelectedDoc((prev) =>
-      prev?.id === docId ? { ...prev, status, ...(version !== undefined && { version }) } : prev
     )
   }
 
@@ -102,15 +118,12 @@ export function ProjectPageClient({
   }, [documents])
 
   useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel>
+    let cancelled = false
+    let channel: ReturnType<typeof supabase.channel> | null = null
 
-    const setup = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        supabase.realtime.setAuth(session.access_token)
-      }
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
 
       channel = supabase
         .channel(`documents:${project.id}`)
@@ -127,6 +140,7 @@ export function ProjectPageClient({
             setLocalDocs((prev) =>
               prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]
             )
+            setHighlightedId(`doc_${newDoc.id}`)
           }
         )
         .on(
@@ -140,7 +154,6 @@ export function ProjectPageClient({
           (payload) => {
             const updated = payload.new as Document
             setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
-            setSelectedDoc((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
           }
         )
         .on(
@@ -155,22 +168,20 @@ export function ProjectPageClient({
             setLocalDocs((prev) =>
               prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
             )
-            setSelectedDoc((prev) =>
-              prev?.id === v.document_id ? { ...prev, status: v.status } : prev
-            )
           }
         )
         .subscribe()
-    }
-
-    void setup()
+    })
 
     return () => {
-      if (channel) supabase.removeChannel(channel)
+      cancelled = true
+      if (channel) void supabase.removeChannel(channel)
     }
   }, [project.id, supabase])
   const [detailsOpen, setDetailsOpen] = useState(true)
-  const [docsOpen, setDocsOpen] = useState(!isChantierPhase(phase))
+  const [docsOpen, setDocsOpen] = useState(
+    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
+  )
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,
@@ -323,13 +334,14 @@ export function ProjectPageClient({
               documents={localDocs}
               projectId={project.id}
               selectedDocId={selectedDoc?.id ?? null}
-              onSelectDoc={setSelectedDoc}
+              onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
               isOpen={docsOpen}
               onToggle={() => {
-                if (docsOpen) setSelectedDoc(null)
+                if (docsOpen) setSelectedDocId(null)
                 setDocsOpen((v) => !v)
               }}
               readOnly={phase === "cloture"}
+              highlightedId={highlightedDocId}
             />
           </div>
 
@@ -343,6 +355,7 @@ export function ProjectPageClient({
                   contacts={contacts}
                   authorName={authorName}
                   readOnly={phase === "cloture"}
+                  highlightedId={highlightedTaskId}
                 />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
@@ -351,6 +364,7 @@ export function ProjectPageClient({
                   authorName={authorName}
                   authorRole="pro"
                   readOnly={phase === "cloture"}
+                  autoOpen={openDiscussion}
                 />
               </div>
             </>
@@ -382,7 +396,7 @@ export function ProjectPageClient({
                 userId={userId}
                 phase={phase}
                 clientName={project.client_name}
-                onClose={() => setSelectedDoc(null)}
+                onClose={() => setSelectedDocId(null)}
                 showClose
                 onStatusChange={handleDocStatusChange}
               />
@@ -395,7 +409,7 @@ export function ProjectPageClient({
       <Drawer
         open={!isDesktop && !!selectedDoc}
         onOpenChange={(open) => {
-          if (!open) setSelectedDoc(null)
+          if (!open) setSelectedDocId(null)
         }}
       >
         <DrawerContent className="h-[85dvh] p-0">
@@ -407,7 +421,7 @@ export function ProjectPageClient({
               userId={userId}
               phase={phase}
               clientName={project.client_name}
-              onClose={() => setSelectedDoc(null)}
+              onClose={() => setSelectedDocId(null)}
               onStatusChange={handleDocStatusChange}
             />
           )}

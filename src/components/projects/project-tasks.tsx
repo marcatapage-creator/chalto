@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import type { RealtimeChannel } from "@supabase/supabase-js"
 import { AnimatePresence, motion } from "framer-motion"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -73,6 +74,7 @@ interface ProjectTasksProps {
   contacts: Contact[]
   authorName: string
   readOnly?: boolean
+  highlightedId?: string | null
 }
 
 const columns = [
@@ -87,6 +89,7 @@ export function ProjectTasks({
   contacts,
   authorName,
   readOnly = false,
+  highlightedId: highlightedIdProp,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
@@ -96,6 +99,35 @@ export function ProjectTasks({
   const [open, setOpen] = useState(false)
   const [dialogView, setDialogView] = useState<"task" | "new-contact">("task")
   const [loading, setLoading] = useState(false)
+  const [localHighlightedId, setLocalHighlightedId] = useState<string | null>(
+    highlightedIdProp ?? null
+  )
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const triggerHighlight = useCallback((id: string) => {
+    if (highlightTimer.current) clearTimeout(highlightTimer.current)
+    setLocalHighlightedId(id)
+    highlightTimer.current = setTimeout(() => setLocalHighlightedId(null), 2500)
+  }, [])
+
+  useEffect(() => {
+    if (highlightedIdProp) triggerHighlight(highlightedIdProp)
+  }, [highlightedIdProp, triggerHighlight])
+
+  useEffect(() => {
+    if (!localHighlightedId) return
+    let attempts = 0
+    const tryScroll = () => {
+      const el = document.querySelector(`[data-task-id="${localHighlightedId}"]`)
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" })
+      } else if (attempts++ < 10) {
+        setTimeout(tryScroll, 200)
+      }
+    }
+    const t = setTimeout(tryScroll, 100)
+    return () => clearTimeout(t)
+  }, [localHighlightedId])
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -105,6 +137,18 @@ export function ProjectTasks({
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "" })
   const [contactLoading, setContactLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const [invitedContactIds, setInvitedContactIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    supabase
+      .from("contributors")
+      .select("contact_id")
+      .eq("project_id", projectId)
+      .then(({ data }) => {
+        if (data) setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
+      })
+  }, [projectId, supabase])
 
   const fetchTasks = useCallback(async () => {
     const { data } = await supabase
@@ -166,7 +210,10 @@ export function ProjectTasks({
         if (status === "SUBSCRIBED") void fetchTasks()
       })
 
+    channelRef.current = channel
+
     return () => {
+      channelRef.current = null
       supabase.removeChannel(channel)
     }
   }, [fetchTasks, projectId, supabase])
@@ -198,8 +245,14 @@ export function ProjectTasks({
     } else {
       setTasks((prev) => [...prev, newTask])
       toast.success("Tâche créée ✅")
+      triggerHighlight(newTask.id)
       setOpen(false)
       setForm({ title: "", description: "", assigned_to: "", due_date: "" })
+      void channelRef.current?.send({
+        type: "broadcast",
+        event: "task_created",
+        payload: newTask,
+      })
     }
     setLoading(false)
   }
@@ -212,7 +265,13 @@ export function ProjectTasks({
     if (error && prev) {
       setTasks((p) => p.map((t) => (t.id === taskId ? { ...t, status: prev } : t)))
       toast.error("Erreur lors de la mise à jour")
+      return
     }
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: "task_updated",
+      payload: { taskId, status: newStatus },
+    })
   }
 
   const handleDelete = async (taskId: string) => {
@@ -222,9 +281,14 @@ export function ProjectTasks({
     if (error) {
       if (backup) setTasks((prev) => [...prev, backup])
       toast.error("Erreur lors de la suppression")
-    } else {
-      toast.success("Tâche supprimée")
+      return
     }
+    toast.success("Tâche supprimée")
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: "task_deleted",
+      payload: { taskId },
+    })
   }
 
   const handleApproveSuggestion = async (task: Task) => {
@@ -235,9 +299,15 @@ export function ProjectTasks({
       setSuggestions((prev) => [...prev, task])
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
       toast.error("Erreur lors de l'acceptation")
-    } else {
-      toast.success("Suggestion acceptée ✅")
+      return
     }
+    toast.success("Suggestion acceptée ✅")
+    triggerHighlight(task.id)
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: "task_updated",
+      payload: { taskId: task.id, status: "todo" },
+    })
   }
 
   const handleRejectSuggestion = async (task: Task) => {
@@ -246,9 +316,14 @@ export function ProjectTasks({
     if (error) {
       setSuggestions((prev) => [...prev, task])
       toast.error("Erreur lors du refus")
-    } else {
-      toast.success("Suggestion refusée")
+      return
     }
+    toast.success("Suggestion refusée")
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: "task_deleted",
+      payload: { taskId: task.id },
+    })
   }
 
   const handleCreateContact = async () => {
@@ -463,7 +538,7 @@ export function ProjectTasks({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="space-y-6 p-0.5">
+            <div className="space-y-6 p-1">
               {/* Suggestions en attente */}
               {suggestions.length > 0 && (
                 <FadeIn>
@@ -481,7 +556,11 @@ export function ProjectTasks({
                       {suggestions.map((task) => (
                         <Card
                           key={task.id}
-                          className="border-yellow-200 bg-yellow-50/50 dark:bg-yellow-900/10 dark:border-yellow-800"
+                          data-task-id={task.id}
+                          className={cn(
+                            "transition-all duration-500 border-yellow-200 bg-yellow-50/50 dark:bg-yellow-900/10 dark:border-yellow-800",
+                            localHighlightedId === task.id && "border-ring ring-3 ring-ring/50"
+                          )}
                         >
                           <CardContent className="flex items-center justify-between p-4">
                             <div>
@@ -552,7 +631,14 @@ export function ProjectTasks({
                           <StaggerList className="space-y-2">
                             {colTasks.map((task) => (
                               <StaggerItem key={task.id}>
-                                <Card className="transition-all duration-150 hover:shadow-sm">
+                                <Card
+                                  data-task-id={task.id}
+                                  className={cn(
+                                    "transition-all duration-500 hover:shadow-sm",
+                                    localHighlightedId === task.id &&
+                                      "border-ring ring-3 ring-ring/50"
+                                  )}
+                                >
                                   <CardContent className="p-3 space-y-2">
                                     <div className="flex items-start justify-between gap-2">
                                       <p className="text-sm font-medium leading-tight">
@@ -639,6 +725,13 @@ export function ProjectTasks({
                                           contactId={task.assigned_to}
                                           projectId={projectId}
                                           contactName={task.contacts.name}
+                                          taskId={task.id}
+                                          alreadyInvited={invitedContactIds.has(task.assigned_to)}
+                                          onInvited={() =>
+                                            setInvitedContactIds(
+                                              (prev) => new Set([...prev, task.assigned_to!])
+                                            )
+                                          }
                                         />
                                       </div>
                                     )}

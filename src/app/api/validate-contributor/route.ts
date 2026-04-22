@@ -54,7 +54,7 @@ export async function POST(request: Request) {
             ? "Document approuvé par un prestataire"
             : "Document refusé par un prestataire",
         body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
-        link: `/projects/${document.project_id}`,
+        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
         inAppEnabled: proProfile?.notif_inapp_enabled,
       }),
       proProfile?.email && shouldSendEmail

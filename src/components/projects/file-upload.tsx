@@ -2,7 +2,6 @@
 
 import { useState, useRef, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 import { Upload, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -17,7 +16,6 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
   const acceptedTypes = ["application/pdf", "image/jpeg", "image/png"]
@@ -76,7 +74,6 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
 
     toast.success("Fichier uploadé avec succès ✅")
     onSuccess?.(data.publicUrl)
-    router.refresh()
     setUploading(false)
   }
 

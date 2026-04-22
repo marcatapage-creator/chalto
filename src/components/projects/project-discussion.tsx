@@ -22,6 +22,8 @@ interface ProjectDiscussionProps {
   authorName: string
   authorRole: "pro" | "prestataire"
   readOnly?: boolean
+  onSend?: (content: string) => Promise<Message | null>
+  autoOpen?: boolean
 }
 
 export function ProjectDiscussion({
@@ -29,12 +31,15 @@ export function ProjectDiscussion({
   authorName,
   authorRole,
   readOnly = false,
+  onSend,
+  autoOpen = false,
 }: ProjectDiscussionProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(autoOpen)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
@@ -73,28 +78,36 @@ export function ProjectDiscussion({
   }, [projectId, supabase])
 
   useEffect(() => {
-    if (open) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!open || messages.length === 0) return
+    if (autoOpen) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }
-  }, [messages, open])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [messages, open, autoOpen])
 
   const handleSend = async () => {
     if (!content.trim()) return
     setLoading(true)
 
-    const { data: newMsg } = await supabase
-      .from("project_messages")
-      .insert({
-        project_id: projectId,
-        author_name: authorName,
-        author_role: authorRole,
-        content: content.trim(),
-      })
-      .select()
-      .single()
+    if (onSend) {
+      const newMsg = await onSend(content.trim())
+      if (newMsg)
+        setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]))
+    } else {
+      const { data: newMsg } = await supabase
+        .from("project_messages")
+        .insert({
+          project_id: projectId,
+          author_name: authorName,
+          author_role: authorRole,
+          content: content.trim(),
+        })
+        .select()
+        .single()
 
-    if (newMsg)
-      setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]))
+      if (newMsg)
+        setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]))
+    }
 
     setContent("")
     setLoading(false)
@@ -121,7 +134,7 @@ export function ProjectDiscussion({
   }
 
   return (
-    <div className="space-y-2">
+    <div ref={containerRef} className="space-y-2">
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     const { data: proProfile } = await supabase
       .from("profiles")
-      .select("full_name, email, company_name")
+      .select("full_name, email, company_name, logo_url, branding_enabled")
       .eq("id", user.id)
       .single()
 
@@ -68,6 +68,14 @@ export async function POST(request: Request) {
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
+    const logoUrl = proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null
+    const companyName = proProfile?.branding_enabled ? (proProfile.company_name ?? null) : null
+    const brandHeader = logoUrl
+      ? `<img src="${logoUrl}" alt="${companyName ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
+      : `<div style="display: inline-flex; align-items: center; gap: 8px;">
+          <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+          <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+         </div>`
 
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
@@ -78,9 +86,8 @@ export async function POST(request: Request) {
         <html>
           <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
 
-            <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
-              <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-              <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+            <div style="margin-bottom: 32px;">
+              ${brandHeader}
             </div>
 
             <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
