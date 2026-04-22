@@ -143,6 +143,23 @@ export function ProjectPageClient({
             setSelectedDoc((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
           }
         )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "validations",
+          },
+          (payload) => {
+            const v = payload.new as { document_id: string; status: string }
+            setLocalDocs((prev) =>
+              prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
+            )
+            setSelectedDoc((prev) =>
+              prev?.id === v.document_id ? { ...prev, status: v.status } : prev
+            )
+          }
+        )
         .subscribe()
     }
 
