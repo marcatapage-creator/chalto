@@ -109,7 +109,7 @@ export function ProjectTasks({
   const fetchTasks = useCallback(async () => {
     const { data } = await supabase
       .from("tasks")
-      .select("*, contacts(id, name, professions(label))")
+      .select("*, contacts(id, name)")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true })
 
@@ -160,10 +160,11 @@ export function ProjectTasks({
         created_by: userId,
         status: "todo",
       })
-      .select("*, contacts(id, name, professions(label))")
+      .select("*, contacts(id, name)")
       .single()
 
     if (error) {
+      console.error("[task insert]", error)
       toast.error("Erreur lors de la création")
     } else {
       setTasks((prev) => [...prev, newTask])
