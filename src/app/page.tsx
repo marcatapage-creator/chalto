@@ -39,7 +39,7 @@ function AnimatedWord({ words }: { words: string[] }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % words.length)
-    }, 4000)
+    }, 3000)
     return () => clearInterval(interval)
   }, [words])
 
@@ -54,8 +54,8 @@ function AnimatedWord({ words }: { words: string[] }) {
           key={words[index]}
           initial={{ opacity: 0, filter: "blur(16px)" }}
           animate={{ opacity: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, filter: "blur(16px)" }}
-          transition={{ duration: 1.1, ease: "easeInOut" }}
+          exit={{ opacity: 0, filter: "blur(16px)", transition: { duration: 0.6, ease: "easeIn" } }}
+          transition={{ duration: 1.1, ease: "easeOut" }}
           className="inline-block"
           style={{ willChange: "opacity, filter" }}
         >
