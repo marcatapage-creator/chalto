@@ -55,6 +55,7 @@ interface ContributorSpaceProps {
   }
   proName: string
   tasks: Task[]
+  initialDocs?: DocRow[]
   logoUrl?: string | null
   companyName?: string | null
 }
@@ -105,6 +106,7 @@ export function ContributorSpace({
   contributor,
   proName,
   tasks: initialTasks,
+  initialDocs = [],
   logoUrl,
   companyName,
 }: ContributorSpaceProps) {
@@ -115,13 +117,10 @@ export function ContributorSpace({
   const [showSuggestForm, setShowSuggestForm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
-  const [docs, setDocs] = useState<DocRow[]>([])
+  const docs = initialDocs
   const [docDecision, setDocDecision] = useState<Record<string, "approved" | "rejected" | null>>({})
   const [docComment, setDocComment] = useState<Record<string, string>>({})
   const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
-  const [transmissionCommentSent, setTransmissionCommentSent] = useState<Record<string, boolean>>(
-    {}
-  )
 
   const [docsOpen, setDocsOpen] = useState(true)
   const [tasksOpen, setTasksOpen] = useState(true)
@@ -141,40 +140,19 @@ export function ContributorSpace({
     }, 100)
   }
 
-  useEffect(() => {
-    supabase
-      .from("document_contributors")
-      .select(
-        "document_id, request_type, documents(id, name, type, status, file_url, file_name, file_type, created_at)"
-      )
-      .eq("contributor_id", contributor.id)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("[contributor-space] doc fetch error:", error)
-          return
+  // Initialise l'état "lu" depuis les docs server-side pour les transmissions déjà consultées
+  const [transmissionCommentSent, setTransmissionCommentSent] = useState<Record<string, boolean>>(
+    () => {
+      const alreadyRead: Record<string, boolean> = {}
+      for (const dc of initialDocs) {
+        const doc = dc.documents as { id?: string; status?: string } | null
+        if (dc.request_type === "transmission" && doc?.status === "commented" && doc.id) {
+          alreadyRead[doc.id] = true
         }
-        if (data) {
-          const sorted = [...data].sort((a, b) => {
-            const da = (a.documents as { created_at?: string } | null)?.created_at ?? ""
-            const db = (b.documents as { created_at?: string } | null)?.created_at ?? ""
-            return db.localeCompare(da)
-          })
-          setDocs(sorted as unknown as DocRow[])
-
-          // Initialise l'état "lu" depuis le statut DB pour les transmissions déjà consultées
-          const alreadyRead: Record<string, boolean> = {}
-          for (const dc of data) {
-            const doc = dc.documents as { id?: string; status?: string } | null
-            if (dc.request_type === "transmission" && doc?.status === "commented" && doc.id) {
-              alreadyRead[doc.id] = true
-            }
-          }
-          if (Object.keys(alreadyRead).length > 0) {
-            setTransmissionCommentSent(alreadyRead)
-          }
-        }
-      })
-  }, [contributor.id, supabase])
+      }
+      return alreadyRead
+    }
+  )
 
   useEffect(() => {
     const channel = supabase

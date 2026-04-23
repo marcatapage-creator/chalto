@@ -14,7 +14,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
   if (!contributor) notFound()
 
-  const [{ data: tasks }, { data: proProfile }] = await Promise.all([
+  const [{ data: tasks }, { data: proProfile }, { data: docContributors }] = await Promise.all([
     admin
       .from("tasks")
       .select("*")
@@ -27,6 +27,13 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       .select("full_name, company_name, logo_url, branding_enabled")
       .eq("id", contributor.projects?.user_id)
       .single(),
+    admin
+      .from("document_contributors")
+      .select(
+        "document_id, request_type, documents(id, name, type, status, file_url, file_name, file_type, created_at)"
+      )
+      .eq("contributor_id", contributor.id)
+      .order("created_at", { ascending: false, referencedTable: "documents" }),
   ])
 
   const proName = proProfile?.full_name ?? proProfile?.company_name ?? "Votre professionnel"
@@ -36,6 +43,9 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       contributor={contributor}
       proName={proName}
       tasks={tasks ?? []}
+      initialDocs={
+        (docContributors ?? []) as unknown as Parameters<typeof ContributorSpace>[0]["initialDocs"]
+      }
       logoUrl={proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null}
       companyName={proProfile?.company_name ?? null}
     />
