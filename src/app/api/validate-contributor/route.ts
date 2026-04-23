@@ -3,8 +3,17 @@ import { sendApprovalEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 import { validateContributorSchema } from "@/lib/api-schemas"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
+  const allowed = await checkRateLimit(request)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Trop de requêtes — réessayez dans une minute" },
+      { status: 429 }
+    )
+  }
+
   try {
     const parsed = validateContributorSchema.safeParse(await request.json())
     if (!parsed.success)

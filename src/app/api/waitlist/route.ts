@@ -2,8 +2,17 @@ import { createClient } from "@/lib/supabase/server"
 import { sendWaitlistConfirmationEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
 import { waitlistSchema } from "@/lib/api-schemas"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
+  const allowed = await checkRateLimit(request)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Trop de requêtes — réessayez dans une minute" },
+      { status: 429 }
+    )
+  }
+
   try {
     const parsed = waitlistSchema.safeParse(await request.json())
     if (!parsed.success)
