@@ -1,6 +1,26 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { notFound } from "next/navigation"
 import { ContributorSpace } from "@/components/invite/contributor-space"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+
+function TokenInvalid({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="flex justify-center">
+          <Image src="/Logo.svg" alt="Chalto" width={48} height={48} />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-xl font-bold">Lien invalide</h1>
+          <p className="text-muted-foreground text-sm">{message}</p>
+        </div>
+        <Button variant="outline" asChild>
+          <a href="https://chalto.fr">Retour à l&apos;accueil</a>
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -12,7 +32,13 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     .eq("invite_token", token)
     .single()
 
-  if (!contributor) notFound()
+  if (!contributor) {
+    return <TokenInvalid message="Ce lien d'invitation est invalide." />
+  }
+
+  if (contributor.invite_expires_at && new Date(contributor.invite_expires_at) < new Date()) {
+    return <TokenInvalid message="Ce lien d'invitation a expiré. Contactez votre professionnel." />
+  }
 
   const [{ data: tasks }, { data: proProfile }, { data: docContributors }] = await Promise.all([
     admin
