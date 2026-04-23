@@ -145,12 +145,18 @@ export function ContributorSpace({
     supabase
       .from("document_contributors")
       .select(
-        "document_id, request_type, documents(id, name, type, status, file_url, file_name, file_type)"
+        "document_id, request_type, documents(id, name, type, status, file_url, file_name, file_type, created_at)"
       )
       .eq("contributor_id", contributor.id)
-      .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (data) setDocs(data as unknown as DocRow[])
+        if (data) {
+          const sorted = [...data].sort((a, b) => {
+            const da = (a.documents as { created_at?: string } | null)?.created_at ?? ""
+            const db = (b.documents as { created_at?: string } | null)?.created_at ?? ""
+            return db.localeCompare(da)
+          })
+          setDocs(sorted as unknown as DocRow[])
+        }
       })
   }, [contributor.id, supabase])
 
