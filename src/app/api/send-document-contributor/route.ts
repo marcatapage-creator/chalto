@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
+import { buildBrandHeader } from "@/lib/email-brand"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -25,13 +26,17 @@ export async function POST(request: Request) {
         .select("name, email, invite_token")
         .in("id", contributorIds)
         .eq("project_id", projectId),
-      supabase.from("projects").select("name").eq("id", projectId).single(),
+      supabase.from("projects").select("name").eq("id", projectId).eq("user_id", user.id).single(),
       supabase
         .from("profiles")
         .select("full_name, company_name, logo_url, branding_enabled")
         .eq("id", user.id)
         .single(),
     ])
+
+    if (!project) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
+    }
 
     if (!contributors?.length) {
       return NextResponse.json({ error: "Prestataires introuvables" }, { status: 404 })
@@ -40,10 +45,7 @@ export async function POST(request: Request) {
     const proName = proProfile?.full_name ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
     const projectName = project?.name ?? "le projet"
-    const logoUrl = proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null
-    const brandHeader = logoUrl
-      ? `<img src="${logoUrl}" alt="${proProfile?.company_name ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
-      : `<div style="display:inline-flex;align-items:center;gap:8px;"><img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display:block;" /><span style="font-weight:700;font-size:16px;color:#111;">Chalto</span></div>`
+    const brandHeader = buildBrandHeader(proProfile)
 
     const sends = contributors
       .filter((c) => c.email && c.invite_token)

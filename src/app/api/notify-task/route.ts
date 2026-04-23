@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
+import { buildBrandHeader } from "@/lib/email-brand"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -28,13 +29,17 @@ export async function POST(request: Request) {
 
     const [{ data: contact }, { data: project }, { data: proProfile }] = await Promise.all([
       admin.from("contacts").select("name, email").eq("id", task.assigned_to).single(),
-      admin.from("projects").select("name").eq("id", task.project_id).single(),
+      admin.from("projects").select("name, user_id").eq("id", task.project_id).single(),
       admin
         .from("profiles")
         .select("full_name, company_name, logo_url, branding_enabled")
         .eq("id", user.id)
         .single(),
     ])
+
+    if (!project || project.user_id !== user.id) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
+    }
 
     if (!contact?.email) {
       return NextResponse.json({ error: "Email manquant" }, { status: 400 })
@@ -53,14 +58,7 @@ export async function POST(request: Request) {
 
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? "Votre professionnel"
-    const logoUrl = proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null
-    const companyName = proProfile?.branding_enabled ? (proProfile.company_name ?? null) : null
-    const brandHeader = logoUrl
-      ? `<img src="${logoUrl}" alt="${companyName ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
-      : `<div style="display: inline-flex; align-items: center; gap: 8px;">
-          <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-          <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
-         </div>`
+    const brandHeader = buildBrandHeader(proProfile)
 
     const dueDateHtml = task.due_date
       ? `<p style="margin: 8px 0 0; font-size: 13px; color: #666;">

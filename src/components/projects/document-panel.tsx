@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
+import { docStatusMap } from "@/lib/doc-status"
 
 interface Document {
   id: string
@@ -47,32 +48,6 @@ interface DocumentPanelProps {
   onClose: () => void
   showClose?: boolean
   onStatusChange?: (docId: string, status: string, version?: number) => void
-}
-
-const docStatusMap: Record<
-  string,
-  {
-    label: string
-    variant: "default" | "secondary" | "outline" | "destructive"
-    className?: string
-  }
-> = {
-  draft: { label: "Brouillon", variant: "outline" },
-  sent: { label: "Envoyé", variant: "secondary" },
-  approved: {
-    label: "Approuvé ✓",
-    variant: "outline",
-    className: "bg-green-50 text-green-700 border-green-200",
-  },
-  rejected: {
-    label: "Refusé",
-    variant: "outline",
-    className: "bg-red-50 text-red-600 border-red-200",
-  },
-  commented: {
-    label: "Lu",
-    variant: "secondary",
-  },
 }
 
 interface PrevVersion {

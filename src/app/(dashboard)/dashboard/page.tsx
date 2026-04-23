@@ -18,7 +18,8 @@ export default async function DashboardPage() {
       .from("projects")
       .select("id, status, name, client_name, created_at")
       .eq("user_id", user!.id)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     supabase
       .from("profiles")
       .select("demo_project_id, onboarding_completed")

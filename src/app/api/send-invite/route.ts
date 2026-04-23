@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
+import { buildBrandHeader } from "@/lib/email-brand"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -18,9 +19,13 @@ export async function POST(request: Request) {
       .from("contacts")
       .select("*")
       .eq("id", contactId)
+      .eq("user_id", user.id)
       .single()
 
-    if (!contact?.email) {
+    if (!contact) {
+      return NextResponse.json({ error: "Contact introuvable" }, { status: 404 })
+    }
+    if (!contact.email) {
       return NextResponse.json({ error: "Email manquant" }, { status: 400 })
     }
 
@@ -28,7 +33,12 @@ export async function POST(request: Request) {
       .from("projects")
       .select("name")
       .eq("id", projectId)
+      .eq("user_id", user.id)
       .single()
+
+    if (!project) {
+      return NextResponse.json({ error: "Projet introuvable" }, { status: 404 })
+    }
 
     const { data: proProfile } = await supabase
       .from("profiles")
@@ -68,14 +78,7 @@ export async function POST(request: Request) {
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
-    const logoUrl = proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null
-    const companyName = proProfile?.branding_enabled ? (proProfile.company_name ?? null) : null
-    const brandHeader = logoUrl
-      ? `<img src="${logoUrl}" alt="${companyName ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
-      : `<div style="display: inline-flex; align-items: center; gap: 8px;">
-          <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-          <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
-         </div>`
+    const brandHeader = buildBrandHeader(proProfile)
 
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",

@@ -156,6 +156,7 @@ export function ProjectTasks({
       .select("*, contacts(id, name)")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true })
+      .limit(500)
 
     if (data) {
       setTasks(data.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))

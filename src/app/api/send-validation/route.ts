@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const [{ data: document }, { data: profile }] = await Promise.all([
       supabase
         .from("documents")
-        .select("*, projects(name, client_email, client_name)")
+        .select("*, projects!inner(name, client_email, client_name, user_id)")
         .eq("id", documentId)
         .single(),
       supabase
@@ -28,6 +28,16 @@ export async function POST(request: Request) {
 
     if (!document) {
       return NextResponse.json({ error: "Document introuvable" }, { status: 404 })
+    }
+
+    const projectData = document.projects as {
+      name: string
+      client_email: string | null
+      client_name: string | null
+      user_id: string
+    }
+    if (projectData?.user_id !== user.id) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
     }
 
     if (!document.projects?.client_email) {

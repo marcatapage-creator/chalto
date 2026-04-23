@@ -22,7 +22,8 @@ export default async function ProjectPage({
         .from("documents")
         .select("*")
         .eq("project_id", id)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(200),
       supabase
         .from("contacts")
         .select("id, name, professions(label)")
