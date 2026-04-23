@@ -1,14 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
+import { projectMessageSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
-    const { projectId, authorName, content, contributorToken } = await request.json()
-
-    if (!projectId || !authorName || !content?.trim() || !contributorToken) {
-      return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
-    }
+    const parsed = projectMessageSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { projectId, authorName, content, contributorToken } = parsed.data
 
     const admin = createAdminClient()
 

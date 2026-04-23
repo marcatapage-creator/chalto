@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server"
 import { sendWaitlistConfirmationEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
+import { waitlistSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
-    const { email, name, profession } = await request.json()
+    const parsed = waitlistSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { email, name, profession } = parsed.data
     const supabase = await createClient()
 
     const { error } = await supabase.from("waitlist").insert({

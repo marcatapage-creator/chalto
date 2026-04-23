@@ -2,10 +2,14 @@ import { createClient } from "@/lib/supabase/server"
 import { sendValidationEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
+import { sendValidationSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
-    const { documentId, message } = await request.json()
+    const parsed = sendValidationSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { documentId, message } = parsed.data
     const supabase = await createClient()
 
     const {

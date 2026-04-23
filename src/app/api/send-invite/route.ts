@@ -2,12 +2,16 @@ import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
 import { buildBrandHeader } from "@/lib/email-brand"
+import { sendInviteSchema } from "@/lib/api-schemas"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
   try {
-    const { contactId, projectId } = await request.json()
+    const parsed = sendInviteSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { contactId, projectId } = parsed.data
     const supabase = await createClient()
 
     const {

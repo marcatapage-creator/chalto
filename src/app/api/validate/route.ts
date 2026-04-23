@@ -2,14 +2,14 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendApprovalEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
+import { validateSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
-    const { token, status, comment } = await request.json()
-
-    if (!token || !status) {
-      return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
-    }
+    const parsed = validateSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { token, status, comment } = parsed.data
 
     const admin = createAdminClient()
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { sendWelcomeEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
+import { sendWelcomeSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
     }
 
-    const { fullName } = await request.json()
+    const parsed = sendWelcomeSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { fullName } = parsed.data
 
     await sendWelcomeEmail({ email: user.email!, fullName })
 

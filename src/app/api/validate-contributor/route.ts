@@ -2,10 +2,14 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendApprovalEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
+import { validateContributorSchema } from "@/lib/api-schemas"
 
 export async function POST(request: Request) {
   try {
-    const { documentId, status, comment, contributorName, requestType } = await request.json()
+    const parsed = validateContributorSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { documentId, status, comment, contributorName, requestType } = parsed.data
     const isTransmission = requestType === "transmission"
 
     const admin = createAdminClient()
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
               clientName: contributorName ?? "Un prestataire",
               projectName: document.projects?.name ?? "Projet",
               documentName: document.name,
-              status,
+              status: status as "approved" | "rejected",
               comment,
               projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
             })

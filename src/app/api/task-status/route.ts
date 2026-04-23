@@ -1,8 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
+import { taskStatusSchema } from "@/lib/api-schemas"
 
-const ALLOWED_STATUSES = ["todo", "in_progress", "done"]
 const STATUS_LABELS: Record<string, string> = {
   todo: "À faire",
   in_progress: "En cours",
@@ -11,11 +11,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
-    const { taskId, status, contributorToken } = await request.json()
-
-    if (!taskId || !status || !contributorToken || !ALLOWED_STATUSES.includes(status)) {
-      return NextResponse.json({ error: "Paramètres manquants ou invalides" }, { status: 400 })
-    }
+    const parsed = taskStatusSchema.safeParse(await request.json())
+    if (!parsed.success)
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    const { taskId, status, contributorToken } = parsed.data
 
     const admin = createAdminClient()
 
