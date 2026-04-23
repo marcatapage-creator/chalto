@@ -23,23 +23,33 @@ export async function POST(request: Request) {
     const userId = document.projects.user_id
     const effectiveStatus = isTransmission ? "commented" : status
 
-    const [, , { data: proProfile }] = await Promise.all([
-      admin.from("documents").update({ status: effectiveStatus }).eq("id", documentId),
-      admin.from("validations").insert({
-        document_id: documentId,
-        status: effectiveStatus,
-        comment: comment || null,
-        client_name: contributorName,
-        approved_at: new Date().toISOString(),
-      }),
-      admin
-        .from("profiles")
-        .select(
-          "email, full_name, notif_inapp_enabled, notif_email_approved, notif_email_rejected, notif_email_frequency"
-        )
-        .eq("id", userId)
-        .single(),
-    ])
+    const [{ error: docUpdateError }, { error: validationInsertError }, { data: proProfile }] =
+      await Promise.all([
+        admin.from("documents").update({ status: effectiveStatus }).eq("id", documentId),
+        admin.from("validations").insert({
+          document_id: documentId,
+          status: effectiveStatus,
+          comment: comment || null,
+          client_name: contributorName,
+          approved_at: new Date().toISOString(),
+        }),
+        admin
+          .from("profiles")
+          .select(
+            "email, full_name, notif_inapp_enabled, notif_email_approved, notif_email_rejected, notif_email_frequency"
+          )
+          .eq("id", userId)
+          .single(),
+      ])
+
+    if (docUpdateError)
+      console.error("[validate-contributor] documents update error:", docUpdateError)
+    if (validationInsertError)
+      console.error("[validate-contributor] validations insert error:", validationInsertError)
+
+    if (docUpdateError) {
+      return NextResponse.json({ error: "Erreur mise à jour statut document" }, { status: 500 })
+    }
 
     if (isTransmission) {
       await createNotification({
