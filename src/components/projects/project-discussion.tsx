@@ -146,28 +146,25 @@ export function ProjectDiscussion({
 
   return (
     <div ref={containerRef} className="space-y-2">
-      <button
-        onClick={handleToggle}
-        className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
-      >
-        <ChevronDown
-          className={cn(
-            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-            !open && "-rotate-90"
-          )}
-        />
-        <span className="font-semibold group-hover:text-foreground transition-colors">
-          Discussion chantier
-        </span>
-        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-          {messages.length}
-        </span>
+      <div className="flex items-center group cursor-pointer" onClick={handleToggle}>
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+              !open && "-rotate-90"
+            )}
+          />
+          <span className="font-semibold">Discussion chantier</span>
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+            {messages.length}
+          </span>
+        </div>
         {messages.length > 0 && !open && (
-          <span className="hidden sm:inline text-xs text-muted-foreground italic truncate max-w-37.5">
+          <span className="hidden sm:inline text-xs text-muted-foreground italic truncate max-w-37.5 ml-1.5">
             — {messages[messages.length - 1].content}
           </span>
         )}
-      </button>
+      </div>
 
       {open && (
         <FadeIn className="border rounded-xl overflow-hidden">

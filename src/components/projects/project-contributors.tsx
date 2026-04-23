@@ -113,76 +113,76 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setIsOpen((v) => !v)}
-          className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
-        >
+      <div
+        className="flex items-center justify-between group cursor-pointer"
+        onClick={() => setIsOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
               !isOpen && "-rotate-90"
             )}
           />
-          <span className="font-semibold group-hover:text-foreground transition-colors">
-            Prestataires
-          </span>
+          <span className="font-semibold">Prestataires</span>
           <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
             {contributors.length}
           </span>
-        </button>
+        </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8">
-              <UserPlus className="h-3.5 w-3.5" />
-              Inviter
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Inviter un prestataire</DialogTitle>
-            </DialogHeader>
-            {availableContacts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Users className="h-6 w-6 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {contacts.length === 0
-                    ? "Aucun contact dans votre carnet d'adresses"
-                    : "Tous vos contacts sont déjà invités sur ce projet"}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {availableContacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">{contact.name}</p>
-                      {contact.professions?.[0]?.label && (
-                        <p className="text-xs text-muted-foreground">
-                          {contact.professions[0].label}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="shrink-0"
-                      disabled={loading === contact.id}
-                      onClick={() => handleInvite(contact)}
+        <div className="pl-3" onClick={(e) => e.stopPropagation()}>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 h-8">
+                <UserPlus className="h-3.5 w-3.5" />
+                Inviter
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Inviter un prestataire</DialogTitle>
+              </DialogHeader>
+              {availableContacts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Users className="h-6 w-6 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    {contacts.length === 0
+                      ? "Aucun contact dans votre carnet d'adresses"
+                      : "Tous vos contacts sont déjà invités sur ce projet"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                  {availableContacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                     >
-                      <Mail className="h-3.5 w-3.5 mr-1.5" />
-                      {loading === contact.id ? "Envoi..." : "Inviter"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{contact.name}</p>
+                        {contact.professions?.[0]?.label && (
+                          <p className="text-xs text-muted-foreground">
+                            {contact.professions[0].label}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0"
+                        disabled={loading === contact.id}
+                        onClick={() => handleInvite(contact)}
+                      >
+                        <Mail className="h-3.5 w-3.5 mr-1.5" />
+                        {loading === contact.id ? "Envoi..." : "Inviter"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <AnimatePresence initial={false}>

@@ -87,11 +87,19 @@ export function ProjectDocuments({
   return (
     <>
       {/* Header */}
-      <div className={cn("flex items-center justify-between", isOpen && "mb-4")}>
-        <button
-          onClick={onToggle}
-          className="flex items-center gap-1.5 group px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors disabled:pointer-events-none"
-          disabled={!onToggle}
+      <div
+        className={cn(
+          "flex items-center justify-between group",
+          isOpen && "mb-4",
+          onToggle && "cursor-pointer"
+        )}
+        onClick={onToggle}
+      >
+        <div
+          className={cn(
+            "flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors",
+            onToggle && "group-hover:bg-muted"
+          )}
         >
           <ChevronDown
             className={cn(
@@ -99,12 +107,16 @@ export function ProjectDocuments({
               !isOpen && "-rotate-90"
             )}
           />
-          <h2 className="font-semibold group-hover:text-foreground transition-colors">Documents</h2>
+          <h2 className="font-semibold">Documents</h2>
           <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
             {documents.length}
           </span>
-        </button>
-        {!readOnly && <AddDocumentDialog projectId={projectId} />}
+        </div>
+        {!readOnly && (
+          <div className="pl-3" onClick={(e) => e.stopPropagation()}>
+            <AddDocumentDialog projectId={projectId} />
+          </div>
+        )}
       </div>
 
       {/* Liste collapsible */}
