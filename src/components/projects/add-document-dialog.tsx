@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select"
 import { Plus, Paperclip, X } from "lucide-react"
 import { toast } from "sonner"
-import { DOCUMENT_STATUS } from "@/types"
 
 const documentTypes = [
   "Plan",
@@ -80,11 +79,16 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    const { data: doc, error: insertError } = await supabase
-      .from("documents")
-      .insert({ project_id: projectId, name, type, status: DOCUMENT_STATUS.DRAFT })
-      .select()
-      .single()
+    const { data: doc, error: insertError } = await supabase.rpc(
+      "create_document_with_contributors",
+      {
+        p_project_id: projectId,
+        p_name: name.trim(),
+        p_type: type,
+        p_audience: "client",
+        p_contributor_ids: [],
+      }
+    )
 
     if (insertError || !doc) {
       setError("Erreur lors de la création du document")
@@ -94,7 +98,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
 
     if (file && user) {
       const ext = file.name.split(".").pop()
-      const path = `${user.id}/${doc.id}/${Date.now()}.${ext}`
+      const path = `${user.id}/${doc}/${Date.now()}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from("documents")
@@ -112,7 +116,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
             file_type: file.type,
             file_size: file.size,
           })
-          .eq("id", doc.id)
+          .eq("id", doc)
       }
     }
 

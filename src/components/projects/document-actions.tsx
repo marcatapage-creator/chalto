@@ -91,30 +91,32 @@ export function DocumentActions({
           return
         }
 
-        await Promise.all([
-          supabase
-            .from("documents")
-            .update({ status: "sent", audience: "contributor" })
-            .eq("id", documentId),
-          supabase.from("document_contributors").insert(
+        await supabase.rpc("send_document_to_client", {
+          p_document_id: documentId,
+          p_status: "sent",
+        })
+
+        if (selectedContributors.length > 0) {
+          await supabase.from("document_contributors").insert(
             selectedContributors.map((contributorId) => ({
               document_id: documentId,
               contributor_id: contributorId,
               request_type: requestType,
             }))
-          ),
-          fetch("/api/send-document-contributor", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contributorIds: selectedContributors,
-              documentName,
-              projectId,
-              message: message || null,
-              requestType,
-            }),
+          )
+        }
+
+        await fetch("/api/send-document-contributor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contributorIds: selectedContributors,
+            documentName,
+            projectId,
+            message: message || null,
+            requestType,
           }),
-        ])
+        })
 
         haptics.success()
         toast.success(`Document partagé avec ${selectedContributors.length} prestataire(s) ✅`)
