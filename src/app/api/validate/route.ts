@@ -43,8 +43,14 @@ export async function POST(request: Request) {
           .single(),
       ])
 
-    if (validationError) console.error("[validate] validations insert error:", validationError)
-    if (docUpdateError) console.error("[validate] documents update error:", docUpdateError)
+    if (validationError) {
+      console.error("[validate] validations insert error:", validationError)
+      return NextResponse.json({ error: "Erreur enregistrement validation" }, { status: 500 })
+    }
+    if (docUpdateError) {
+      console.error("[validate] documents update error:", docUpdateError)
+      return NextResponse.json({ error: "Erreur mise à jour statut document" }, { status: 500 })
+    }
 
     const shouldSendEmail =
       proProfile?.notif_email_frequency !== "never" &&

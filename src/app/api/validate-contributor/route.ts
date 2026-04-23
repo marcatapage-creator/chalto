@@ -42,13 +42,13 @@ export async function POST(request: Request) {
           .single(),
       ])
 
-    if (docUpdateError)
-      console.error("[validate-contributor] documents update error:", docUpdateError)
-    if (validationInsertError)
-      console.error("[validate-contributor] validations insert error:", validationInsertError)
-
     if (docUpdateError) {
+      console.error("[validate-contributor] documents update error:", docUpdateError)
       return NextResponse.json({ error: "Erreur mise à jour statut document" }, { status: 500 })
+    }
+    if (validationInsertError) {
+      console.error("[validate-contributor] validations insert error:", validationInsertError)
+      return NextResponse.json({ error: "Erreur enregistrement validation" }, { status: 500 })
     }
 
     if (isTransmission) {

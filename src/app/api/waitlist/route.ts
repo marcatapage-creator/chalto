@@ -20,7 +20,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
     }
 
-    await sendWaitlistConfirmationEmail({ email, name })
+    void sendWaitlistConfirmationEmail({ email, name }).catch((err) =>
+      console.error("[waitlist] email error:", err)
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {
