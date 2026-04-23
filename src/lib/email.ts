@@ -1,5 +1,15 @@
 import { Resend } from "resend"
 
+function escapeHtml(str: string | null | undefined): string {
+  if (!str) return ""
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
 const FROM = "Chalto <noreply@chalto.fr>"
 
 function getResend() {
@@ -28,7 +38,7 @@ export async function sendValidationEmail({
   companyName?: string | null
 }) {
   const brandHeader = logoUrl
-    ? `<img src="${logoUrl}" alt="${companyName ?? "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
+    ? `<img src="${logoUrl}" alt="${escapeHtml(companyName) || "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
     : `<div style="display: inline-flex; align-items: center; gap: 8px;">
         <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
         <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
@@ -54,12 +64,12 @@ export async function sendValidationEmail({
           </h1>
 
           <p style="color: #555; margin: 0 0 32px; font-size: 15px;">
-            Bonjour ${clientName},
+            Bonjour ${escapeHtml(clientName)},
           </p>
 
           <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
-            <strong>${proName}</strong> vous soumet un document pour validation
-            dans le cadre du projet <strong>${projectName}</strong>.
+            <strong>${escapeHtml(proName)}</strong> vous soumet un document pour validation
+            dans le cadre du projet <strong>${escapeHtml(projectName)}</strong>.
           </p>
 
           <a href="${validationUrl}"
@@ -69,16 +79,16 @@ export async function sendValidationEmail({
 
           <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
             <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Document</p>
-            <p style="margin: 0; font-weight: 600; font-size: 16px;">${documentName}</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #666;">Projet : ${projectName}</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(documentName)}</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #666;">Projet : ${escapeHtml(projectName)}</p>
           </div>
 
           ${
             message
               ? `
           <div style="background: #f0f4ff; border-left: 3px solid #3b5fdb; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 24px;">
-            <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Message de ${proName}</p>
-            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${message}"</p>
+            <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Message de ${escapeHtml(proName)}</p>
+            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${escapeHtml(message)}"</p>
           </div>
           `
               : ""
@@ -111,7 +121,7 @@ export async function sendWelcomeEmail({ email, fullName }: { email: string; ful
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-            Bienvenue ${fullName ?? ""} 👋
+            Bienvenue ${escapeHtml(fullName)} 👋
           </h1>
 
           <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
@@ -188,7 +198,7 @@ export async function sendWaitlistConfirmationEmail({
           </h1>
 
           <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
-            Bonjour ${name ?? ""}
+            Bonjour ${escapeHtml(name)}
           </p>
 
           <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
@@ -262,12 +272,12 @@ export async function sendApprovalEmail({
           </h1>
 
           <p style="color: #555; margin: 0 0 32px; font-size: 15px;">
-            Bonjour ${proName},
+            Bonjour ${escapeHtml(proName)},
           </p>
 
           <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
-            <strong>${clientName}</strong> a ${isApproved ? "approuvé" : "refusé"} le document
-            <strong>${documentName}</strong> sur le projet <strong>${projectName}</strong>.
+            <strong>${escapeHtml(clientName)}</strong> a ${isApproved ? "approuvé" : "refusé"} le document
+            <strong>${escapeHtml(documentName)}</strong> sur le projet <strong>${escapeHtml(projectName)}</strong>.
           </p>
 
           ${
@@ -275,7 +285,7 @@ export async function sendApprovalEmail({
               ? `
           <div style="background: #f9f9f9; border-left: 3px solid ${isApproved ? "#3b5fdb" : "#ef4444"}; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 32px;">
             <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Commentaire du client</p>
-            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${comment}"</p>
+            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${escapeHtml(comment)}"</p>
           </div>
           `
               : ""
