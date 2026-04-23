@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { Users, ChevronDown, Mail, Copy, Check, UserPlus } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
-import { FadeIn } from "@/components/ui/motion"
+import { AnimatePresence, motion } from "framer-motion"
 
 interface Contact {
   id: string
@@ -185,73 +185,84 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
         </Dialog>
       </div>
 
-      {isOpen && (
-        <FadeIn>
-          {contributors.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center border rounded-xl">
-              <Users className="h-6 w-6 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">Aucun prestataire invité</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Invitez vos prestataires pour leur partager documents et tâches
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {contributors.map((contributor) => (
-                <div
-                  key={contributor.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-lg border"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarFallback className="text-xs font-medium bg-muted text-muted-foreground">
-                        {initials(contributor.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{contributor.name}</p>
-                      {contributor.professions?.label && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {contributor.professions.label}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={() => handleCopy(contributor)}
-                    >
-                      {copied === contributor.id ? (
-                        <Check className="h-3.5 w-3.5 text-green-500" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                      <span className="hidden sm:inline">
-                        {copied === contributor.id ? "Copié" : "Lien"}
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      disabled={loading === contributor.id}
-                      onClick={() => handleReinvite(contributor)}
-                    >
-                      <Mail className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">
-                        {loading === contributor.id ? "Envoi..." : "Réinviter"}
-                      </span>
-                    </Button>
-                  </div>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="contributors-list"
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="p-1">
+              {contributors.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center border rounded-xl">
+                  <Users className="h-6 w-6 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium">Aucun prestataire invité</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Invitez vos prestataires pour leur partager documents et tâches
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-2">
+                  {contributors.map((contributor) => (
+                    <div
+                      key={contributor.id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-lg border"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarFallback className="text-xs font-medium bg-muted text-muted-foreground">
+                            {initials(contributor.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{contributor.name}</p>
+                          {contributor.professions?.label && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {contributor.professions.label}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => handleCopy(contributor)}
+                        >
+                          {copied === contributor.id ? (
+                            <Check className="h-3.5 w-3.5 text-green-500" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {copied === contributor.id ? "Copié" : "Lien"}
+                          </span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          disabled={loading === contributor.id}
+                          onClick={() => handleReinvite(contributor)}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">
+                            {loading === contributor.id ? "Envoi..." : "Réinviter"}
+                          </span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </FadeIn>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
