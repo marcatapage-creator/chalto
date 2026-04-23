@@ -44,11 +44,24 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
       {/* Contenu */}
       <div className="pt-10 h-full">
         {isPdf && (
-          <iframe
-            src={`${fileUrl}#toolbar=0`}
-            className="w-full h-full min-h-100"
-            title={fileName}
-          />
+          <>
+            {/* Desktop : iframe inline */}
+            <iframe
+              src={`${fileUrl}#toolbar=0`}
+              className="hidden sm:block w-full h-full min-h-100"
+              title={fileName}
+            />
+            {/* Mobile : iOS Safari ne supporte pas les PDF en iframe */}
+            <div className="sm:hidden flex flex-col items-center justify-center gap-4 py-10 px-4 text-center">
+              <p className="text-sm text-muted-foreground">Aperçu indisponible sur mobile</p>
+              <button
+                onClick={() => window.open(fileUrl, "_blank")}
+                className="text-sm font-medium text-primary underline underline-offset-2"
+              >
+                Ouvrir le PDF →
+              </button>
+            </div>
+          </>
         )}
         {isImage && (
           <div className="flex items-center justify-center h-full p-4">
