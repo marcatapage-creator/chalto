@@ -14,6 +14,7 @@ import { DocumentPanel } from "@/components/projects/document-panel"
 import { ProjectStepper } from "@/components/projects/project-stepper"
 import { ProjectTasks } from "@/components/projects/project-tasks"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
+import { ProjectContributors } from "@/components/projects/project-contributors"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -349,9 +350,12 @@ export function ProjectPageClient({
             />
           </div>
 
-          {/* Kanban tâches — phases chantier et au-delà */}
+          {/* Prestataires + Kanban tâches — phases chantier et au-delà */}
           {isChantierPhase(phase) && (
             <>
+              <div className="px-6 md:px-8 py-6 md:py-8">
+                <ProjectContributors projectId={project.id} contacts={contacts} />
+              </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
                 <ProjectTasks
                   projectId={project.id}
