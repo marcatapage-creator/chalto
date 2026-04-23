@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Plus, Paperclip, X } from "lucide-react"
 import { toast } from "sonner"
+import { DOCUMENT_STATUS } from "@/types"
 
 const documentTypes = [
   "Plan",
@@ -81,7 +82,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
 
     const { data: doc, error: insertError } = await supabase
       .from("documents")
-      .insert({ project_id: projectId, name, type, status: "draft" })
+      .insert({ project_id: projectId, name, type, status: DOCUMENT_STATUS.DRAFT })
       .select()
       .single()
 

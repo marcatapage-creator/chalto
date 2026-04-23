@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { DOCUMENT_STATUS } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -85,9 +86,12 @@ export default async function ProjectsPage() {
       id,
       {
         docs: docRows?.filter((d) => d.project_id === id).length ?? 0,
-        pending: docRows?.filter((d) => d.project_id === id && d.status === "sent").length ?? 0,
+        pending:
+          docRows?.filter((d) => d.project_id === id && d.status === DOCUMENT_STATUS.SENT).length ??
+          0,
         approved:
-          docRows?.filter((d) => d.project_id === id && d.status === "approved").length ?? 0,
+          docRows?.filter((d) => d.project_id === id && d.status === DOCUMENT_STATUS.APPROVED)
+            .length ?? 0,
         tasks:
           taskRows?.filter((t) => t.project_id === id && ["todo", "in_progress"].includes(t.status))
             .length ?? 0,

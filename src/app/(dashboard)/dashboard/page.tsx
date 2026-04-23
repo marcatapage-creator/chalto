@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { DOCUMENT_STATUS } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FolderOpen } from "lucide-react"
@@ -44,8 +45,8 @@ export default async function DashboardPage() {
   const initialCounts = {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
     totalDocs: documents?.length ?? 0,
-    approved: documents?.filter((d) => d.status === "approved").length ?? 0,
-    pending: documents?.filter((d) => d.status === "sent").length ?? 0,
+    approved: documents?.filter((d) => d.status === DOCUMENT_STATUS.APPROVED).length ?? 0,
+    pending: documents?.filter((d) => d.status === DOCUMENT_STATUS.SENT).length ?? 0,
   }
 
   return (

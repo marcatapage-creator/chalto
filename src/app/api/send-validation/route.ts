@@ -3,6 +3,7 @@ import { sendValidationEmail } from "@/lib/email"
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { sendValidationSchema } from "@/lib/api-schemas"
+import { DOCUMENT_STATUS } from "@/types"
 
 export async function POST(request: Request) {
   try {
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
 
     const { error: updateError } = await supabase
       .from("documents")
-      .update({ status: "sent", pro_message: message ?? null })
+      .update({ status: DOCUMENT_STATUS.SENT, pro_message: message ?? null })
       .eq("id", documentId)
 
     if (updateError) {

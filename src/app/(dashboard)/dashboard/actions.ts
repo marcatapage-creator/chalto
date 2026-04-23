@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { DOCUMENT_STATUS } from "@/types"
 
 export async function fetchDashboardCounts(userId: string) {
   const supabase = await createClient()
@@ -20,7 +21,7 @@ export async function fetchDashboardCounts(userId: string) {
   return {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
     totalDocs: documents?.length ?? 0,
-    approved: documents?.filter((d) => d.status === "approved").length ?? 0,
-    pending: documents?.filter((d) => d.status === "sent").length ?? 0,
+    approved: documents?.filter((d) => d.status === DOCUMENT_STATUS.APPROVED).length ?? 0,
+    pending: documents?.filter((d) => d.status === DOCUMENT_STATUS.SENT).length ?? 0,
   }
 }
