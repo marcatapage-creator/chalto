@@ -12,7 +12,23 @@ import {
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
-import { Users, ChevronDown, Mail, Copy, Check, UserPlus } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Users,
+  ChevronDown,
+  Mail,
+  Copy,
+  Check,
+  UserPlus,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { AnimatePresence, motion } from "framer-motion"
 
@@ -111,6 +127,19 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
     setLoading(null)
   }
 
+  const handleDelete = async (contributorId: string) => {
+    const contributor = contributors.find((c) => c.id === contributorId)
+    if (!contributor) return
+    setContributors((prev) => prev.filter((c) => c.id !== contributorId))
+    const { error } = await supabase.from("contributors").delete().eq("id", contributorId)
+    if (error) {
+      setContributors((prev) => [...prev, contributor])
+      toast.error("Erreur lors de la suppression")
+    } else {
+      toast.success(`${contributor.name} retiré du projet`)
+    }
+  }
+
   return (
     <div className="space-y-2">
       <div
@@ -135,7 +164,7 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5 h-8">
                 <UserPlus className="h-3.5 w-3.5" />
-                Inviter
+                Ajouter
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -226,35 +255,38 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs gap-1"
-                          onClick={() => handleCopy(contributor)}
-                        >
-                          {copied === contributor.id ? (
-                            <Check className="h-3.5 w-3.5 text-green-500" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                          <span className="hidden sm:inline">
-                            {copied === contributor.id ? "Copié" : "Lien"}
-                          </span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs gap-1"
-                          disabled={loading === contributor.id}
-                          onClick={() => handleReinvite(contributor)}
-                        >
-                          <Mail className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">
-                            {loading === contributor.id ? "Envoi..." : "Réinviter"}
-                          </span>
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            disabled={loading === contributor.id}
+                            onClick={() => void handleReinvite(contributor)}
+                          >
+                            <Mail className="h-4 w-4 mr-2" />
+                            {loading === contributor.id ? "Envoi..." : "Inviter"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCopy(contributor)}>
+                            {copied === contributor.id ? (
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4 mr-2" />
+                            )}
+                            {copied === contributor.id ? "Copié !" : "Copier le lien"}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => void handleDelete(contributor.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   ))}
                 </div>
