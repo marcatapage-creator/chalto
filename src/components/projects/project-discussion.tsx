@@ -80,7 +80,9 @@ export function ProjectDiscussion({
           )
         }
       )
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[project-discussion] Realtime error:", err)
+      })
 
     return () => {
       void channel.unsubscribe()

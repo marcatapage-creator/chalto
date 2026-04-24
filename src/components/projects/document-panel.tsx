@@ -23,6 +23,7 @@ import {
   RotateCcw,
 } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
+import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { toast } from "sonner"
 import { docStatusMap } from "@/lib/doc-status"
 
@@ -231,7 +232,9 @@ export function DocumentPanel({
           if (v.document_id === document.id) void fetchValidation()
         }
       )
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[document-watch] Realtime error:", err)
+      })
     return () => {
       supabase.removeChannel(channel)
     }
@@ -262,7 +265,9 @@ export function DocumentPanel({
         })
         onStatusChangeRef.current?.(document.id, "commented")
       })
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[documents-broadcast] Realtime error:", err)
+      })
     return () => {
       supabase.removeChannel(channel)
     }
@@ -270,7 +275,7 @@ export function DocumentPanel({
 
   const handleSend = async () => {
     setSending(true)
-    const res = await fetch("/api/send-validation", {
+    const res = await fetchWithTimeout("/api/send-validation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ documentId: document.id, message: message || null }),

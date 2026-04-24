@@ -4,9 +4,13 @@ import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { sendValidationSchema } from "@/lib/api-schemas"
 import { DOCUMENT_STATUS } from "@/types"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
   try {
+    if (!(await checkRateLimit(request)))
+      return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
+
     const parsed = sendValidationSchema.safeParse(await request.json())
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })

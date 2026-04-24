@@ -51,4 +51,12 @@ describe("checkRateLimit", () => {
     await checkRateLimit(makeRequest())
     expect(mockLimit).toHaveBeenCalledWith("anonymous")
   })
+
+  it("retourne true sans appeler Redis en développement", async () => {
+    vi.stubEnv("NODE_ENV", "development")
+    const result = await checkRateLimit(makeRequest("1.2.3.4"))
+    vi.unstubAllEnvs()
+    expect(result).toBe(true)
+    expect(mockLimit).not.toHaveBeenCalled()
+  })
 })

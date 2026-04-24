@@ -57,7 +57,9 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
           setMessages((prev) => [...prev, payload.new as Message])
         }
       )
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[messages] Realtime error:", err)
+      })
 
     return () => {
       supabase.removeChannel(channel)

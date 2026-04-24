@@ -12,6 +12,7 @@ import { FileViewer } from "@/components/projects/file-viewer"
 import { ProjectStepper } from "@/components/projects/project-stepper"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
+import { fetchWithTimeout } from "@/lib/fetch-timeout"
 
 type Document = {
   id: string
@@ -66,7 +67,7 @@ export function ValidationClient({ document, token }: { document: Document; toke
 
   const handleValidation = async (decision: "approved" | "rejected") => {
     setLoading(true)
-    await fetch("/api/validate", {
+    await fetchWithTimeout("/api/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, status: decision, comment: comment || null }),

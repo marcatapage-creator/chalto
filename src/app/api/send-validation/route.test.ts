@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { POST } from "./route"
 import * as serverModule from "@/lib/supabase/server"
 import * as emailModule from "@/lib/email"
+import * as rateLimitModule from "@/lib/rate-limit"
 
 vi.mock("@/lib/supabase/server")
 vi.mock("@/lib/email")
+vi.mock("@/lib/rate-limit")
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
 
 const uuid = "123e4567-e89b-12d3-a456-426614174000"
@@ -76,6 +78,7 @@ const PROFILE = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(true)
   vi.mocked(emailModule.sendValidationEmail).mockResolvedValue({ error: null } as never)
 })
 

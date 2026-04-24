@@ -33,7 +33,9 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
       .channel("dashboard-stats")
       .on("postgres_changes", { event: "*", schema: "public", table: "documents" }, refreshCounts)
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, refreshCounts)
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[dashboard-stats] Realtime error:", err)
+      })
 
     return () => {
       supabase.removeChannel(channel)

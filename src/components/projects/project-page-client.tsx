@@ -228,7 +228,9 @@ export function ProjectPageClient({
         const { documentId, status } = payload as { documentId: string; status: string }
         setLocalDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, status } : d)))
       })
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[documents] Realtime error:", err)
+      })
 
     return () => {
       void supabase.removeChannel(channel)

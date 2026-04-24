@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test"
 
-// Token invalide — Next.js notFound() → 404
-test("token invalide — affiche une page 404", async ({ page }) => {
+// Token invalide — page d'erreur dédiée (HTTP 200, pas de 404 brut — cf. RECETTE 5.2)
+test("token invalide — affiche une page d'erreur dédiée", async ({ page }) => {
   const response = await page.goto("/invite/token-inexistant-test")
-  expect(response?.status()).toBe(404)
+  expect(response?.status()).toBe(200)
+  await expect(page.getByText(/invalide|expiré/i)).toBeVisible()
 })
 
 // Flux complet — nécessite un contributor avec invite_token = "test-invite-e2e" en DB de test

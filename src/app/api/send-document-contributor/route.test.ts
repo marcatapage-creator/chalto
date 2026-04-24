@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { POST } from "./route"
 import * as serverModule from "@/lib/supabase/server"
 import * as emailBrandModule from "@/lib/email-brand"
+import * as rateLimitModule from "@/lib/rate-limit"
 
 vi.mock("@/lib/supabase/server")
 vi.mock("resend", () => ({
@@ -10,6 +11,7 @@ vi.mock("resend", () => ({
   },
 }))
 vi.mock("@/lib/email-brand", () => ({ buildBrandHeader: vi.fn().mockReturnValue("") }))
+vi.mock("@/lib/rate-limit")
 
 const uuid = "123e4567-e89b-12d3-a456-426614174000"
 
@@ -62,6 +64,7 @@ const validBody = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(true)
   vi.mocked(emailBrandModule.buildBrandHeader).mockReturnValue("")
 })
 

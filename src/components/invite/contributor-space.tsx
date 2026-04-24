@@ -29,6 +29,7 @@ import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { FileViewer } from "@/components/projects/file-viewer"
 import { haptics } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
+import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import Link from "next/link"
 
 interface Task {
@@ -187,7 +188,9 @@ export function ContributorSpace({
         const { taskId } = payload as { taskId: string }
         setTasks((prev) => prev.filter((t) => t.id !== taskId))
       })
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[tasks] Realtime error:", err)
+      })
 
     return () => {
       supabase.removeChannel(channel)
@@ -198,7 +201,7 @@ export function ContributorSpace({
     const prevStatus = tasks.find((t) => t.id === taskId)?.status
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
 
-    const res = await fetch("/api/task-status", {
+    const res = await fetchWithTimeout("/api/task-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -221,7 +224,7 @@ export function ContributorSpace({
     if (!suggestion.trim()) return
     setSuggesting(true)
 
-    const res = await fetch("/api/task-suggest", {
+    const res = await fetchWithTimeout("/api/task-suggest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -245,7 +248,7 @@ export function ContributorSpace({
   }
 
   const handleDiscussionSend = async (content: string) => {
-    const res = await fetch("/api/project-message", {
+    const res = await fetchWithTimeout("/api/project-message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -260,8 +263,13 @@ export function ContributorSpace({
     return data.message ?? null
   }
 
-  const doneTasks = tasks.filter((t) => t.status === "done").length
-  const progress = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0
+  const { doneTasks, progress } = useMemo(() => {
+    const done = tasks.filter((t) => t.status === "done").length
+    return {
+      doneTasks: done,
+      progress: tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0,
+    }
+  }, [tasks])
 
   return (
     <div className="min-h-screen bg-background">
@@ -452,7 +460,7 @@ export function ContributorSpace({
                                 disabled={docLoading[doc.id]}
                                 onClick={async () => {
                                   setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
-                                  const res = await fetch("/api/validate-contributor", {
+                                  const res = await fetchWithTimeout("/api/validate-contributor", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
@@ -518,7 +526,7 @@ export function ContributorSpace({
                                 disabled={docLoading[doc.id]}
                                 onClick={async () => {
                                   setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
-                                  await fetch("/api/validate-contributor", {
+                                  await fetchWithTimeout("/api/validate-contributor", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
@@ -543,7 +551,7 @@ export function ContributorSpace({
                                 disabled={docLoading[doc.id]}
                                 onClick={async () => {
                                   setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
-                                  await fetch("/api/validate-contributor", {
+                                  await fetchWithTimeout("/api/validate-contributor", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({

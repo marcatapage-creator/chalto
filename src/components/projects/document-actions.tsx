@@ -18,6 +18,7 @@ import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
 import { toast } from "sonner"
 import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
+import { fetchWithTimeout } from "@/lib/fetch-timeout"
 
 interface Contributor {
   id: string
@@ -75,7 +76,7 @@ export function DocumentActions({
 
     try {
       if (audience === "client") {
-        await fetch("/api/send-validation", {
+        await fetchWithTimeout("/api/send-validation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ documentId, message: message || null }),
@@ -107,7 +108,7 @@ export function DocumentActions({
           )
         }
 
-        await fetch("/api/send-document-contributor", {
+        await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

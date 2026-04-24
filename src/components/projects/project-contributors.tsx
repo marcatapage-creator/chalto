@@ -30,6 +30,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
+import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { AnimatePresence, motion } from "framer-motion"
 
 interface Contact {
@@ -96,7 +97,7 @@ export function ProjectContributors({
 
   const handleInvite = async (contact: Contact) => {
     setLoading(contact.id)
-    const res = await fetch("/api/send-invite", {
+    const res = await fetchWithTimeout("/api/send-invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contactId: contact.id, projectId }),

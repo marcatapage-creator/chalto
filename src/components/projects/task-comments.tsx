@@ -91,7 +91,9 @@ export function TaskComments({
           }
         }
       )
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[task-comments] Realtime error:", err)
+      })
 
     return () => {
       void channel.unsubscribe()

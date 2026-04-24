@@ -140,6 +140,7 @@ export function ProjectTasks({
   const [contactLoading, setContactLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
   const channelRef = useRef<RealtimeChannel | null>(null)
+  const fetchPendingRef = useRef(false)
   const [invitedContactIds, setInvitedContactIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -183,7 +184,9 @@ export function ProjectTasks({
           })
         }
       )
-      .subscribe()
+      .subscribe((_status, err) => {
+        if (err) console.error("[contributors-watch] Realtime error:", err)
+      })
 
     return () => {
       supabase.removeChannel(channel)
@@ -191,17 +194,23 @@ export function ProjectTasks({
   }, [projectId, supabase])
 
   const fetchTasks = useCallback(async () => {
-    const { data } = await supabase
-      .from("tasks")
-      .select("*, contacts(id, name)")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: true })
-      .limit(500)
+    if (fetchPendingRef.current) return
+    fetchPendingRef.current = true
+    try {
+      const { data } = await supabase
+        .from("tasks")
+        .select("*, contacts(id, name)")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: true })
+        .limit(500)
 
-    if (data) {
-      setTasks(data.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
-      setSuggestions(data.filter((t) => t.status === "suggestion"))
-      setLoaded(true)
+      if (data) {
+        setTasks(data.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
+        setSuggestions(data.filter((t) => t.status === "suggestion"))
+        setLoaded(true)
+      }
+    } finally {
+      fetchPendingRef.current = false
     }
   }, [supabase, projectId])
 
@@ -401,7 +410,14 @@ export function ProjectTasks({
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
   }, [])
 
-  const getTasksByStatus = (status: string) => tasks.filter((t) => t.status === status)
+  const tasksByStatus = useMemo(
+    () => ({
+      todo: tasks.filter((t) => t.status === "todo"),
+      in_progress: tasks.filter((t) => t.status === "in_progress"),
+      done: tasks.filter((t) => t.status === "done"),
+    }),
+    [tasks]
+  )
 
   return (
     <div className="space-y-4">
@@ -649,7 +665,7 @@ export function ProjectTasks({
               {/* Kanban */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {columns.map((col) => {
-                  const colTasks = getTasksByStatus(col.id)
+                  const colTasks = tasksByStatus[col.id as keyof typeof tasksByStatus]
                   return (
                     <div key={col.id} className="space-y-3">
                       <div className="flex items-center gap-2">
