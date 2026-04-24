@@ -7,5 +7,17 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/app/api/**/route.ts", "src/lib/**/*.ts"],
+      exclude: ["**/*.test.ts", "src/lib/supabase/**", "src/types/**"],
+      thresholds: {
+        lines: 60,
+        statements: 60,
+        branches: 55,
+        functions: 25,
+      },
+    },
   },
 })
