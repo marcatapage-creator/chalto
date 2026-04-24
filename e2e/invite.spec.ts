@@ -3,8 +3,9 @@ import { test, expect } from "@playwright/test"
 // Token invalide — page d'erreur dédiée (HTTP 200, pas de 404 brut — cf. RECETTE 5.2)
 test("token invalide — affiche une page d'erreur dédiée", async ({ page }) => {
   const response = await page.goto("/invite/token-inexistant-test")
+  await page.waitForLoadState("networkidle")
   expect(response?.status()).toBe(200)
-  await expect(page.getByText(/invalide|expiré/i)).toBeVisible()
+  await expect(page.locator("h1")).toContainText(/invalide/i)
 })
 
 // Flux complet — nécessite un contributor avec invite_token = "test-invite-e2e" en DB de test

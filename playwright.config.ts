@@ -13,14 +13,13 @@ export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   use: {
     baseURL,
-    channel: "chrome",
     trace: "on-first-retry",
     storageState: "e2e/.auth/user.json",
   },
   projects: [
     {
-      name: "chrome",
-      use: { ...devices["Desktop Chrome"], channel: "chrome" },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
   // Serveur local uniquement en dev (pas en CI où BASE_URL est défini)
