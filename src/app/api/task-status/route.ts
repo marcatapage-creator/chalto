@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createNotification } from "@/lib/notifications"
+import { checkRateLimit } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
 import { taskStatusSchema } from "@/lib/api-schemas"
 
@@ -10,6 +11,9 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 export async function POST(request: Request) {
+  if (!(await checkRateLimit(request)))
+    return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
+
   try {
     const parsed = taskStatusSchema.safeParse(await request.json())
     if (!parsed.success)
@@ -27,12 +31,15 @@ export async function POST(request: Request) {
 
     const { data: contributor } = await admin
       .from("contributors")
-      .select("id, name")
+      .select("id, name, invite_expires_at")
       .eq("invite_token", contributorToken)
       .eq("project_id", task.project_id)
       .single()
 
     if (!contributor) return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
+    if (contributor.invite_expires_at && new Date(contributor.invite_expires_at) < new Date()) {
+      return NextResponse.json({ error: "Lien expiré" }, { status: 410 })
+    }
 
     const { error } = await admin.from("tasks").update({ status }).eq("id", taskId)
     if (error) {

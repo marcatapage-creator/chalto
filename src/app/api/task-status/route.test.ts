@@ -5,6 +5,7 @@ import * as notificationsModule from "@/lib/notifications"
 
 vi.mock("@/lib/supabase/admin")
 vi.mock("@/lib/notifications")
+vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn().mockResolvedValue(true) }))
 
 const uuid = "123e4567-e89b-12d3-a456-426614174000"
 
@@ -54,6 +55,13 @@ beforeEach(() => {
 })
 
 describe("POST /api/task-status", () => {
+  it("retourne 429 si la limite de taux est dépassée", async () => {
+    const { checkRateLimit } = await import("@/lib/rate-limit")
+    vi.mocked(checkRateLimit).mockResolvedValueOnce(false)
+    const res = await POST(req({ taskId: uuid, status: "done", contributorToken: "tok" }))
+    expect(res.status).toBe(429)
+  })
+
   it("retourne 400 si le corps est invalide", async () => {
     const res = await POST(req({ taskId: "not-uuid", status: "done", contributorToken: "tok" }))
     expect(res.status).toBe(400)

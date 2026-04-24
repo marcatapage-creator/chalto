@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       .eq("contact_id", contactId)
       .single()
 
+    const tokenExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+
     let contributor = existing
     if (!contributor) {
       const { data: created } = await supabase
@@ -70,14 +72,19 @@ export async function POST(request: Request) {
           email: contact.email,
           profession_id: contact.profession_id,
           invite_token: crypto.randomUUID(),
+          invite_expires_at: tokenExpiresAt,
         })
         .select()
         .single()
       contributor = created
-    } else if (!contributor.invite_token) {
-      const token = crypto.randomUUID()
-      await supabase.from("contributors").update({ invite_token: token }).eq("id", contributor.id)
-      contributor = { ...contributor, invite_token: token }
+    } else {
+      // Refresh token and expiry on every re-invite
+      const token = contributor.invite_token ?? crypto.randomUUID()
+      await supabase
+        .from("contributors")
+        .update({ invite_token: token, invite_expires_at: tokenExpiresAt })
+        .eq("id", contributor.id)
+      contributor = { ...contributor, invite_token: token, invite_expires_at: tokenExpiresAt }
     }
 
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
