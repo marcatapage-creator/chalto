@@ -84,7 +84,7 @@ export async function POST(request: Request) {
             projectName: document.projects.name,
             documentName: document.name,
             status,
-            comment,
+            comment: comment ?? undefined,
             projectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/projects/${document.project_id}`,
           })
         : Promise.resolve(),

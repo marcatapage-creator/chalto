@@ -40,6 +40,13 @@ interface Document {
   file_size?: number
 }
 
+interface ValidationData {
+  status: string
+  comment?: string | null
+  approved_at?: string
+  client_name?: string
+}
+
 interface DocumentPanelProps {
   document: Document
   userId: string
@@ -48,6 +55,7 @@ interface DocumentPanelProps {
   onClose: () => void
   showClose?: boolean
   onStatusChange?: (docId: string, status: string, version?: number) => void
+  initialValidation?: ValidationData | null
 }
 
 interface PrevVersion {
@@ -65,6 +73,7 @@ export function DocumentPanel({
   onClose,
   showClose,
   onStatusChange,
+  initialValidation,
 }: DocumentPanelProps) {
   const isChantier = isChantierPhase(phase)
   const [localStatus, setLocalStatus] = useState(document.status)
@@ -84,8 +93,13 @@ export function DocumentPanel({
 
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
-    data: { status: string; comment?: string; approved_at?: string; client_name?: string } | null
-  }>({ docId: document.id, data: null })
+    data: {
+      status: string
+      comment?: string | null
+      approved_at?: string
+      client_name?: string
+    } | null
+  }>({ docId: document.id, data: initialValidation ?? null })
   const [audienceInfo, setAudienceInfo] = useState<{
     requestType: "validation" | "transmission" | null
     names: string[]
@@ -131,7 +145,11 @@ export function DocumentPanel({
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[document-panel] validation fetch error:", error)
+          return
+        }
         setValidationEntry({ docId: document.id, data: data ?? null })
         // "approved"/"rejected" on a "sent" or "draft" doc belong to a previous version — skip.
         // "commented" (transmission) is always current: it can only appear after the current send.
@@ -146,17 +164,23 @@ export function DocumentPanel({
   }, [document.id, document.status, supabase])
 
   const fetchValidation = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("validations")
       .select("status, comment, approved_at, client_name")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
+    if (error) {
+      console.error("[document-panel] fetchValidation error:", error)
+      return
+    }
     if (data) {
       setValidationEntry({ docId: document.id, data })
-      setLocalStatus(data.status)
-      onStatusChangeRef.current?.(document.id, data.status)
+      if (data.status) {
+        setLocalStatus(data.status)
+        onStatusChangeRef.current?.(document.id, data.status)
+      }
     }
   }, [document.id, supabase])
 

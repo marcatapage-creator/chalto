@@ -66,6 +66,13 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   archived: { label: "Archivé", variant: "outline" },
 }
 
+type ValidationData = {
+  status: string
+  comment?: string | null
+  approved_at?: string
+  client_name?: string
+}
+
 interface ProjectPageClientProps {
   project: Project
   documents: Document[]
@@ -74,6 +81,7 @@ interface ProjectPageClientProps {
   contacts: Contact[]
   authorName: string
   initialHighlightId?: string | null
+  initialValidations?: Record<string, ValidationData>
 }
 
 export function ProjectPageClient({
@@ -84,6 +92,7 @@ export function ProjectPageClient({
   contacts,
   authorName,
   initialHighlightId,
+  initialValidations = {},
 }: ProjectPageClientProps) {
   const { label: statusLabel, variant: statusVariant } =
     statusMap[project.status] ?? statusMap.draft
@@ -93,6 +102,7 @@ export function ProjectPageClient({
   )
   const [localDocs, setLocalDocs] = useState(documents)
   const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
+  const [contributorContactIds, setContributorContactIds] = useState<Set<string>>(new Set())
 
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
@@ -396,7 +406,11 @@ export function ProjectPageClient({
           {isChantierPhase(phase) && (
             <>
               <div className="px-6 md:px-8 py-6 md:py-8">
-                <ProjectContributors projectId={project.id} contacts={contacts} />
+                <ProjectContributors
+                  projectId={project.id}
+                  contacts={contacts}
+                  onContributorsChange={setContributorContactIds}
+                />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
                 <ErrorBoundary>
@@ -407,6 +421,7 @@ export function ProjectPageClient({
                     authorName={authorName}
                     readOnly={phase === "cloture"}
                     highlightedId={highlightedTaskId}
+                    externalInvitedIds={contributorContactIds}
                   />
                 </ErrorBoundary>
               </div>
@@ -452,6 +467,7 @@ export function ProjectPageClient({
                   onClose={() => setSelectedDocId(null)}
                   showClose
                   onStatusChange={handleDocStatusChange}
+                  initialValidation={initialValidations[selectedDoc.id]}
                 />
               </ErrorBoundary>
             </motion.div>
@@ -478,6 +494,7 @@ export function ProjectPageClient({
                 clientName={project.client_name}
                 onClose={() => setSelectedDocId(null)}
                 onStatusChange={handleDocStatusChange}
+                initialValidation={initialValidations[selectedDoc.id]}
               />
             </ErrorBoundary>
           )}

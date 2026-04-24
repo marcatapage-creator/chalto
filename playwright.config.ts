@@ -15,23 +15,12 @@ export default defineConfig({
     baseURL,
     channel: "chrome",
     trace: "on-first-retry",
+    storageState: "e2e/.auth/user.json",
   },
   projects: [
-    // Tests sans authentification
     {
-      name: "public",
+      name: "chrome",
       use: { ...devices["Desktop Chrome"], channel: "chrome" },
-      testMatch: /\.(public|auth|invite|validate)\.spec\.ts/,
-    },
-    // Tests nécessitant un utilisateur connecté
-    {
-      name: "authenticated",
-      use: {
-        ...devices["Desktop Chrome"],
-        channel: "chrome",
-        storageState: "e2e/.auth/user.json",
-      },
-      testMatch: /\.(authenticated|navigation|document|invitation|validation)\.spec\.ts/,
     },
   ],
   // Serveur local uniquement en dev (pas en CI où BASE_URL est défini)

@@ -35,13 +35,13 @@ export const sendWelcomeSchema = z.object({
 export const validateSchema = z.object({
   token,
   status: z.enum(["approved", "rejected"]),
-  comment: z.string().optional(),
+  comment: z.string().nullish(),
 })
 
 export const validateContributorSchema = z.object({
   documentId: uuid,
   status: z.enum(["approved", "rejected", "commented"]),
-  comment: z.string().optional(),
+  comment: z.string().nullish(),
   contributorName: nonEmpty,
   requestType: z.enum(["transmission", "validation"]).optional(),
 })

@@ -75,6 +75,7 @@ interface ProjectTasksProps {
   authorName: string
   readOnly?: boolean
   highlightedId?: string | null
+  externalInvitedIds?: Set<string>
 }
 
 const columns = [
@@ -90,6 +91,7 @@ export function ProjectTasks({
   authorName,
   readOnly = false,
   highlightedId: highlightedIdProp,
+  externalInvitedIds,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
@@ -767,7 +769,9 @@ export function ProjectTasks({
                                           projectId={projectId}
                                           contactName={task.contacts.name}
                                           taskId={task.id}
-                                          alreadyInvited={invitedContactIds.has(task.assigned_to)}
+                                          alreadyInvited={(
+                                            externalInvitedIds ?? invitedContactIds
+                                          ).has(task.assigned_to)}
                                           onInvited={() =>
                                             setInvitedContactIds(
                                               (prev) => new Set([...prev, task.assigned_to!])

@@ -478,14 +478,22 @@ export function ContributorSpace({
                                       },
                                     })
                                     supabase.removeChannel(ch)
+                                    setTransmissionCommentSent((prev) => ({
+                                      ...prev,
+                                      [doc.id]: true,
+                                    }))
+                                    haptics.success()
+                                    toast.success("Document marqué comme lu ✅")
+                                  } else {
+                                    const errData = await res.json().catch(() => ({}))
+                                    toast.error(
+                                      res.status === 429
+                                        ? "Trop de requêtes — réessayez dans une minute"
+                                        : ((errData as { error?: string }).error ??
+                                            "Erreur lors de l'envoi")
+                                    )
                                   }
-                                  setTransmissionCommentSent((prev) => ({
-                                    ...prev,
-                                    [doc.id]: true,
-                                  }))
                                   setDocLoading((prev) => ({ ...prev, [doc.id]: false }))
-                                  haptics.success()
-                                  toast.success("Document marqué comme lu ✅")
                                 }}
                               >
                                 Valider la lecture

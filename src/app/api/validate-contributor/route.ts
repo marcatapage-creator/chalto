@@ -71,7 +71,9 @@ export async function POST(request: Request) {
           userId,
           type: "document_approved",
           title: "Document lu par un prestataire",
-          body: `${contributorName} a lu « ${document.name} »${comment ? ` et a laissé un commentaire` : ""}`,
+          body: comment
+            ? `${contributorName} a lu « ${document.name} » · "${comment.length > 80 ? comment.slice(0, 80) + "…" : comment}"`
+            : `${contributorName} a lu « ${document.name} »`,
           link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
           inAppEnabled: proProfile?.notif_inapp_enabled,
         }),
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
               projectName: document.projects?.name ?? "Projet",
               documentName: document.name,
               status: status as "approved" | "rejected",
-              comment,
+              comment: comment ?? undefined,
               projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
             })
           : Promise.resolve(),

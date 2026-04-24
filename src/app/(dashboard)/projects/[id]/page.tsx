@@ -32,6 +32,25 @@ export default async function ProjectPage({
       supabase.from("profiles").select("full_name, email").eq("id", user!.id).single(),
     ])
 
+  const docIds = (documents ?? []).map((d) => d.id)
+  const { data: validationRows } = docIds.length
+    ? await supabase
+        .from("validations")
+        .select("document_id, status, comment, approved_at, client_name")
+        .in("document_id", docIds)
+        .order("created_at", { ascending: false })
+    : { data: [] }
+
+  const initialValidations: Record<
+    string,
+    { status: string; comment?: string | null; approved_at?: string; client_name?: string }
+  > = {}
+  for (const v of validationRows ?? []) {
+    if (v.document_id && !initialValidations[v.document_id]) {
+      initialValidations[v.document_id] = v
+    }
+  }
+
   if (!project) notFound()
 
   const authorName = profile?.full_name ?? profile?.email ?? "Pro"
@@ -45,6 +64,7 @@ export default async function ProjectPage({
       phase={project.phase ?? "cadrage"}
       authorName={authorName}
       initialHighlightId={highlight ?? null}
+      initialValidations={initialValidations}
     />
   )
 }

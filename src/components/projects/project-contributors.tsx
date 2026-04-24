@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,9 +49,14 @@ interface Contributor {
 interface ProjectContributorsProps {
   projectId: string
   contacts: Contact[]
+  onContributorsChange?: (ids: Set<string>) => void
 }
 
-export function ProjectContributors({ projectId, contacts }: ProjectContributorsProps) {
+export function ProjectContributors({
+  projectId,
+  contacts,
+  onContributorsChange,
+}: ProjectContributorsProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -59,15 +64,26 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
   const [copied, setCopied] = useState<string | null>(null)
   const supabase = useMemo(() => createClient(), [])
 
+  const notifyChange = useCallback(
+    (list: Contributor[]) => {
+      onContributorsChange?.(new Set(list.map((c) => c.contact_id)))
+    },
+    [onContributorsChange]
+  )
+
   useEffect(() => {
     supabase
       .from("contributors")
       .select("id, name, invite_token, contact_id, professions(label)")
       .eq("project_id", projectId)
       .then(({ data }) => {
-        if (data) setContributors(data as unknown as Contributor[])
+        if (data) {
+          const list = data as unknown as Contributor[]
+          setContributors(list)
+          notifyChange(list)
+        }
       })
-  }, [projectId, supabase])
+  }, [projectId, supabase, notifyChange])
 
   const invitedContactIds = useMemo(
     () => new Set(contributors.map((c) => c.contact_id)),
@@ -91,7 +107,11 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
         .from("contributors")
         .select("id, name, invite_token, contact_id, professions(label)")
         .eq("project_id", projectId)
-      if (data) setContributors(data as unknown as Contributor[])
+      if (data) {
+        const list = data as unknown as Contributor[]
+        setContributors(list)
+        notifyChange(list)
+      }
       toast.success(`Invitation envoyée à ${contact.name} ✅`)
       if (availableContacts.length <= 1) setDialogOpen(false)
     } else {
@@ -115,10 +135,18 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
   const handleDelete = async (contributorId: string) => {
     const contributor = contributors.find((c) => c.id === contributorId)
     if (!contributor) return
-    setContributors((prev) => prev.filter((c) => c.id !== contributorId))
+    setContributors((prev) => {
+      const filtered = prev.filter((c) => c.id !== contributorId)
+      notifyChange(filtered)
+      return filtered
+    })
     const { error } = await supabase.from("contributors").delete().eq("id", contributorId)
     if (error) {
-      setContributors((prev) => [...prev, contributor])
+      setContributors((prev) => {
+        const restored = [...prev, contributor]
+        notifyChange(restored)
+        return restored
+      })
       toast.error("Erreur lors de la suppression")
     } else {
       toast.success(`${contributor.name} retiré du projet`)

@@ -15,6 +15,8 @@ export const ratelimit = new Ratelimit({
 })
 
 export async function checkRateLimit(request: Request): Promise<boolean> {
+  if (process.env.NODE_ENV === "development") return true
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0] ??
     request.headers.get("x-real-ip") ??
