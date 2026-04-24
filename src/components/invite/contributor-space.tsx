@@ -58,6 +58,16 @@ interface ContributorSpaceProps {
   initialDocs?: DocRow[]
   logoUrl?: string | null
   companyName?: string | null
+  initialTaskComments?: Record<
+    string,
+    {
+      id: string
+      author_name: string
+      author_role: "pro" | "prestataire"
+      content: string
+      created_at: string
+    }[]
+  >
 }
 
 const statusConfig: Record<
@@ -110,6 +120,7 @@ export function ContributorSpace({
   initialDocs = [],
   logoUrl,
   companyName,
+  initialTaskComments = {},
 }: ContributorSpaceProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [suggestion, setSuggestion] = useState("")
@@ -459,7 +470,12 @@ export function ContributorSpace({
                                     await ch.send({
                                       type: "broadcast",
                                       event: "document_status_updated",
-                                      payload: { documentId: doc.id, status: "commented" },
+                                      payload: {
+                                        documentId: doc.id,
+                                        status: "commented",
+                                        comment: docComment[doc.id]?.trim() ?? null,
+                                        contributorName: contributor.name,
+                                      },
                                     })
                                     supabase.removeChannel(ch)
                                   }
@@ -661,6 +677,7 @@ export function ContributorSpace({
                           authorName={contributor.name}
                           authorRole="prestataire"
                           contributorToken={contributor.invite_token}
+                          initialComments={initialTaskComments[task.id]}
                         />
                       </Card>
                     )

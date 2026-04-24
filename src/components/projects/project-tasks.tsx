@@ -148,6 +148,44 @@ export function ProjectTasks({
       .then(({ data }) => {
         if (data) setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
       })
+
+    const channel = supabase
+      .channel(`contributors-watch:${projectId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "contributors",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          const added = payload.new as { contact_id: string }
+          setInvitedContactIds((prev) => new Set([...prev, added.contact_id]))
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "contributors",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          const removed = payload.old as { contact_id: string }
+          setInvitedContactIds((prev) => {
+            const next = new Set(prev)
+            next.delete(removed.contact_id)
+            return next
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [projectId, supabase])
 
   const fetchTasks = useCallback(async () => {

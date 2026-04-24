@@ -23,6 +23,7 @@ interface TaskCommentsProps {
   authorName: string
   authorRole: "pro" | "prestataire"
   contributorToken?: string
+  initialComments?: Comment[]
 }
 
 export function TaskComments({
@@ -30,24 +31,44 @@ export function TaskComments({
   authorName,
   authorRole,
   contributorToken,
+  initialComments,
 }: TaskCommentsProps) {
-  const [comments, setComments] = useState<Comment[]>([])
-  const [count, setCount] = useState(0)
+  const [comments, setComments] = useState<Comment[]>(initialComments ?? [])
+  const [count, setCount] = useState(initialComments?.length ?? 0)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const loadedRef = useRef(false)
+  const loadedRef = useRef((initialComments?.length ?? 0) > 0)
   const supabase = useMemo(() => createClient(), [])
 
-  // Eager: fetch count + subscribe realtime (toujours actif)
+  // Eager: fetch count puis charge directement si > 0 (évite la perte de notes sur remontage)
   useEffect(() => {
+    if (loadedRef.current) {
+      // Déjà chargé (initialComments ou session précédente) — juste resync le count
+      supabase
+        .from("task_comments")
+        .select("id", { count: "exact", head: true })
+        .eq("task_id", taskId)
+        .then(({ count: c }) => {
+          if (c !== null) setCount(c)
+        })
+      return
+    }
+
     supabase
       .from("task_comments")
-      .select("id", { count: "exact", head: true })
+      .select("*")
       .eq("task_id", taskId)
-      .then(({ count: c }) => {
-        if (c !== null) setCount(c)
+      .order("created_at", { ascending: true })
+      .then(({ data, count: c }) => {
+        if (data && data.length > 0) {
+          setComments(data)
+          setCount(data.length)
+          loadedRef.current = true
+        } else if (c !== null) {
+          setCount(c)
+        }
       })
 
     const channel = supabase
@@ -78,7 +99,7 @@ export function TaskComments({
     }
   }, [taskId, supabase])
 
-  // Lazy: charge les messages complets à la première ouverture
+  // Lazy: charge les messages si l'ouverture précède le fetch eager
   useEffect(() => {
     if (!open || loadedRef.current) return
 

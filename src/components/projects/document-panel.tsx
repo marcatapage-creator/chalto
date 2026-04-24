@@ -213,6 +213,37 @@ export function DocumentPanel({
     }
   }, [document.id, fetchValidation, supabase])
 
+  // Écoute le broadcast du prestataire pour afficher le commentaire immédiatement
+  // sans dépendre du timing de fetchValidation ou des RLS sur validations
+  useEffect(() => {
+    const channel = supabase
+      .channel(`documents:${document.project_id}`)
+      .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
+        const p = payload as {
+          documentId: string
+          status: string
+          comment?: string | null
+          contributorName?: string
+        }
+        if (p.documentId !== document.id || p.status !== "commented") return
+        setLocalStatus("commented")
+        setValidationEntry({
+          docId: document.id,
+          data: {
+            status: "commented",
+            comment: p.comment ?? undefined,
+            client_name: p.contributorName ?? "Le prestataire",
+            approved_at: new Date().toISOString(),
+          },
+        })
+        onStatusChangeRef.current?.(document.id, "commented")
+      })
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [document.id, document.project_id, supabase])
+
   const handleSend = async () => {
     setSending(true)
     const res = await fetch("/api/send-validation", {

@@ -112,21 +112,6 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const handleReinvite = async (contributor: Contributor) => {
-    setLoading(contributor.id)
-    const res = await fetch("/api/send-invite", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contactId: contributor.contact_id, projectId }),
-    })
-    if (res.ok) {
-      toast.success(`Invitation renvoyée à ${contributor.name} ✅`)
-    } else {
-      toast.error("Erreur lors de l'envoi")
-    }
-    setLoading(null)
-  }
-
   const handleDelete = async (contributorId: string) => {
     const contributor = contributors.find((c) => c.id === contributorId)
     if (!contributor) return
@@ -164,12 +149,12 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5 h-8">
                 <UserPlus className="h-3.5 w-3.5" />
-                Ajouter
+                Inviter
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ajouter un prestataire</DialogTitle>
+                <DialogTitle>Inviter un prestataire</DialogTitle>
               </DialogHeader>
               {availableContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -198,12 +183,12 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
                       <Button
                         size="sm"
                         variant="outline"
-                        className="shrink-0 gap-1.5 h-8"
+                        className="shrink-0"
                         disabled={loading === contact.id}
                         onClick={() => handleInvite(contact)}
                       >
-                        <UserPlus className="h-3.5 w-3.5" />
-                        {loading === contact.id ? "Envoi..." : "Ajouter"}
+                        <Mail className="h-3.5 w-3.5 mr-1.5" />
+                        {loading === contact.id ? "Envoi..." : "Inviter"}
                       </Button>
                     </div>
                   ))}
@@ -262,13 +247,6 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            disabled={loading === contributor.id}
-                            onClick={() => void handleReinvite(contributor)}
-                          >
-                            <Mail className="h-4 w-4 mr-2" />
-                            {loading === contributor.id ? "Envoi..." : "Inviter"}
-                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleCopy(contributor)}>
                             {copied === contributor.id ? (
                               <Check className="h-4 w-4 mr-2 text-green-500" />
