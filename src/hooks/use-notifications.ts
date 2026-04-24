@@ -23,6 +23,7 @@ export function useNotifications(userId: string) {
   useEffect(() => {
     if (!userId) return
 
+    let cancelled = false
     let channel: ReturnType<typeof supabase.channel> | null = null
 
     const setup = async () => {
@@ -39,11 +40,16 @@ export function useNotifications(userId: string) {
         isInitialLoad.current = false
       }
 
+      if (cancelled) return
+
       // Inject auth token into the Realtime WS before subscribing —
       // @supabase/ssr uses cookies and the WS may connect before the token is set
       const {
         data: { session },
       } = await supabase.auth.getSession()
+
+      if (cancelled) return
+
       if (session?.access_token) {
         supabase.realtime.setAuth(session.access_token)
       }
@@ -78,7 +84,8 @@ export function useNotifications(userId: string) {
     void setup()
 
     return () => {
-      if (channel) supabase.removeChannel(channel)
+      cancelled = true
+      if (channel) void supabase.removeChannel(channel)
     }
   }, [userId, supabase])
 

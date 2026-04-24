@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -162,69 +162,66 @@ export function ProjectPageClient({
     setLocalDocs(documents)
   }, [documents])
 
+  // Unique per-mount suffix prevents channel name collision when removeChannel is still in-flight
+  const channelId = useRef(crypto.randomUUID())
+
   useEffect(() => {
-    let cancelled = false
-    let channel: ReturnType<typeof supabase.channel> | null = null
-
+    // Refresh Realtime auth token in background — non-blocking
     void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return
       if (session?.access_token) supabase.realtime.setAuth(session.access_token)
-
-      channel = supabase
-        .channel(`documents:${project.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "documents",
-            filter: `project_id=eq.${project.id}`,
-          },
-          (payload) => {
-            const newDoc = payload.new as Document
-            setLocalDocs((prev) =>
-              prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]
-            )
-            setHighlightedId(`doc_${newDoc.id}`)
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "documents",
-            filter: `project_id=eq.${project.id}`,
-          },
-          (payload) => {
-            const updated = payload.new as Document
-            setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "validations",
-          },
-          (payload) => {
-            const v = payload.new as { document_id: string; status: string }
-            setLocalDocs((prev) =>
-              prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
-            )
-          }
-        )
-        .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
-          const { documentId, status } = payload as { documentId: string; status: string }
-          setLocalDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, status } : d)))
-        })
-        .subscribe()
     })
 
+    const channel = supabase
+      .channel(`documents:${project.id}:${channelId.current}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "documents",
+          filter: `project_id=eq.${project.id}`,
+        },
+        (payload) => {
+          const newDoc = payload.new as Document
+          setLocalDocs((prev) => (prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]))
+          setHighlightedId(`doc_${newDoc.id}`)
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "documents",
+          filter: `project_id=eq.${project.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as Document
+          setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "validations",
+        },
+        (payload) => {
+          const v = payload.new as { document_id: string; status: string }
+          setLocalDocs((prev) =>
+            prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
+          )
+        }
+      )
+      .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
+        const { documentId, status } = payload as { documentId: string; status: string }
+        setLocalDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, status } : d)))
+      })
+      .subscribe()
+
     return () => {
-      cancelled = true
-      if (channel) void supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [project.id, supabase])
   const [detailsOpen, setDetailsOpen] = useState(true)
