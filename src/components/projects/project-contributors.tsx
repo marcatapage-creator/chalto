@@ -169,7 +169,7 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Inviter un prestataire</DialogTitle>
+                <DialogTitle>Ajouter un prestataire</DialogTitle>
               </DialogHeader>
               {availableContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -198,12 +198,12 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
                       <Button
                         size="sm"
                         variant="outline"
-                        className="shrink-0"
+                        className="shrink-0 gap-1.5 h-8"
                         disabled={loading === contact.id}
                         onClick={() => handleInvite(contact)}
                       >
-                        <Mail className="h-3.5 w-3.5 mr-1.5" />
-                        {loading === contact.id ? "Envoi..." : "Inviter"}
+                        <UserPlus className="h-3.5 w-3.5" />
+                        {loading === contact.id ? "Envoi..." : "Ajouter"}
                       </Button>
                     </div>
                   ))}
