@@ -11,6 +11,7 @@ import { cn, isChantierPhase } from "@/lib/utils"
 import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { DocumentPanel } from "@/components/projects/document-panel"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { ProjectStepper } from "@/components/projects/project-stepper"
 import { ProjectTasks } from "@/components/projects/project-tasks"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
@@ -20,6 +21,7 @@ import {
   type ProjectInfo,
 } from "@/components/projects/project-details-dialog"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
+import { toast } from "sonner"
 
 interface Document {
   id: string
@@ -112,6 +114,48 @@ export function ProjectPageClient({
         d.id === docId ? { ...d, status, ...(version !== undefined && { version }) } : d
       )
     )
+  }
+
+  const handleDeleteDoc = (docId: string) => {
+    const doc = localDocs.find((d) => d.id === docId)
+    if (!doc) return
+
+    setLocalDocs((prev) => prev.filter((d) => d.id !== docId))
+    if (selectedDocId === docId) setSelectedDocId(null)
+
+    let cancelled = false
+
+    toast.success("Document supprimé", {
+      action: {
+        label: "Annuler",
+        onClick: () => {
+          cancelled = true
+          setLocalDocs((prev) => {
+            if (prev.some((d) => d.id === docId)) return prev
+            return [...prev, doc].sort(
+              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            )
+          })
+        },
+      },
+      duration: 5000,
+    })
+
+    setTimeout(async () => {
+      if (cancelled) return
+      if (doc.file_url) {
+        const path = doc.file_url.split("/storage/v1/object/public/documents/").at(1)
+        if (path) await supabase.storage.from("documents").remove([path])
+      }
+      const { error } = await supabase.from("documents").delete().eq("id", docId)
+      if (error) {
+        setLocalDocs((prev) => {
+          if (prev.some((d) => d.id === docId)) return prev
+          return [...prev, doc]
+        })
+        toast.error("Erreur lors de la suppression")
+      }
+    }, 5000)
   }
 
   useEffect(() => {
@@ -340,6 +384,7 @@ export function ProjectPageClient({
               projectId={project.id}
               selectedDocId={selectedDoc?.id ?? null}
               onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
+              onDeleteDoc={handleDeleteDoc}
               isOpen={docsOpen}
               onToggle={() => {
                 if (docsOpen) setSelectedDocId(null)
@@ -357,14 +402,16 @@ export function ProjectPageClient({
                 <ProjectContributors projectId={project.id} contacts={contacts} />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
-                <ProjectTasks
-                  projectId={project.id}
-                  userId={userId}
-                  contacts={contacts}
-                  authorName={authorName}
-                  readOnly={phase === "cloture"}
-                  highlightedId={highlightedTaskId}
-                />
+                <ErrorBoundary>
+                  <ProjectTasks
+                    projectId={project.id}
+                    userId={userId}
+                    contacts={contacts}
+                    authorName={authorName}
+                    readOnly={phase === "cloture"}
+                    highlightedId={highlightedTaskId}
+                  />
+                </ErrorBoundary>
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
                 <ProjectDiscussion
@@ -398,16 +445,18 @@ export function ProjectPageClient({
               transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
               className="w-105 flex flex-col h-full"
             >
-              <DocumentPanel
-                key={selectedDoc.id}
-                document={selectedDoc}
-                userId={userId}
-                phase={phase}
-                clientName={project.client_name}
-                onClose={() => setSelectedDocId(null)}
-                showClose
-                onStatusChange={handleDocStatusChange}
-              />
+              <ErrorBoundary>
+                <DocumentPanel
+                  key={selectedDoc.id}
+                  document={selectedDoc}
+                  userId={userId}
+                  phase={phase}
+                  clientName={project.client_name}
+                  onClose={() => setSelectedDocId(null)}
+                  showClose
+                  onStatusChange={handleDocStatusChange}
+                />
+              </ErrorBoundary>
             </motion.div>
           </motion.div>
         )}
@@ -423,15 +472,17 @@ export function ProjectPageClient({
         <DrawerContent className="h-[85dvh] p-0">
           <DrawerTitle className="sr-only">Document</DrawerTitle>
           {selectedDoc && (
-            <DocumentPanel
-              key={selectedDoc.id}
-              document={selectedDoc}
-              userId={userId}
-              phase={phase}
-              clientName={project.client_name}
-              onClose={() => setSelectedDocId(null)}
-              onStatusChange={handleDocStatusChange}
-            />
+            <ErrorBoundary>
+              <DocumentPanel
+                key={selectedDoc.id}
+                document={selectedDoc}
+                userId={userId}
+                phase={phase}
+                clientName={project.client_name}
+                onClose={() => setSelectedDocId(null)}
+                onStatusChange={handleDocStatusChange}
+              />
+            </ErrorBoundary>
           )}
         </DrawerContent>
       </Drawer>

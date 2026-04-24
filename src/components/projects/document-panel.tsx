@@ -194,7 +194,8 @@ export function DocumentPanel({
           setLocalStatus(updated.status)
           onStatusChangeRef.current?.(document.id, updated.status)
           if (updated.status !== "draft" && updated.status !== "sent") {
-            void fetchValidation()
+            // Délai pour laisser l'INSERT validations se committer avant de le lire
+            setTimeout(() => void fetchValidation(), 400)
           }
         }
       )
