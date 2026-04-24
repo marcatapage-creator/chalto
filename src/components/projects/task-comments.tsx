@@ -42,10 +42,8 @@ export function TaskComments({
   const loadedRef = useRef((initialComments?.length ?? 0) > 0)
   const supabase = useMemo(() => createClient(), [])
 
-  // Eager: fetch count puis charge directement si > 0 (évite la perte de notes sur remontage)
   useEffect(() => {
     if (loadedRef.current) {
-      // Déjà chargé (initialComments ou session précédente) — juste resync le count
       supabase
         .from("task_comments")
         .select("id", { count: "exact", head: true })
@@ -53,23 +51,22 @@ export function TaskComments({
         .then(({ count: c }) => {
           if (c !== null) setCount(c)
         })
-      return
+    } else {
+      supabase
+        .from("task_comments")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("created_at", { ascending: true })
+        .then(({ data, count: c }) => {
+          if (data && data.length > 0) {
+            setComments(data)
+            setCount(data.length)
+            loadedRef.current = true
+          } else if (c !== null) {
+            setCount(c)
+          }
+        })
     }
-
-    supabase
-      .from("task_comments")
-      .select("*")
-      .eq("task_id", taskId)
-      .order("created_at", { ascending: true })
-      .then(({ data, count: c }) => {
-        if (data && data.length > 0) {
-          setComments(data)
-          setCount(data.length)
-          loadedRef.current = true
-        } else if (c !== null) {
-          setCount(c)
-        }
-      })
 
     const channel = supabase
       .channel(`task-comments:${taskId}`)

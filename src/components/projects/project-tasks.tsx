@@ -294,6 +294,7 @@ export function ProjectTasks({
       toast.error("Erreur lors de la création")
     } else {
       setTasks((prev) => [...prev, newTask])
+      setTasksOpen(true)
       toast.success("Tâche créée ✅")
       triggerHighlight(newTask.id)
       setOpen(false)
@@ -426,7 +427,7 @@ export function ProjectTasks({
         className="flex items-center justify-between group cursor-pointer"
         onClick={() => setTasksOpen((v) => !v)}
       >
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
+        <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",

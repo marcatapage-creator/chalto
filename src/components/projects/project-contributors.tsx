@@ -63,6 +63,7 @@ export function ProjectContributors({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [highlightedContributorId, setHighlightedContributorId] = useState<string | null>(null)
   const supabase = useMemo(() => createClient(), [])
 
   const notifyChange = useCallback(
@@ -85,6 +86,14 @@ export function ProjectContributors({
         }
       })
   }, [projectId, supabase, notifyChange])
+
+  useEffect(() => {
+    if (!highlightedContributorId) return
+    const el = document.querySelector(`[data-contributor-id="${highlightedContributorId}"]`)
+    el?.scrollIntoView({ behavior: "smooth", block: "center" })
+    const t = setTimeout(() => setHighlightedContributorId(null), 2500)
+    return () => clearTimeout(t)
+  }, [highlightedContributorId])
 
   const invitedContactIds = useMemo(
     () => new Set(contributors.map((c) => c.contact_id)),
@@ -112,6 +121,11 @@ export function ProjectContributors({
         const list = data as unknown as Contributor[]
         setContributors(list)
         notifyChange(list)
+        const newContributor = list.find((c) => c.contact_id === contact.id)
+        if (newContributor) {
+          setIsOpen(true)
+          setHighlightedContributorId(newContributor.id)
+        }
       }
       toast.success(`Invitation envoyée à ${contact.name} ✅`)
       if (availableContacts.length <= 1) setDialogOpen(false)
@@ -160,7 +174,7 @@ export function ProjectContributors({
         className="flex items-center justify-between group cursor-pointer"
         onClick={() => setIsOpen((v) => !v)}
       >
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
+        <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
@@ -252,7 +266,12 @@ export function ProjectContributors({
                   {contributors.map((contributor) => (
                     <div
                       key={contributor.id}
-                      className="flex items-center justify-between gap-3 p-3 rounded-lg border"
+                      data-contributor-id={contributor.id}
+                      className={cn(
+                        "flex items-center justify-between gap-3 p-3 rounded-lg border transition-all duration-300",
+                        highlightedContributorId === contributor.id &&
+                          "border-ring ring-3 ring-ring/50"
+                      )}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar className="h-8 w-8 shrink-0">

@@ -135,9 +135,11 @@ export function ContributorSpace({
   const [docComment, setDocComment] = useState<Record<string, string>>({})
   const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
 
+  const [pendingSuggestions, setPendingSuggestions] = useState<Task[]>([])
   const [docsOpen, setDocsOpen] = useState(true)
   const [tasksOpen, setTasksOpen] = useState(true)
   const [discussionOpen, setDiscussionOpen] = useState(false)
+  const [discussionCount, setDiscussionCount] = useState(0)
 
   const docsRef = useRef<HTMLDivElement>(null)
   const tasksRef = useRef<HTMLDivElement>(null)
@@ -173,6 +175,7 @@ export function ContributorSpace({
       .on("broadcast", { event: "task_updated" }, ({ payload }) => {
         const { taskId, status } = payload as { taskId: string; status: string }
         setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)))
+        setPendingSuggestions((prev) => prev.filter((t) => t.id !== taskId))
       })
       .on("broadcast", { event: "task_created" }, ({ payload }) => {
         const task = payload as Task
@@ -224,27 +227,35 @@ export function ContributorSpace({
     if (!suggestion.trim()) return
     setSuggesting(true)
 
-    const res = await fetchWithTimeout("/api/task-suggest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId: contributor.project_id,
-        title: suggestion,
-        description: suggestionDesc || null,
-        contributorToken: contributor.invite_token,
-        contributorName: contributor.name,
-      }),
-    })
+    try {
+      const res = await fetchWithTimeout("/api/task-suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: contributor.project_id,
+          title: suggestion,
+          description: suggestionDesc || undefined,
+          contributorToken: contributor.invite_token,
+          contributorName: contributor.name,
+        }),
+      })
 
-    if (!res.ok) {
-      toast.error("Erreur lors de l'envoi")
-    } else {
-      toast.success("Suggestion envoyée au professionnel ✅")
-      setSuggestion("")
-      setSuggestionDesc("")
-      setShowSuggestForm(false)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast.error((data as { error?: string }).error ?? "Erreur lors de l'envoi")
+      } else {
+        const data = await res.json().catch(() => ({}))
+        if (data.task) setPendingSuggestions((prev) => [...prev, data.task as Task])
+        toast.success("Suggestion envoyée au professionnel ✅")
+        setSuggestion("")
+        setSuggestionDesc("")
+        setShowSuggestForm(false)
+      }
+    } catch {
+      toast.error("Erreur réseau — réessayez")
+    } finally {
+      setSuggesting(false)
     }
-    setSuggesting(false)
   }
 
   const handleDiscussionSend = async (content: string) => {
@@ -325,6 +336,9 @@ export function ContributorSpace({
           >
             <MessageSquare className="h-4 w-4" />
             Discussion
+            {discussionCount > 0 && (
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">{discussionCount}</span>
+            )}
           </button>
         </div>
       </nav>
@@ -522,30 +536,6 @@ export function ContributorSpace({
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                className="flex-1"
-                                disabled={docLoading[doc.id]}
-                                onClick={async () => {
-                                  setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
-                                  await fetchWithTimeout("/api/validate-contributor", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      documentId: doc.id,
-                                      status: "approved",
-                                      comment: docComment[doc.id] ?? null,
-                                      contributorName: contributor.name,
-                                    }),
-                                  })
-                                  haptics.success()
-                                  setDocDecision((prev) => ({ ...prev, [doc.id]: "approved" }))
-                                  setDocLoading((prev) => ({ ...prev, [doc.id]: false }))
-                                }}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Approuver
-                              </Button>
-                              <Button
-                                size="sm"
                                 variant="destructive"
                                 className="flex-1"
                                 disabled={docLoading[doc.id]}
@@ -568,6 +558,30 @@ export function ContributorSpace({
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Refuser
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="flex-1"
+                                disabled={docLoading[doc.id]}
+                                onClick={async () => {
+                                  setDocLoading((prev) => ({ ...prev, [doc.id]: true }))
+                                  await fetchWithTimeout("/api/validate-contributor", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      documentId: doc.id,
+                                      status: "approved",
+                                      comment: docComment[doc.id] ?? null,
+                                      contributorName: contributor.name,
+                                    }),
+                                  })
+                                  haptics.success()
+                                  setDocDecision((prev) => ({ ...prev, [doc.id]: "approved" }))
+                                  setDocLoading((prev) => ({ ...prev, [doc.id]: false }))
+                                }}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approuver
                               </Button>
                             </div>
                           </div>
@@ -701,6 +715,36 @@ export function ContributorSpace({
                 </div>
               )}
 
+              {/* Suggestions en attente de validation pro */}
+              {pendingSuggestions.length > 0 && (
+                <div className="space-y-2">
+                  {pendingSuggestions.map((task) => (
+                    <Card key={task.id} className="border-dashed opacity-80">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <Clock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                {task.title}
+                              </p>
+                              {task.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {task.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Badge className="text-xs shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            En attente
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
               {/* Suggérer une tâche */}
               <div className="pt-1">
                 {!showSuggestForm ? (
@@ -757,6 +801,7 @@ export function ContributorSpace({
             onSend={handleDiscussionSend}
             controlledOpen={discussionOpen}
             onControlledOpenChange={setDiscussionOpen}
+            onCountChange={setDiscussionCount}
           />
         </section>
 

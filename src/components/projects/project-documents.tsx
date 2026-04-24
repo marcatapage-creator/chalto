@@ -146,7 +146,7 @@ export function ProjectDocuments({
       >
         <div
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors",
+            "flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md transition-colors",
             onToggle && "group-hover:bg-muted"
           )}
         >

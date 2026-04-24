@@ -62,7 +62,7 @@ export const taskCommentSchema = z.object({
 export const taskSuggestSchema = z.object({
   projectId: uuid,
   title: nonEmpty,
-  description: z.string().optional(),
+  description: z.string().nullish(),
   contributorToken: token,
   contributorName: nonEmpty,
 })

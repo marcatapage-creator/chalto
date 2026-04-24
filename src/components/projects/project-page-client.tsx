@@ -172,6 +172,11 @@ export function ProjectPageClient({
     setLocalDocs(documents)
   }, [documents])
 
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const [docsOpen, setDocsOpen] = useState(
+    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
+  )
+
   // Unique per-mount suffix prevents channel name collision when removeChannel is still in-flight
   const channelId = useRef(crypto.randomUUID())
 
@@ -194,6 +199,7 @@ export function ProjectPageClient({
         (payload) => {
           const newDoc = payload.new as Document
           setLocalDocs((prev) => (prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]))
+          setDocsOpen(true)
           setHighlightedId(`doc_${newDoc.id}`)
         }
       )
@@ -236,10 +242,6 @@ export function ProjectPageClient({
       void supabase.removeChannel(channel)
     }
   }, [project.id, supabase])
-  const [detailsOpen, setDetailsOpen] = useState(true)
-  const [docsOpen, setDocsOpen] = useState(
-    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
-  )
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,

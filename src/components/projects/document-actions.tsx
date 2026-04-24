@@ -98,17 +98,18 @@ export function DocumentActions({
         })
 
         if (selectedContributors.length > 0) {
-          await supabase.from("document_contributors").insert(
+          await supabase.from("document_contributors").upsert(
             selectedContributors.map((contributorId) => ({
               document_id: documentId,
               contributor_id: contributorId,
               request_type: requestType,
               pro_message: message || null,
-            }))
+            })),
+            { onConflict: "document_id,contributor_id" }
           )
         }
 
-        await fetchWithTimeout("/api/send-document-contributor", {
+        const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -119,6 +120,13 @@ export function DocumentActions({
             requestType,
           }),
         })
+
+        if (!emailRes.ok) {
+          console.error("[send-document-contributor]", emailRes.status)
+          toast.error("Erreur lors de l'envoi de l'email — réessayez")
+          setLoading(false)
+          return
+        }
 
         haptics.success()
         toast.success(`Document partagé avec ${selectedContributors.length} prestataire(s) ✅`)

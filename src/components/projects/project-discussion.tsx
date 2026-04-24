@@ -26,6 +26,7 @@ interface ProjectDiscussionProps {
   autoOpen?: boolean
   controlledOpen?: boolean
   onControlledOpenChange?: (v: boolean) => void
+  onCountChange?: (count: number) => void
 }
 
 export function ProjectDiscussion({
@@ -37,6 +38,7 @@ export function ProjectDiscussion({
   autoOpen = false,
   controlledOpen,
   onControlledOpenChange,
+  onCountChange,
 }: ProjectDiscussionProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [content, setContent] = useState("")
@@ -52,6 +54,10 @@ export function ProjectDiscussion({
     setInternalOpen(next)
     onControlledOpenChange?.(next)
   }
+
+  useEffect(() => {
+    onCountChange?.(messages.length)
+  }, [messages.length, onCountChange])
 
   useEffect(() => {
     supabase
@@ -149,7 +155,7 @@ export function ProjectDiscussion({
   return (
     <div ref={containerRef} className="space-y-2">
       <div className="flex items-center group cursor-pointer" onClick={handleToggle}>
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
+        <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
