@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test"
 
+// En CI, on pointe vers le site déployé — pas besoin de démarrer un serveur local
+const baseURL = process.env.BASE_URL ?? "http://localhost:3000"
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -9,7 +12,7 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   globalSetup: "./e2e/global-setup.ts",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     channel: "chrome",
     trace: "on-first-retry",
   },
@@ -31,10 +34,13 @@ export default defineConfig({
       testMatch: /\.(authenticated|navigation|document|invitation|validation)\.spec\.ts/,
     },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  // Serveur local uniquement en dev (pas en CI où BASE_URL est défini)
+  webServer: process.env.BASE_URL
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: "http://localhost:3000",
+        reuseExistingServer: true,
+        timeout: 60_000,
+      },
 })
