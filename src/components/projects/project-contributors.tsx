@@ -226,10 +226,10 @@ export function ProjectContributors({ projectId, contacts }: ProjectContributors
           >
             <div className="p-1">
               {contributors.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center border rounded-xl">
+                <div className="flex flex-col items-center justify-center py-8 px-4 text-center border rounded-xl">
                   <Users className="h-6 w-6 text-muted-foreground mb-2" />
                   <p className="text-sm font-medium">Aucun prestataire invité</p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xs">
                     Invitez vos prestataires pour leur partager documents et tâches
                   </p>
                 </div>
