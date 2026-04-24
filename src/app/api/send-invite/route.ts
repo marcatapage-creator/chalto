@@ -3,6 +3,7 @@ import { Resend } from "resend"
 import { NextResponse } from "next/server"
 import { buildBrandHeader } from "@/lib/email-brand"
 import { sendInviteSchema } from "@/lib/api-schemas"
+import { escapeHtml } from "@/lib/email"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
-      subject: `${proName} vous invite à collaborer sur "${project?.name}"`,
+      subject: `${escapeHtml(proName)} vous a créé un espace de collaboration — "${escapeHtml(project?.name)}"`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -98,29 +99,30 @@ export async function POST(request: Request) {
             </div>
 
             <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-              Invitation à collaborer
+              Votre espace de collaboration est prêt
             </h1>
 
             <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
-              Bonjour ${contact.name},
+              Bonjour ${escapeHtml(contact.name)},
             </p>
 
             <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
-              <strong>${proName}${proCompany}</strong> vous invite à collaborer
-              sur le projet <strong>${project?.name}</strong>.
+              <strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à rejoindre
+              le projet <strong>${escapeHtml(project?.name)}</strong>. Votre espace personnel est accessible
+              en un clic — consultez les documents partagés et suivez les échanges en temps réel.
             </p>
 
             <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 32px;">
               <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Projet</p>
-              <p style="margin: 0; font-weight: 600; font-size: 16px;">${project?.name}</p>
+              <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(project?.name)}</p>
               <p style="margin: 8px 0 0; font-size: 13px; color: #666;">
-                Vous pouvez consulter vos tâches, mettre à jour leur statut et communiquer avec l&apos;équipe.
+                Vos documents et tâches seront accessibles dès que votre professionnel les partagera.
               </p>
             </div>
 
             <a href="${inviteUrl}"
                style="display: inline-block; background: #2260E8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
-              Voir mes tâches →
+              Accéder à mon espace →
             </a>
 
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 20px; margin: 0 0 32px;">
@@ -137,7 +139,7 @@ export async function POST(request: Request) {
             </div>
 
             <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
-              Vous avez reçu cet email car ${proName} vous a invité via Chalto.<br/>
+              Vous avez reçu cet email car ${escapeHtml(proName)} vous a invité via Chalto.<br/>
               Si vous n&apos;attendiez pas cette invitation, ignorez cet email.
             </p>
 

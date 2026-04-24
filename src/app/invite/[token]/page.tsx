@@ -56,7 +56,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     admin
       .from("document_contributors")
       .select(
-        "document_id, request_type, documents(id, name, type, status, file_url, file_name, file_type, created_at)"
+        "document_id, request_type, pro_message, documents(id, name, type, status, file_url, file_name, file_type, created_at)"
       )
       .eq("contributor_id", contributor.id)
       .order("created_at", { ascending: false, referencedTable: "documents" }),

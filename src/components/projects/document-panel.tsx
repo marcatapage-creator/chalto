@@ -180,7 +180,7 @@ export function DocumentPanel({
 
   useEffect(() => {
     const channel = supabase
-      .channel(`document-watch:${document.id}`)
+      .channel(`document-watch:${document.id}-${Date.now()}`)
       .on(
         "postgres_changes",
         {

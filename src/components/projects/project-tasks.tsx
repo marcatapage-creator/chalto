@@ -722,7 +722,7 @@ export function ProjectTasks({
                                       )}
                                     </div>
 
-                                    {task.contacts && task.assigned_to && (
+                                    {task.contacts && task.assigned_to && col.id !== "done" && (
                                       <div className="pt-1">
                                         <InviteButton
                                           contactId={task.assigned_to}
@@ -739,7 +739,7 @@ export function ProjectTasks({
                                       </div>
                                     )}
 
-                                    {col.id !== "done" && (
+                                    {col.id !== "done" ? (
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -753,6 +753,16 @@ export function ProjectTasks({
                                       >
                                         {col.id === "todo" ? "Démarrer" : "Terminer"}
                                         <ArrowRight className="ml-1 h-3 w-3" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                                        onClick={() => handleStatusChange(task.id, "in_progress")}
+                                      >
+                                        <ArrowLeft className="mr-1 h-3 w-3" />
+                                        Rouvrir
                                       </Button>
                                     )}
                                   </CardContent>

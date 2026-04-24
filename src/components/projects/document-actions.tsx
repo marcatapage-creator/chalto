@@ -102,6 +102,7 @@ export function DocumentActions({
               document_id: documentId,
               contributor_id: contributorId,
               request_type: requestType,
+              pro_message: message || null,
             }))
           )
         }

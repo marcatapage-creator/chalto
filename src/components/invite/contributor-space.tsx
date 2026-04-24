@@ -91,6 +91,7 @@ const ctaFeatures = [
 type DocRow = {
   document_id: string
   request_type?: "validation" | "transmission" | null
+  pro_message?: string | null
   documents: {
     id: string
     name: string
@@ -393,6 +394,17 @@ export function ContributorSpace({
                             </Badge>
                           )}
                         </div>
+
+                        {dc.pro_message && (
+                          <div className="bg-muted/50 border rounded-lg px-3 py-2.5 text-sm">
+                            <p className="text-xs font-medium text-foreground mb-0.5">
+                              Message de votre professionnel
+                            </p>
+                            <p className="text-muted-foreground leading-relaxed">
+                              {dc.pro_message}
+                            </p>
+                          </div>
+                        )}
 
                         {doc.file_url && (
                           <FileViewer

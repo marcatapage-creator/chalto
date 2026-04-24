@@ -129,6 +129,7 @@ export type Database = {
           created_at: string | null
           document_id: string
           id: string
+          pro_message: string | null
           request_type: string
         }
         Insert: {
@@ -136,6 +137,7 @@ export type Database = {
           created_at?: string | null
           document_id: string
           id?: string
+          pro_message?: string | null
           request_type?: string
         }
         Update: {
@@ -143,6 +145,7 @@ export type Database = {
           created_at?: string | null
           document_id?: string
           id?: string
+          pro_message?: string | null
           request_type?: string
         }
         Relationships: [
@@ -731,7 +734,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_document_with_contributors: {
+        Args: {
+          p_audience?: string
+          p_contributor_ids?: string[]
+          p_name: string
+          p_project_id: string
+          p_type: string
+        }
+        Returns: string
+      }
+      send_document_to_client: {
+        Args: { p_document_id: string; p_status?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

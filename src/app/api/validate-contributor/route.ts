@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendApprovalEmail } from "@/lib/email"
+import { sendApprovalEmail, sendTransmissionAckEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 import { validateContributorSchema } from "@/lib/api-schemas"
@@ -65,14 +65,28 @@ export async function POST(request: Request) {
     }
 
     if (isTransmission) {
-      await createNotification({
-        userId,
-        type: "document_approved",
-        title: "Document lu par un prestataire",
-        body: `${contributorName} a lu « ${document.name} »${comment ? ` et a laissé un commentaire` : ""}`,
-        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
-        inAppEnabled: proProfile?.notif_inapp_enabled,
-      })
+      const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`
+      await Promise.all([
+        createNotification({
+          userId,
+          type: "document_approved",
+          title: "Document lu par un prestataire",
+          body: `${contributorName} a lu « ${document.name} »${comment ? ` et a laissé un commentaire` : ""}`,
+          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+          inAppEnabled: proProfile?.notif_inapp_enabled,
+        }),
+        proProfile?.email
+          ? sendTransmissionAckEmail({
+              proEmail: proProfile.email,
+              proName: proProfile.full_name ?? "Professionnel",
+              contributorName: contributorName ?? "Un prestataire",
+              projectName: document.projects?.name ?? "Projet",
+              documentName: document.name,
+              comment,
+              projectUrl,
+            })
+          : Promise.resolve(),
+      ])
     } else {
       const shouldSendEmail =
         proProfile?.notif_email_frequency !== "never" &&

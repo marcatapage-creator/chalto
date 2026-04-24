@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 
-function escapeHtml(str: string | null | undefined): string {
+export function escapeHtml(str: string | null | undefined): string {
   if (!str) return ""
   return str
     .replace(/&/g, "&amp;")
@@ -224,6 +224,76 @@ export async function sendWaitlistConfirmationEmail({
           <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
             La plateforme des professionnels du bâtiment ·
             <a href="https://chalto.fr" style="color: #2260E8;">chalto.fr</a>
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendTransmissionAckEmail({
+  proEmail,
+  proName,
+  contributorName,
+  projectName,
+  documentName,
+  comment,
+  projectUrl,
+}: {
+  proEmail: string
+  proName: string
+  contributorName: string
+  projectName: string
+  documentName: string
+  comment?: string | null
+  projectUrl: string
+}) {
+  return getResend().emails.send({
+    from: FROM,
+    to: proEmail,
+    subject: `📖 Lu par ${contributorName} — ${documentName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            📖 Document consulté
+          </h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">
+            Bonjour ${escapeHtml(proName)},
+          </p>
+
+          <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
+            <strong>${escapeHtml(contributorName)}</strong> a lu le document
+            <strong>${escapeHtml(documentName)}</strong> sur le projet <strong>${escapeHtml(projectName)}</strong>.
+          </p>
+
+          ${
+            comment
+              ? `
+          <div style="background: #f9f9f9; border-left: 3px solid #3b5fdb; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 32px;">
+            <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Commentaire</p>
+            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${escapeHtml(comment)}"</p>
+          </div>
+          `
+              : ""
+          }
+
+          <a href="${projectUrl}"
+             style="display: inline-block; background: #111; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+            Voir le projet →
+          </a>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Notification automatique Chalto
           </p>
 
         </body>
