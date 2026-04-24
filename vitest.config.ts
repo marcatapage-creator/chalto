@@ -13,9 +13,9 @@ export default defineConfig({
       include: ["src/app/api/**/route.ts", "src/lib/**/*.ts"],
       exclude: ["**/*.test.ts", "src/lib/supabase/**", "src/types/**"],
       thresholds: {
-        lines: 60,
-        statements: 60,
-        branches: 55,
+        lines: 65,
+        statements: 65,
+        branches: 65,
         functions: 45,
       },
     },

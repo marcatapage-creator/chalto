@@ -36,10 +36,9 @@ export function OnboardingTooltip({
   useEffect(() => {
     if (disabled || !TOOLTIPS_ENABLED) return
     const seen = localStorage.getItem(storageKey)
-    if (!seen) {
-      const timer = setTimeout(() => setVisible(true), 800)
-      return () => clearTimeout(timer)
-    }
+    if (seen) return
+    const timer = setTimeout(() => setVisible(true), 800)
+    return () => clearTimeout(timer)
   }, [storageKey, disabled])
 
   useEffect(() => {
