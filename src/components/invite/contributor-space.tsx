@@ -108,6 +108,7 @@ type DocRow = {
     name: string
     type: string
     status: string
+    version?: number | null
     file_url?: string | null
     file_name?: string | null
     file_type?: string | null
@@ -134,6 +135,42 @@ export function ContributorSpace({
   const [docDecision, setDocDecision] = useState<Record<string, "approved" | "rejected" | null>>({})
   const [docComment, setDocComment] = useState<Record<string, string>>({})
   const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
+  const [docVersions, setDocVersions] = useState<
+    Record<string, { version: number; file_url: string; file_name: string | null }[]>
+  >({})
+  const [activeVersionTab, setActiveVersionTab] = useState<Record<string, number | null>>({})
+
+  useEffect(() => {
+    const docIds = initialDocs.map((dc) => dc.document_id).filter(Boolean)
+    if (docIds.length === 0) return
+    supabase
+      .from("document_versions")
+      .select("document_id, version, file_url, file_name")
+      .in("document_id", docIds)
+      .order("version", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return
+        const byDoc: Record<
+          string,
+          { version: number; file_url: string; file_name: string | null }[]
+        > = {}
+        for (const row of data) {
+          const r = row as {
+            document_id: string
+            version: number
+            file_url: string
+            file_name: string | null
+          }
+          if (!byDoc[r.document_id]) byDoc[r.document_id] = []
+          byDoc[r.document_id].push({
+            version: r.version,
+            file_url: r.file_url,
+            file_name: r.file_name,
+          })
+        }
+        setDocVersions(byDoc)
+      })
+  }, [initialDocs, supabase])
 
   const [pendingSuggestions, setPendingSuggestions] = useState<Task[]>(
     initialTasks.filter((t) => t.status === "suggestion")
@@ -314,32 +351,35 @@ export function ContributorSpace({
         <div className="max-w-2xl mx-auto px-4 flex">
           <button
             onClick={() => scrollToSection(docsRef, setDocsOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
           >
-            <FileText className="h-4 w-4" />
-            Documents
+            <span className="truncate">Documents</span>
             {docs.length > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">{docs.length}</span>
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                {docs.length}
+              </span>
             )}
           </button>
           <button
             onClick={() => scrollToSection(tasksRef, setTasksOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
           >
-            <CheckSquare className="h-4 w-4" />
-            Tâches
+            <span className="truncate">Tâches</span>
             {tasks.length > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">{tasks.length}</span>
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                {tasks.length}
+              </span>
             )}
           </button>
           <button
             onClick={() => scrollToSection(discussionRef, setDiscussionOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
           >
-            <MessageSquare className="h-4 w-4" />
-            Discussion
+            <span className="truncate">Discussion</span>
             {discussionCount > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">{discussionCount}</span>
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                {discussionCount}
+              </span>
             )}
           </button>
         </div>
@@ -415,7 +455,14 @@ export function ContributorSpace({
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-medium text-sm">{doc.name}</p>
+                            <p className="font-medium text-sm">
+                              {doc.name}
+                              {doc.version != null && doc.version > 1 && (
+                                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                                  v{doc.version}
+                                </span>
+                              )}
+                            </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <p className="text-xs text-muted-foreground">{doc.type}</p>
                               <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">
@@ -441,13 +488,65 @@ export function ContributorSpace({
                           </div>
                         )}
 
-                        {doc.file_url && (
-                          <FileViewer
-                            fileUrl={doc.file_url}
-                            fileName={doc.file_name ?? doc.name}
-                            fileType={doc.file_type ?? ""}
-                          />
-                        )}
+                        {(() => {
+                          const prevVersions = docVersions[doc.id] ?? []
+                          const activeTab = activeVersionTab[doc.id] ?? null
+                          const activePrev =
+                            activeTab !== null
+                              ? (prevVersions.find((pv) => pv.version === activeTab) ?? null)
+                              : null
+                          const displayUrl = activePrev ? activePrev.file_url : doc.file_url
+                          const displayName = activePrev
+                            ? (activePrev.file_name ?? doc.name)
+                            : (doc.file_name ?? doc.name)
+                          return (
+                            <>
+                              {prevVersions.length > 0 && (
+                                <div className="flex text-xs border rounded-lg overflow-hidden">
+                                  <button
+                                    onClick={() =>
+                                      setActiveVersionTab((prev) => ({ ...prev, [doc.id]: null }))
+                                    }
+                                    className={cn(
+                                      "flex-1 px-3 py-1.5 transition-colors",
+                                      activeTab === null
+                                        ? "bg-background font-medium"
+                                        : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                                    )}
+                                  >
+                                    V{doc.version ?? 1} · En cours
+                                  </button>
+                                  {prevVersions.map((pv) => (
+                                    <button
+                                      key={pv.version}
+                                      onClick={() =>
+                                        setActiveVersionTab((prev) => ({
+                                          ...prev,
+                                          [doc.id]: pv.version,
+                                        }))
+                                      }
+                                      className={cn(
+                                        "flex-1 px-3 py-1.5 transition-colors border-l",
+                                        activeTab === pv.version
+                                          ? "bg-background font-medium"
+                                          : "bg-muted/50 text-muted-foreground hover:text-foreground"
+                                      )}
+                                    >
+                                      V{pv.version}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              {displayUrl && (
+                                <FileViewer
+                                  fileUrl={displayUrl}
+                                  fileName={displayName}
+                                  fileType={doc.file_type ?? ""}
+                                />
+                              )}
+                            </>
+                          )
+                        })()}
 
                         {reqType === "transmission" ? (
                           transmissionCommentSent[doc.id] ? (

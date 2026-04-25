@@ -12,10 +12,12 @@ Sentry.init({
   sendDefaultPii: true,
 
   beforeSend(event, hint) {
-    // Ignore les erreurs "aborted" de Node.js HTTP — surviennent quand le client
-    // ferme la connexion avant la fin de la réponse (faux positif, surtout en dev)
     const err = hint?.originalException
+    // Ignore "aborted" — client closed connection before response completed
     if (err instanceof Error && err.message === "aborted") return null
+    // Ignore Next.js notFound() — 404 is expected, not an application error
+    if (err instanceof Error && err.message.includes("NEXT_HTTP_ERROR_FALLBACK;404")) return null
+    if (typeof err === "string" && err.includes("NEXT_HTTP_ERROR_FALLBACK;404")) return null
     return event
   },
 })

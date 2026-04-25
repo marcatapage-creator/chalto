@@ -34,7 +34,6 @@ export function TaskComments({
   initialComments,
 }: TaskCommentsProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments ?? [])
-  const [count, setCount] = useState(initialComments?.length ?? 0)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -43,27 +42,16 @@ export function TaskComments({
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    if (loadedRef.current) {
-      supabase
-        .from("task_comments")
-        .select("id", { count: "exact", head: true })
-        .eq("task_id", taskId)
-        .then(({ count: c }) => {
-          if (c !== null) setCount(c)
-        })
-    } else {
+    if (!loadedRef.current) {
       supabase
         .from("task_comments")
         .select("*")
         .eq("task_id", taskId)
         .order("created_at", { ascending: true })
-        .then(({ data, count: c }) => {
-          if (data && data.length > 0) {
+        .then(({ data }) => {
+          if (data) {
             setComments(data)
-            setCount(data.length)
             loadedRef.current = true
-          } else if (c !== null) {
-            setCount(c)
           }
         })
     }
@@ -80,12 +68,9 @@ export function TaskComments({
         },
         (payload) => {
           const incoming = payload.new as Comment
-          setCount((prev) => prev + 1)
-          if (loadedRef.current) {
-            setComments((prev) =>
-              prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
-            )
-          }
+          setComments((prev) =>
+            prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
+          )
         }
       )
       .subscribe((_status, err) => {
@@ -98,7 +83,7 @@ export function TaskComments({
     }
   }, [taskId, supabase])
 
-  // Lazy: charge les messages si l'ouverture précède le fetch eager
+  // Lazy: charge les messages si l'ouverture précède le fetch initial
   useEffect(() => {
     if (!open || loadedRef.current) return
 
@@ -110,7 +95,6 @@ export function TaskComments({
       .then(({ data }) => {
         if (data) {
           setComments(data)
-          setCount(data.length)
           loadedRef.current = true
         }
       })
@@ -181,7 +165,11 @@ export function TaskComments({
         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
       >
         <MessageSquare className="h-3.5 w-3.5" />
-        <span>{count > 0 ? `${count} note${count > 1 ? "s" : ""}` : "Ajouter une note"}</span>
+        <span>
+          {comments.length > 0
+            ? `${comments.length} note${comments.length > 1 ? "s" : ""}`
+            : "Ajouter une note"}
+        </span>
       </button>
 
       {open && (
