@@ -180,6 +180,10 @@ export function ContributorSpace({
   const [discussionOpen, setDiscussionOpen] = useState(false)
   const [discussionCount, setDiscussionCount] = useState(0)
 
+  const [docsRead, setDocsRead] = useState(false)
+  const [tasksRead, setTasksRead] = useState(false)
+  const [discussionRead, setDiscussionRead] = useState(false)
+
   const docsRef = useRef<HTMLDivElement>(null)
   const tasksRef = useRef<HTMLDivElement>(null)
   const discussionRef = useRef<HTMLDivElement>(null)
@@ -351,34 +355,58 @@ export function ContributorSpace({
         <nav className="bg-background/95 backdrop-blur border-b">
           <div className="max-w-2xl mx-auto px-4 flex">
             <button
-              onClick={() => scrollToSection(docsRef, setDocsOpen)}
+              onClick={() => {
+                setDocsRead(true)
+                scrollToSection(docsRef, setDocsOpen)
+              }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
             >
               <span className="truncate">Documents</span>
               {docs.length > 0 && (
-                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                <span
+                  className={cn(
+                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    docsRead ? "bg-muted" : "bg-red-500 text-white"
+                  )}
+                >
                   {docs.length}
                 </span>
               )}
             </button>
             <button
-              onClick={() => scrollToSection(tasksRef, setTasksOpen)}
+              onClick={() => {
+                setTasksRead(true)
+                scrollToSection(tasksRef, setTasksOpen)
+              }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
             >
               <span className="truncate">Tâches</span>
               {tasks.length > 0 && (
-                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                <span
+                  className={cn(
+                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    tasksRead ? "bg-muted" : "bg-red-500 text-white"
+                  )}
+                >
                   {tasks.length}
                 </span>
               )}
             </button>
             <button
-              onClick={() => scrollToSection(discussionRef, setDiscussionOpen)}
+              onClick={() => {
+                setDiscussionRead(true)
+                scrollToSection(discussionRef, setDiscussionOpen)
+              }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
             >
               <span className="truncate">Discussion</span>
               {discussionCount > 0 && (
-                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                <span
+                  className={cn(
+                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    discussionRead ? "bg-muted" : "bg-red-500 text-white"
+                  )}
+                >
                   {discussionCount}
                 </span>
               )}
