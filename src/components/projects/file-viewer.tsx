@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Download, X } from "lucide-react"
+import { Maximize2, Download, X, FileText, ExternalLink } from "lucide-react"
 
 interface FileViewerProps {
   fileUrl: string
@@ -12,6 +12,9 @@ interface FileViewerProps {
 
 export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
   const [fullscreen, setFullscreen] = useState(false)
+  const [isAndroid] = useState(
+    () => typeof window !== "undefined" && /Android/i.test(navigator.userAgent)
+  )
 
   const isPdf = fileType === "application/pdf"
   const isImage = fileType.startsWith("image/")
@@ -43,13 +46,23 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
 
       {/* Contenu */}
       <div className="pt-10 h-full">
-        {isPdf && (
-          <iframe
-            src={`${fileUrl}#toolbar=0`}
-            className="w-full h-full min-h-100"
-            title={fileName}
-          />
-        )}
+        {isPdf &&
+          (isAndroid ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{fileName}</p>
+              <Button onClick={() => window.open(fileUrl, "_blank")}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Ouvrir le PDF
+              </Button>
+            </div>
+          ) : (
+            <iframe
+              src={`${fileUrl}#toolbar=0`}
+              className="w-full h-full min-h-100"
+              title={fileName}
+            />
+          ))}
         {isImage && (
           <div className="flex items-center justify-center h-full p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
