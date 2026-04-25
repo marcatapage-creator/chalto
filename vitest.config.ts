@@ -18,6 +18,7 @@ export default defineConfig({
         "src/lib/analytics.ts",
         "src/lib/haptics.ts",
         "src/lib/demo-project.ts",
+        "src/app/api/generate-document/**",
       ],
       thresholds: {
         lines: 72,

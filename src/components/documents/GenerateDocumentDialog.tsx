@@ -155,27 +155,27 @@ export function GenerateDocumentDialog({
 
         {/* Étape 1 — Choix du type */}
         {step === 1 && (
-          <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
-              Quel type de document voulez-vous générer ?
-            </p>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">Choisissez un type de document</p>
             <button
               onClick={() => {
                 setDocType("cctp")
                 setStep(2)
               }}
-              className="w-full flex items-start gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 text-left transition-colors"
+              className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-primary bg-primary/5 text-left transition-colors"
             >
-              <FileText className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="font-medium text-sm">CCTP</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Cahier des Clauses Techniques Particulières — spécifications techniques par lot
+              <FileText className="h-4 w-4 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-sm">CCTP</p>
+                  <Badge variant="secondary" className="text-xs shrink-0">
+                    Disponible
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                  Spécifications techniques par lot
                 </p>
               </div>
-              <Badge variant="secondary" className="ml-auto shrink-0 mt-0.5 text-xs">
-                Disponible
-              </Badge>
             </button>
 
             {/* Autres types — à venir */}
@@ -183,15 +183,17 @@ export function GenerateDocumentDialog({
               <button
                 key={label}
                 disabled
-                className="w-full flex items-start gap-3 p-4 rounded-xl border border-border text-left opacity-50 cursor-not-allowed"
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-border text-left opacity-40 cursor-not-allowed"
               >
-                <FileText className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-medium text-sm">{label}</p>
+                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{label}</p>
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      Bientôt
+                    </Badge>
+                  </div>
                 </div>
-                <Badge variant="outline" className="ml-auto shrink-0 mt-0.5 text-xs">
-                  Bientôt
-                </Badge>
               </button>
             ))}
           </div>

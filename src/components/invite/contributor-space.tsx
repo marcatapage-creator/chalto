@@ -215,6 +215,24 @@ export function ContributorSpace({
     setTasksRead(true)
   }
 
+  useEffect(() => {
+    if (discussionCount === 0) return
+    try {
+      const discussionKey = `chalto_seen_discussion_${contributor.invite_token}`
+      const stored = parseInt(localStorage.getItem(discussionKey) ?? "0", 10)
+      if (discussionCount > stored) setDiscussionRead(false)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discussionCount])
+
+  const markDiscussionRead = () => {
+    try {
+      const discussionKey = `chalto_seen_discussion_${contributor.invite_token}`
+      localStorage.setItem(discussionKey, String(discussionCount))
+    } catch {}
+    setDiscussionRead(true)
+  }
+
   const docsRef = useRef<HTMLDivElement>(null)
   const tasksRef = useRef<HTMLDivElement>(null)
   const discussionRef = useRef<HTMLDivElement>(null)
@@ -426,7 +444,7 @@ export function ContributorSpace({
             </button>
             <button
               onClick={() => {
-                setDiscussionRead(true)
+                markDiscussionRead()
                 scrollToSection(discussionRef, setDiscussionOpen)
               }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"

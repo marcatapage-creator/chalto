@@ -220,9 +220,10 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient()
 
-  // 1. Créer l'entrée document en brouillon
+  // 1. Créer l'entrée document en brouillon — via le client user pour que
+  //    auth.uid() soit résolu correctement (RLS + validation_token requis par send_document_to_client)
   const docName = `CCTP — ${projectName}`
-  const { data: newDoc, error: insertError } = await admin
+  const { data: newDoc, error: insertError } = await supabase
     .from("documents")
     .insert({
       project_id: projectId,
@@ -231,6 +232,7 @@ export async function POST(req: Request) {
       status: "draft",
       audience: "client",
       version: 1,
+      validation_token: crypto.randomUUID(),
     })
     .select("id")
     .single()
