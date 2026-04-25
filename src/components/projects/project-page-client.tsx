@@ -393,6 +393,9 @@ export function ProjectPageClient({
             <ProjectDocuments
               documents={localDocs}
               projectId={project.id}
+              projectName={project.name}
+              workType={project.work_type}
+              clientName={project.client_name}
               selectedDocId={selectedDoc?.id ?? null}
               onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
               onDeleteDoc={handleDeleteDoc}

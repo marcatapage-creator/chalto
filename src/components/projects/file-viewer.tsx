@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Download, X, FileText, ExternalLink } from "lucide-react"
+import { Maximize2, Download, X, FileText, ExternalLink, FileDown } from "lucide-react"
 
 interface FileViewerProps {
   fileUrl: string
@@ -71,6 +71,16 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
               alt={fileName}
               className="max-w-full max-h-full object-contain rounded"
             />
+          </div>
+        )}
+        {!isPdf && !isImage && (
+          <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+            <FileDown className="h-12 w-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{fileName}</p>
+            <Button onClick={() => window.open(fileUrl, "_blank")}>
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger
+            </Button>
           </div>
         )}
       </div>

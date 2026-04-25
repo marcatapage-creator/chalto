@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FileText, ChevronRight, ChevronDown, Trash2 } from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
+import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { docStatusMap } from "@/lib/doc-status"
@@ -28,6 +29,9 @@ interface Document {
 interface ProjectDocumentsProps {
   documents: Document[]
   projectId: string
+  projectName: string
+  workType?: string
+  clientName?: string
   selectedDocId: string | null
   onSelectDoc: (doc: Document) => void
   onDeleteDoc?: (docId: string) => void
@@ -116,6 +120,9 @@ function DocItem({
 export function ProjectDocuments({
   documents,
   projectId,
+  projectName,
+  workType,
+  clientName,
   selectedDocId,
   onSelectDoc,
   onDeleteDoc,
@@ -162,7 +169,13 @@ export function ProjectDocuments({
           </span>
         </div>
         {!readOnly && (
-          <div className="pl-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1.5 pl-3" onClick={(e) => e.stopPropagation()}>
+            <GenerateDocumentDialog
+              projectId={projectId}
+              projectName={projectName}
+              workType={workType ?? ""}
+              clientName={clientName}
+            />
             <AddDocumentDialog projectId={projectId} />
           </div>
         )}
