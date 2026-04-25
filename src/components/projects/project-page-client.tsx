@@ -59,11 +59,14 @@ interface Project {
   constraints?: string
 }
 
-const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  draft: { label: "Brouillon", variant: "outline" },
-  active: { label: "En cours", variant: "default" },
-  completed: { label: "Terminé", variant: "secondary" },
-  archived: { label: "Archivé", variant: "outline" },
+const statusMap: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline"; dot: string }
+> = {
+  draft: { label: "Brouillon", variant: "outline", dot: "bg-muted-foreground/40" },
+  active: { label: "En cours", variant: "default", dot: "bg-primary" },
+  completed: { label: "Terminé", variant: "secondary", dot: "bg-muted-foreground" },
+  archived: { label: "Archivé", variant: "outline", dot: "bg-muted-foreground/40" },
 }
 
 type ValidationData = {
@@ -94,8 +97,11 @@ export function ProjectPageClient({
   initialHighlightId,
   initialValidations = {},
 }: ProjectPageClientProps) {
-  const { label: statusLabel, variant: statusVariant } =
-    statusMap[project.status] ?? statusMap.draft
+  const {
+    label: statusLabel,
+    variant: statusVariant,
+    dot: statusDot,
+  } = statusMap[project.status] ?? statusMap.draft
   const supabase = useMemo(() => createClient(), [])
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
@@ -279,7 +285,22 @@ export function ProjectPageClient({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 min-w-0">
                 <h1 className="text-2xl font-bold tracking-tight truncate">{project.name}</h1>
-                <Badge variant={statusVariant} className="shrink-0">
+                {project.status === "active" ? (
+                  <span className="relative flex h-2.5 w-2.5 shrink-0 sm:hidden">
+                    <span
+                      className={cn(
+                        "animate-ping absolute inline-flex h-full w-full rounded-full opacity-50",
+                        statusDot
+                      )}
+                    />
+                    <span
+                      className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", statusDot)}
+                    />
+                  </span>
+                ) : (
+                  <span className={cn("h-2.5 w-2.5 rounded-full shrink-0 sm:hidden", statusDot)} />
+                )}
+                <Badge variant={statusVariant} className="shrink-0 hidden sm:inline-flex">
                   {statusLabel}
                 </Badge>
               </div>
