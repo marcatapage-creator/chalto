@@ -59,13 +59,15 @@ export function NotificationBell({
         position="bottom"
       >
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
+          <Button variant="ghost" size="icon">
+            <span className="relative">
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-3.5 -right-4 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-medium leading-none">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </span>
           </Button>
         </PopoverTrigger>
       </OnboardingTooltip>
