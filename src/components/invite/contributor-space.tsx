@@ -123,7 +123,7 @@ export function ContributorSpace({
   companyName,
   initialTaskComments = {},
 }: ContributorSpaceProps) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [tasks, setTasks] = useState<Task[]>(initialTasks.filter((t) => t.status !== "suggestion"))
   const [suggestion, setSuggestion] = useState("")
   const [suggestionDesc, setSuggestionDesc] = useState("")
   const [suggesting, setSuggesting] = useState(false)
@@ -135,7 +135,9 @@ export function ContributorSpace({
   const [docComment, setDocComment] = useState<Record<string, string>>({})
   const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
 
-  const [pendingSuggestions, setPendingSuggestions] = useState<Task[]>([])
+  const [pendingSuggestions, setPendingSuggestions] = useState<Task[]>(
+    initialTasks.filter((t) => t.status === "suggestion")
+  )
   const [docsOpen, setDocsOpen] = useState(true)
   const [tasksOpen, setTasksOpen] = useState(true)
   const [discussionOpen, setDiscussionOpen] = useState(false)
