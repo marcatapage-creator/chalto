@@ -180,9 +180,40 @@ export function ContributorSpace({
   const [discussionOpen, setDiscussionOpen] = useState(false)
   const [discussionCount, setDiscussionCount] = useState(0)
 
-  const [docsRead, setDocsRead] = useState(false)
-  const [tasksRead, setTasksRead] = useState(false)
-  const [discussionRead, setDiscussionRead] = useState(false)
+  const [docsRead, setDocsRead] = useState(true)
+  const [tasksRead, setTasksRead] = useState(true)
+  const [discussionRead, setDiscussionRead] = useState(true)
+
+  useEffect(() => {
+    const docsKey = `chalto_seen_docs_${contributor.invite_token}`
+    const tasksKey = `chalto_seen_tasks_${contributor.invite_token}`
+    try {
+      const seenDocs: string[] = JSON.parse(localStorage.getItem(docsKey) ?? "[]")
+      if (!initialDocs.every((dc) => seenDocs.includes(dc.document_id))) setDocsRead(false)
+    } catch {}
+    try {
+      const seenTasks: string[] = JSON.parse(localStorage.getItem(tasksKey) ?? "[]")
+      const ids = initialTasks.filter((t) => t.status !== "suggestion").map((t) => t.id)
+      if (ids.length > 0 && !ids.every((id) => seenTasks.includes(id))) setTasksRead(false)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const markDocsRead = () => {
+    try {
+      const docsKey = `chalto_seen_docs_${contributor.invite_token}`
+      localStorage.setItem(docsKey, JSON.stringify(initialDocs.map((dc) => dc.document_id)))
+    } catch {}
+    setDocsRead(true)
+  }
+
+  const markTasksRead = () => {
+    try {
+      const tasksKey = `chalto_seen_tasks_${contributor.invite_token}`
+      localStorage.setItem(tasksKey, JSON.stringify(tasks.map((t) => t.id)))
+    } catch {}
+    setTasksRead(true)
+  }
 
   const docsRef = useRef<HTMLDivElement>(null)
   const tasksRef = useRef<HTMLDivElement>(null)
@@ -228,6 +259,7 @@ export function ContributorSpace({
           task.status !== "rejected"
         ) {
           setTasks((prev) => (prev.some((t) => t.id === task.id) ? prev : [...prev, task]))
+          setTasksRead(false)
         }
       })
       .on("broadcast", { event: "task_deleted" }, ({ payload }) => {
@@ -356,7 +388,7 @@ export function ContributorSpace({
           <div className="max-w-2xl mx-auto px-4 flex">
             <button
               onClick={() => {
-                setDocsRead(true)
+                markDocsRead()
                 scrollToSection(docsRef, setDocsOpen)
               }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
@@ -375,7 +407,7 @@ export function ContributorSpace({
             </button>
             <button
               onClick={() => {
-                setTasksRead(true)
+                markTasksRead()
                 scrollToSection(tasksRef, setTasksOpen)
               }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
