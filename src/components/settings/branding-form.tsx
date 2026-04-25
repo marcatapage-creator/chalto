@@ -29,6 +29,11 @@ export function BrandingForm({ profile }: BrandingFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
+  const handleBrandingToggle = async (enabled: boolean) => {
+    setBrandingEnabled(enabled)
+    await supabase.from("profiles").update({ branding_enabled: enabled }).eq("id", profile.id)
+  }
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -64,12 +69,8 @@ export function BrandingForm({ profile }: BrandingFormProps) {
       const { data } = supabase.storage.from("logos").getPublicUrl(path)
 
       setLogoUrl(data.publicUrl)
-      setBrandingEnabled(true)
 
-      await supabase
-        .from("profiles")
-        .update({ logo_url: data.publicUrl, branding_enabled: true })
-        .eq("id", profile.id)
+      await supabase.from("profiles").update({ logo_url: data.publicUrl }).eq("id", profile.id)
 
       toast.success("Logo uploadé ✅")
     } catch (error) {
@@ -130,7 +131,7 @@ export function BrandingForm({ profile }: BrandingFormProps) {
                   : "Le logo Chalto s'affiche sur les pages client et emails"}
               </CardDescription>
             </div>
-            <Switch checked={brandingEnabled} onCheckedChange={setBrandingEnabled} />
+            <Switch checked={brandingEnabled} onCheckedChange={handleBrandingToggle} />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
