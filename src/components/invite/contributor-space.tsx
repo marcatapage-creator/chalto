@@ -323,67 +323,69 @@ export function ContributorSpace({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header — sticky */}
-      <header className="sticky top-0 z-20 border-b bg-card">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          {logoUrl ? (
-            <Image
-              src={logoUrl}
-              alt={companyName ?? "Logo"}
-              width={120}
-              height={32}
-              className="object-contain max-h-8"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
-              <span className="font-bold">Chalto</span>
-            </div>
-          )}
-          <Badge variant="outline" className="text-xs">
-            Espace prestataire
-          </Badge>
-        </div>
-      </header>
+      {/* Header + Nav — un seul bloc sticky pour éviter tout écart */}
+      <div className="sticky top-0 z-20">
+        <header className="border-b bg-card">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={companyName ?? "Logo"}
+                width={120}
+                height={32}
+                className="object-contain max-h-8"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
+                <span className="font-bold">Chalto</span>
+              </div>
+            )}
+            <Badge variant="outline" className="text-xs">
+              Espace prestataire
+            </Badge>
+          </div>
+        </header>
 
-      {/* Navigation sticky */}
-      <nav className="sticky top-14.25 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-2xl mx-auto px-4 flex">
-          <button
-            onClick={() => scrollToSection(docsRef, setDocsOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-          >
-            <span className="truncate">Documents</span>
-            {docs.length > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
-                {docs.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => scrollToSection(tasksRef, setTasksOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-          >
-            <span className="truncate">Tâches</span>
-            {tasks.length > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
-                {tasks.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => scrollToSection(discussionRef, setDiscussionOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-          >
-            <span className="truncate">Discussion</span>
-            {discussionCount > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
-                {discussionCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </nav>
+        {/* Navigation */}
+        <nav className="bg-background/95 backdrop-blur border-b">
+          <div className="max-w-2xl mx-auto px-4 flex">
+            <button
+              onClick={() => scrollToSection(docsRef, setDocsOpen)}
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
+            >
+              <span className="truncate">Documents</span>
+              {docs.length > 0 && (
+                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                  {docs.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => scrollToSection(tasksRef, setTasksOpen)}
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
+            >
+              <span className="truncate">Tâches</span>
+              {tasks.length > 0 && (
+                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                  {tasks.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => scrollToSection(discussionRef, setDiscussionOpen)}
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
+            >
+              <span className="truncate">Discussion</span>
+              {discussionCount > 0 && (
+                <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                  {discussionCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </nav>
+      </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
         {/* Contexte projet */}
