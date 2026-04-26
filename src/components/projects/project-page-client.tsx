@@ -425,6 +425,7 @@ export function ProjectPageClient({
               isOpen={docsOpen}
               onToggle={() => {
                 if (docsOpen) setSelectedDocId(null)
+                else if (!isDesktop) setDetailsOpen(false)
                 setDocsOpen((v) => !v)
               }}
               readOnly={phase === "cloture"}
@@ -442,6 +443,9 @@ export function ProjectPageClient({
                   onContributorsChange={setContributorContactIds}
                   readOnly={phase === "cloture"}
                   defaultOpen={!startCollapsed}
+                  onOpen={() => {
+                    if (!isDesktop) setDetailsOpen(false)
+                  }}
                 />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
@@ -455,6 +459,9 @@ export function ProjectPageClient({
                     highlightedId={highlightedTaskId}
                     externalInvitedIds={contributorContactIds}
                     defaultOpen={!startCollapsed}
+                    onOpen={() => {
+                      if (!isDesktop) setDetailsOpen(false)
+                    }}
                   />
                 </ErrorBoundary>
               </div>
@@ -465,6 +472,9 @@ export function ProjectPageClient({
                   authorRole="pro"
                   readOnly={phase === "cloture"}
                   autoOpen={openDiscussion}
+                  onOpen={() => {
+                    if (!isDesktop) setDetailsOpen(false)
+                  }}
                 />
               </div>
             </>

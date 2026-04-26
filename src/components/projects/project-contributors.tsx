@@ -53,6 +53,7 @@ interface ProjectContributorsProps {
   onContributorsChange?: (ids: Set<string>) => void
   readOnly?: boolean
   defaultOpen?: boolean
+  onOpen?: () => void
 }
 
 export function ProjectContributors({
@@ -61,6 +62,7 @@ export function ProjectContributors({
   onContributorsChange,
   readOnly = false,
   defaultOpen = true,
+  onOpen,
 }: ProjectContributorsProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [contributors, setContributors] = useState<Contributor[]>([])
@@ -176,7 +178,10 @@ export function ProjectContributors({
     <div className="space-y-2">
       <div
         className="flex items-center justify-between group cursor-pointer"
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => {
+          if (!isOpen) onOpen?.()
+          setIsOpen((v) => !v)
+        }}
       >
         <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown

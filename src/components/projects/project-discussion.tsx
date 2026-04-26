@@ -27,6 +27,7 @@ interface ProjectDiscussionProps {
   controlledOpen?: boolean
   onControlledOpenChange?: (v: boolean) => void
   onCountChange?: (count: number) => void
+  onOpen?: () => void
 }
 
 export function ProjectDiscussion({
@@ -39,6 +40,7 @@ export function ProjectDiscussion({
   controlledOpen,
   onControlledOpenChange,
   onCountChange,
+  onOpen,
 }: ProjectDiscussionProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [content, setContent] = useState("")
@@ -47,10 +49,17 @@ export function ProjectDiscussion({
   const open = controlledOpen ?? internalOpen
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLDivElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
   const handleToggle = () => {
     const next = !open
+    if (next) {
+      onOpen?.()
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+      }, 280)
+    }
     setInternalOpen(next)
     onControlledOpenChange?.(next)
   }
@@ -260,7 +269,7 @@ export function ProjectDiscussion({
                 </div>
 
                 {!readOnly && (
-                  <div className="border-t pt-3 space-y-2">
+                  <div ref={inputRef} className="border-t pt-3 space-y-2">
                     <Textarea
                       placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
                       value={content}

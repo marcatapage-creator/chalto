@@ -101,7 +101,7 @@ export function TaskComments({
   }, [open, taskId, supabase])
 
   useEffect(() => {
-    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [comments, open])
 
   const handleSend = async () => {

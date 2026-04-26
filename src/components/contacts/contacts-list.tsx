@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import { Plus, Users, Phone, Mail, MoreHorizontal, Pencil, Trash2, Building2 } from "lucide-react"
-import { StaggerList, StaggerItem } from "@/components/ui/motion"
+import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 
 interface Profession {
   id: string
@@ -178,7 +178,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <FadeIn className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Annuaire</h1>
           <p className="text-muted-foreground">Vos prestataires et partenaires</p>
@@ -274,7 +274,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </FadeIn>
 
       {/* Recherche */}
       <Input

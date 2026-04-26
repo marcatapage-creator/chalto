@@ -271,6 +271,62 @@ function scrollToSection(id: string) {
   requestAnimationFrame(step)
 }
 
+function AIFeatureCard({
+  title,
+  description,
+  icon: Icon,
+}: {
+  title: string
+  description: string
+  icon: React.ElementType
+}) {
+  return (
+    <>
+      <style>{`
+        @property --ai-angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes ai-border-spin {
+          to { --ai-angle: 360deg; }
+        }
+        .ai-card-border {
+          background: conic-gradient(
+            from var(--ai-angle),
+            hsl(224 79% 45%),
+            #8b5cf6,
+            #ec4899,
+            hsl(220 100% 82%),
+            hsl(224 79% 45%)
+          );
+          animation: ai-border-spin 7s linear infinite;
+        }
+      `}</style>
+      <div className="ai-card-border h-full rounded-xl p-px">
+        <Card className="h-full rounded-[11px] border-0 relative overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            style={{
+              background: "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
+            }}
+          />
+          <CardContent className="relative p-6 space-y-3">
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{ background: "hsl(224 79% 52% / 0.15)" }}
+            >
+              <Icon className="h-5 w-5" style={{ color: "hsl(224 79% 68%)" }} />
+            </div>
+            <h3 className="font-semibold">{title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  )
+}
+
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -541,18 +597,31 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <Button size="lg" asChild className="group">
-                <a href="#waitlist">
+              <Button size="lg" asChild>
+                <motion.a href="#waitlist" whileHover="hovered">
                   Rejoindre la bêta
+                  {/* Mobile — boucle infinie */}
                   <motion.span
-                    className="md:hidden ml-2"
+                    className="md:hidden ml-2 inline-flex"
                     animate={{ x: [0, 4, 0] }}
                     transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
                   >
                     <ArrowRight className="h-4 w-4" />
                   </motion.span>
-                  <ArrowRight className="hidden md:inline ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </a>
+                  {/* Desktop — boucle au hover */}
+                  <motion.span
+                    className="hidden md:inline-flex ml-2"
+                    variants={{
+                      hovered: {
+                        x: [0, 4, 0],
+                        transition: { repeat: Infinity, duration: 1.2, ease: "easeInOut" },
+                      },
+                    }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </motion.span>
+                </motion.a>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/demo">Voir la démo</Link>
@@ -584,61 +653,63 @@ export default function LandingPage() {
 
             {/* Hero feature — Validation client */}
             <AnimateIn>
-              <Card className="mb-6 border-primary/40 bg-primary/5 hover:border-primary/70 transition-colors duration-200">
-                <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
-                  <div className="bg-primary/15 w-14 h-14 rounded-xl flex items-center justify-center shrink-0">
-                    <CheckCircle className="h-7 w-7 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold mb-1">Validation client en 1 clic</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Envoyez un lien sécurisé à votre client. Il approuve ou commente directement —{" "}
-                      <span className="text-foreground font-medium">sans créer de compte</span>.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <style>{`
+                @keyframes hero-border-spin {
+                  to { --hero-angle: 360deg; }
+                }
+                @property --hero-angle {
+                  syntax: '<angle>';
+                  initial-value: 0deg;
+                  inherits: false;
+                }
+                .hero-card-border {
+                  background: conic-gradient(
+                    from var(--hero-angle),
+                    hsl(224 79% 45%),
+                    #8b5cf6,
+                    hsl(220 100% 82%),
+                    hsl(224 79% 45%)
+                  );
+                  animation: hero-border-spin 7s linear infinite;
+                }
+              `}</style>
+              <div className="hero-card-border rounded-xl p-px mb-6">
+                <Card className="rounded-[11px] border-0 relative overflow-hidden">
+                  <div
+                    className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
+                    }}
+                  />
+                  <CardContent className="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="bg-primary/15 w-14 h-14 rounded-xl flex items-center justify-center shrink-0">
+                      <CheckCircle className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold mb-1">Validation client en 1 clic</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Envoyez un lien sécurisé à votre client. Il approuve ou commente directement
+                        — <span className="text-foreground font-medium">sans créer de compte</span>.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </AnimateIn>
 
             {/* Grille 5 features */}
             <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => {
                 const Icon = feature.icon
-                const isAI = feature.title === "Génération IA"
-
-                if (isAI) {
+                if (feature.title === "Génération IA") {
                   return (
-                    <div
+                    <AIFeatureCard
                       key={feature.title}
-                      className="h-full rounded-xl p-px"
-                      style={{
-                        background:
-                          "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
-                      }}
-                    >
-                      <Card className="h-full rounded-[11px] border-0 relative overflow-hidden">
-                        {/* Subtle gradient tint over dark bg-card */}
-                        <div
-                          className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                          style={{
-                            background:
-                              "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
-                          }}
-                        />
-                        <CardContent className="relative p-6 space-y-3">
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center"
-                            style={{ background: "hsl(224 79% 52% / 0.15)" }}
-                          >
-                            <Icon className="h-5 w-5" style={{ color: "hsl(224 79% 68%)" }} />
-                          </div>
-                          <h3 className="font-semibold">{feature.title}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {feature.description}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
+                      title={feature.title}
+                      description={feature.description}
+                      icon={Icon}
+                    />
                   )
                 }
 

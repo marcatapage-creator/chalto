@@ -77,6 +77,7 @@ interface ProjectTasksProps {
   highlightedId?: string | null
   externalInvitedIds?: Set<string>
   defaultOpen?: boolean
+  onOpen?: () => void
 }
 
 const columns = [
@@ -94,6 +95,7 @@ export function ProjectTasks({
   highlightedId: highlightedIdProp,
   externalInvitedIds,
   defaultOpen = true,
+  onOpen,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
@@ -427,7 +429,10 @@ export function ProjectTasks({
       {/* Header */}
       <div
         className="flex items-center justify-between group cursor-pointer"
-        onClick={() => setTasksOpen((v) => !v)}
+        onClick={() => {
+          if (!tasksOpen) onOpen?.()
+          setTasksOpen((v) => !v)
+        }}
       >
         <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
