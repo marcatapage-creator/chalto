@@ -31,7 +31,7 @@ export function ProjectsFilter({ counts, total }: ProjectsFilterProps) {
   }
 
   return (
-    <div className="flex items-center gap-1 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       {FILTERS.map(({ label, value }) => {
         const count = value ? (counts[value] ?? 0) : total
         const isActive = current === value

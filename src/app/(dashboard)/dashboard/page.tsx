@@ -102,7 +102,9 @@ export default async function DashboardPage() {
                               ? "Terminé"
                               : project.status === "draft"
                                 ? "Brouillon"
-                                : project.status}
+                                : project.status === "archived"
+                                  ? "Archivé"
+                                  : project.status}
                         </Badge>
                       </CardContent>
                     </Card>
