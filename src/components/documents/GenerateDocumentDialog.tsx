@@ -138,16 +138,31 @@ export function GenerateDocumentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
+      <style>{`
+        @property --ai-btn-angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes ai-btn-spin {
+          to { --ai-btn-angle: 360deg; }
+        }
+        .ai-btn-border {
+          background: conic-gradient(from var(--ai-btn-angle), transparent 25%, hsl(224 79% 65% / 0.4), #a78bfa70, hsl(224 79% 65% / 0.4), transparent 75%);
+          animation: ai-btn-spin 7s linear infinite;
+        }
+      `}</style>
       <DialogTrigger asChild>
-        <Button
-          size="sm"
-          className="gap-1.5 h-8 border-0 text-white hover:opacity-90 shadow-sm"
-          style={{ background: "linear-gradient(to right, hsl(224 79% 52%), #8b5cf6, #ec4899)" }}
+        <div
+          role="button"
+          className="ai-btn-border rounded-md p-px inline-flex cursor-pointer shrink-0"
         >
-          <Sparkles className="h-3.5 w-3.5" />
-          <span className="sm:hidden">IA</span>
-          <span className="hidden sm:inline">Générer IA</span>
-        </Button>
+          <div className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[5px] bg-background text-sm font-medium hover:bg-muted/60 transition-colors">
+            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+            <span className="sm:hidden">IA</span>
+            <span className="hidden sm:inline">Générer IA</span>
+          </div>
+        </div>
       </DialogTrigger>
 
       <DialogContent className="max-w-[calc(100%-3rem)] sm:max-w-lg">
