@@ -207,10 +207,12 @@ function ArchitectView({ onSend }: { onSend: () => void }) {
         </CardContent>
       </Card>
 
-      <Button className="w-full" size="lg" onClick={handleSend} loading={sending}>
-        <Send className="h-4 w-4 mr-2" />
-        Envoyer pour validation
-      </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur-sm border-t sm:static sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+        <Button className="w-full" size="lg" onClick={handleSend} loading={sending}>
+          <Send className="h-4 w-4 mr-2" />
+          Envoyer pour validation
+        </Button>
+      </div>
     </div>
   )
 }
@@ -246,10 +248,12 @@ function LinkSentView({ onNext }: { onNext: () => void }) {
         </CardContent>
       </Card>
 
-      <Button className="w-full" size="lg" onClick={onNext} variant="outline">
-        Voir comme votre client
-        <ArrowRight className="h-4 w-4 ml-2" />
-      </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur-sm border-t sm:static sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+        <Button className="w-full" size="lg" onClick={onNext} variant="outline">
+          Voir comme votre client
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
     </div>
   )
 }
@@ -360,32 +364,34 @@ function ClientView({ onApprove, onReject }: { onApprove: () => void; onReject: 
       </Card>
 
       {/* Boutons */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          size="lg"
-          className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          onClick={() => handleDecision("reject")}
-          loading={loading === "reject"}
-          disabled={loading === "approve"}
-        >
-          <XCircle className="h-4 w-4 mr-2" />
-          Refuser
-        </Button>
-        <Button
-          size="lg"
-          onClick={() => handleDecision("approve")}
-          loading={loading === "approve"}
-          disabled={loading === "reject"}
-        >
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Approuver
-        </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur-sm border-t sm:static sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            onClick={() => handleDecision("reject")}
+            loading={loading === "reject"}
+            disabled={loading === "approve"}
+          >
+            <XCircle className="h-4 w-4 mr-2" />
+            Refuser
+          </Button>
+          <Button
+            size="lg"
+            onClick={() => handleDecision("approve")}
+            loading={loading === "approve"}
+            disabled={loading === "reject"}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Approuver
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          En approuvant ce document, vous confirmez en avoir pris connaissance et validez son
+          contenu.
+        </p>
       </div>
-
-      <p className="text-xs text-muted-foreground text-center">
-        En approuvant ce document, vous confirmez en avoir pris connaissance et validez son contenu.
-      </p>
     </div>
   )
 }
@@ -427,10 +433,12 @@ function ClientDoneView({
         </CardContent>
       </Card>
 
-      <Button className="w-full" size="lg" variant="outline" onClick={onBack}>
-        Voir la vue architecte
-        <ArrowRight className="h-4 w-4 ml-2" />
-      </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur-sm border-t sm:static sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+        <Button className="w-full" size="lg" variant="outline" onClick={onBack}>
+          Voir la vue architecte
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
     </div>
   )
 }
@@ -513,15 +521,17 @@ function ArchitectDoneView({ decision }: { decision: "approved" | "rejected" }) 
       </Card>
 
       {/* CTA final */}
-      <Button className="w-full" size="lg" asChild>
-        <Link href="/#waitlist">
-          Rejoindre la bêta gratuitement
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Link>
-      </Button>
-      <p className="text-xs text-muted-foreground text-center">
-        Accès bêta sur invitation · Gratuit · Sans engagement
-      </p>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur-sm border-t sm:static sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0 space-y-2">
+        <Button className="w-full" size="lg" asChild>
+          <Link href="/#waitlist">
+            Rejoindre la bêta gratuitement
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Link>
+        </Button>
+        <p className="text-xs text-muted-foreground text-center">
+          Accès bêta sur invitation · Gratuit · Sans engagement
+        </p>
+      </div>
     </div>
   )
 }
@@ -550,7 +560,7 @@ export default function DemoPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
+      <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 pb-28 sm:pb-10">
         {/* Titre */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold">Essayez Chalto en 30 secondes</h1>
@@ -597,7 +607,7 @@ export default function DemoPage() {
 
         {/* Recommencer */}
         {step !== "architect" && (
-          <div className="text-center">
+          <div className="text-center mb-6 sm:mb-0">
             <button
               onClick={() => setStep("architect")}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"

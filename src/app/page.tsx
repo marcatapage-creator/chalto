@@ -509,18 +509,16 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              <AnimatedWord
-                words={["Créer", "Organiser", "Partager", "Commenter", "Valider", "Avancer"]}
-              />
+              <AnimatedWord words={["Piloter", "Organiser", "Maîtriser"]} />
               <br />
               {/* Mobile + tablette : 2 lignes */}
               <span className="xl:hidden">
-                <span className="block text-foreground text-4xl md:text-5xl">vos projets,</span>
+                <span className="block text-foreground text-4xl md:text-5xl">votre activité,</span>
                 <span className="block text-foreground text-4xl md:text-5xl">simplement</span>
               </span>
               {/* Desktop : 1 ligne */}
               <span className="hidden xl:inline text-foreground whitespace-nowrap">
-                vos projets, simplement
+                votre activité, simplement
               </span>
             </motion.h1>
 
