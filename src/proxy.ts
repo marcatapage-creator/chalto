@@ -44,6 +44,7 @@ export async function proxy(request: NextRequest) {
   // Routes publiques — toujours accessibles
   const publicRoutes = [
     "/",
+    "/demo",
     "/login",
     "/register",
     "/onboarding",

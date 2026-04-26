@@ -556,6 +556,9 @@ export default function LandingPage() {
                   <ArrowRight className="hidden md:inline ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </a>
               </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/demo">Voir la démo</Link>
+              </Button>
             </motion.div>
 
             <motion.p
