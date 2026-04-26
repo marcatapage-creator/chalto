@@ -178,7 +178,10 @@ export function ProjectPageClient({
     setLocalDocs(documents)
   }, [documents])
 
-  const [detailsOpen, setDetailsOpen] = useState(true)
+  const isLatePhase = phase === "reception" || phase === "cloture"
+  const startCollapsed = isLatePhase && !initialHighlightId
+
+  const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
   const [docsOpen, setDocsOpen] = useState(
     !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
   )
@@ -258,12 +261,11 @@ export function ProjectPageClient({
     deadline: project.deadline,
     constraints: project.constraints,
   })
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches
-  )
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1280px)")
+    setIsDesktop(mq.matches)
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
     mq.addEventListener("change", handler)
     return () => mq.removeEventListener("change", handler)
@@ -439,6 +441,7 @@ export function ProjectPageClient({
                   contacts={contacts}
                   onContributorsChange={setContributorContactIds}
                   readOnly={phase === "cloture"}
+                  defaultOpen={!startCollapsed}
                 />
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
@@ -451,6 +454,7 @@ export function ProjectPageClient({
                     readOnly={phase === "cloture"}
                     highlightedId={highlightedTaskId}
                     externalInvitedIds={contributorContactIds}
+                    defaultOpen={!startCollapsed}
                   />
                 </ErrorBoundary>
               </div>

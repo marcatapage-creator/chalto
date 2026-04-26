@@ -27,6 +27,7 @@ import {
   Check,
   ListTodo,
   MessageSquare,
+  UserPlus,
 } from "lucide-react"
 
 const CHANTIER_DISMISSED_KEY = "chantier_onboarding_dismissed"
@@ -160,26 +161,34 @@ export function ProjectStepper({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-1">
-            <div className="flex items-start gap-3 rounded-lg border p-3">
-              <ListTodo className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Tâches</p>
-                <p className="text-xs text-muted-foreground">
-                  Créez des tâches et affectez-les à vos prestataires pour suivre l&apos;avancement
-                  du chantier.
-                </p>
+            {[
+              {
+                icon: UserPlus,
+                title: "Inviter vos prestataires",
+                description:
+                  "Ajoutez les intervenants du chantier pour leur donner accès au projet.",
+              },
+              {
+                icon: ListTodo,
+                title: "Tâches",
+                description:
+                  "Créez des tâches et affectez-les à vos prestataires pour suivre l'avancement du chantier.",
+              },
+              {
+                icon: MessageSquare,
+                title: "Fil de discussion chantier",
+                description:
+                  "Échangez directement avec vos prestataires via un fil de conversation dédié à ce chantier.",
+              },
+            ].map(({ icon: Icon, title, description }) => (
+              <div key={title} className="flex items-start gap-3 rounded-lg border p-3">
+                <Icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">{title}</p>
+                  <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border p-3">
-              <MessageSquare className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Fil de discussion chantier</p>
-                <p className="text-xs text-muted-foreground">
-                  Échangez directement avec vos prestataires via un fil de conversation dédié à ce
-                  chantier.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
           <DialogFooter className="flex-col gap-3 sm:flex-col">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground self-start">

@@ -199,7 +199,7 @@ export function ProjectDocuments({
           </span>
         </div>
         {!readOnly && (
-          <div className="flex items-center gap-1.5 pl-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-3 pl-3" onClick={(e) => e.stopPropagation()}>
             <GenerateDocumentDialog
               projectId={projectId}
               projectName={projectName}

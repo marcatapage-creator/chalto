@@ -76,6 +76,7 @@ interface ProjectTasksProps {
   readOnly?: boolean
   highlightedId?: string | null
   externalInvitedIds?: Set<string>
+  defaultOpen?: boolean
 }
 
 const columns = [
@@ -92,12 +93,13 @@ export function ProjectTasks({
   readOnly = false,
   highlightedId: highlightedIdProp,
   externalInvitedIds,
+  defaultOpen = true,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
   const [loaded, setLoaded] = useState(false)
   const [localContacts, setLocalContacts] = useState(contacts)
-  const [tasksOpen, setTasksOpen] = useState(true)
+  const [tasksOpen, setTasksOpen] = useState(defaultOpen)
   const [open, setOpen] = useState(false)
   const [dialogView, setDialogView] = useState<"task" | "new-contact">("task")
   const [loading, setLoading] = useState(false)

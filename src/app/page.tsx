@@ -604,6 +604,44 @@ export default function LandingPage() {
             <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => {
                 const Icon = feature.icon
+                const isAI = feature.title === "Génération IA"
+
+                if (isAI) {
+                  return (
+                    <div
+                      key={feature.title}
+                      className="h-full rounded-xl p-px"
+                      style={{
+                        background:
+                          "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
+                      }}
+                    >
+                      <Card className="h-full rounded-[11px] border-0 relative overflow-hidden">
+                        {/* Subtle gradient tint over dark bg-card */}
+                        <div
+                          className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                          style={{
+                            background:
+                              "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
+                          }}
+                        />
+                        <CardContent className="relative p-6 space-y-3">
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center"
+                            style={{ background: "hsl(224 79% 52% / 0.15)" }}
+                          >
+                            <Icon className="h-5 w-5" style={{ color: "hsl(224 79% 68%)" }} />
+                          </div>
+                          <h3 className="font-semibold">{feature.title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {feature.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )
+                }
+
                 return (
                   <Card
                     key={feature.title}

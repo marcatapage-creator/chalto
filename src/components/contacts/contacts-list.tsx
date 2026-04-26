@@ -176,15 +176,13 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
       .slice(0, 2)
 
   return (
-    <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <Input
-          placeholder="Rechercher un prestataire..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Annuaire</h1>
+          <p className="text-muted-foreground">Vos prestataires et partenaires</p>
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -277,6 +275,14 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Recherche */}
+      <Input
+        placeholder="Rechercher un prestataire..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-sm"
+      />
 
       {/* Liste */}
       {filtered.length > 0 ? (

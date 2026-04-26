@@ -27,7 +27,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { HoverButton } from "@/components/ui/motion"
 import { NotificationsForm } from "@/components/settings/notifications-form"
 import { BrandingForm } from "@/components/settings/branding-form"
 
@@ -179,11 +178,9 @@ export function SettingsForm({
         </Card>
 
         <div className="sticky bottom-0 z-10 bg-background border-t pt-3 pb-4 -mx-6 px-6 sm:static sm:border-0 sm:pt-0 sm:pb-0 sm:mx-0 sm:px-0">
-          <HoverButton>
-            <Button onClick={handleSave} loading={loading} className="w-full">
-              {loading ? "Sauvegarde..." : "Sauvegarder les modifications"}
-            </Button>
-          </HoverButton>
+          <Button onClick={handleSave} loading={loading} className="w-full">
+            {loading ? "Sauvegarde..." : "Sauvegarder les modifications"}
+          </Button>
         </div>
       </TabsContent>
 

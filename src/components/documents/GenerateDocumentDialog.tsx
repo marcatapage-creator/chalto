@@ -139,9 +139,14 @@ export function GenerateDocumentDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5 h-8">
+        <Button
+          size="sm"
+          className="gap-1.5 h-8 border-0 text-white hover:opacity-90 shadow-sm"
+          style={{ background: "linear-gradient(to right, hsl(224 79% 52%), #8b5cf6, #ec4899)" }}
+        >
           <Sparkles className="h-3.5 w-3.5" />
-          Générer
+          <span className="sm:hidden">IA</span>
+          <span className="hidden sm:inline">Générer IA</span>
         </Button>
       </DialogTrigger>
 

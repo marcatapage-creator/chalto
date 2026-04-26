@@ -52,6 +52,7 @@ interface ProjectContributorsProps {
   contacts: Contact[]
   onContributorsChange?: (ids: Set<string>) => void
   readOnly?: boolean
+  defaultOpen?: boolean
 }
 
 export function ProjectContributors({
@@ -59,8 +60,9 @@ export function ProjectContributors({
   contacts,
   onContributorsChange,
   readOnly = false,
+  defaultOpen = true,
 }: ProjectContributorsProps) {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(defaultOpen)
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
