@@ -17,6 +17,7 @@ import React from "react"
 import Link from "next/link"
 import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 import { DeleteProjectButton } from "@/components/projects/delete-project-button"
+import { ProjectsFilter } from "@/components/projects/projects-filter"
 
 function Indicator({
   icon: Icon,
@@ -56,7 +57,12 @@ const phaseMap: Record<string, string> = {
   cloture: "Clôturé",
 }
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
+  const { status: statusFilter } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -67,7 +73,16 @@ export default async function ProjectsPage() {
     .select("*")
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
-  const projects = data ?? []
+  const allProjects = data ?? []
+
+  const statusCounts: Record<string, number> = {}
+  for (const p of allProjects) {
+    statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1
+  }
+
+  const projects = statusFilter
+    ? allProjects.filter((p) => p.status === statusFilter)
+    : allProjects.filter((p) => p.status !== "archived")
 
   const projectIds = projects.map((p) => p.id)
 
@@ -116,6 +131,8 @@ export default async function ProjectsPage() {
             </Link>
           </Button>
         </FadeIn>
+
+        <ProjectsFilter counts={statusCounts} total={allProjects.length} />
 
         {projects.length > 0 ? (
           <StaggerList className="space-y-3">
@@ -208,7 +225,11 @@ export default async function ProjectsPage() {
                           <p className="text-xs text-muted-foreground hidden xl:block">
                             {new Date(project.created_at).toLocaleDateString("fr-FR")}
                           </p>
-                          <DeleteProjectButton projectId={project.id} projectName={project.name} />
+                          <DeleteProjectButton
+                            projectId={project.id}
+                            projectName={project.name}
+                            projectStatus={project.status}
+                          />
                         </div>
                       </CardContent>
                     </Card>

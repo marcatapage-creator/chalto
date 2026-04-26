@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { fetchDashboardCounts } from "@/app/(dashboard)/dashboard/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FolderOpen, FileText, CheckCircle, Clock } from "lucide-react"
+import { FolderOpen, FileText, CheckCircle, Clock, CheckCircle2 } from "lucide-react"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 
 interface Counts {
@@ -42,21 +42,37 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
     }
   }, [refreshCounts, supabase])
 
+  const allClear = counts.pending === 0
+
   const stats = [
     {
       label: "Projets actifs",
       value: counts.activeProjects,
       icon: FolderOpen,
       description: "En cours",
+      allClear: false,
     },
-    { label: "Documents", value: counts.totalDocs, icon: FileText, description: "Total" },
+    {
+      label: "Documents",
+      value: counts.totalDocs,
+      icon: FileText,
+      description: "Total",
+      allClear: false,
+    },
     {
       label: "Validations reçues",
       value: counts.approved,
       icon: CheckCircle,
       description: "Approuvés",
+      allClear: false,
     },
-    { label: "En attente", value: counts.pending, icon: Clock, description: "Envoyés" },
+    {
+      label: "En attente",
+      value: counts.pending,
+      icon: allClear ? CheckCircle2 : Clock,
+      description: allClear ? "Tout est à jour ✓" : "Envoyés",
+      allClear,
+    },
   ]
 
   return (
@@ -70,11 +86,29 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.label}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon
+                  className={
+                    stat.allClear ? "h-4 w-4 text-green-500" : "h-4 w-4 text-muted-foreground"
+                  }
+                />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                <div
+                  className={
+                    stat.allClear ? "text-2xl font-bold text-green-500" : "text-2xl font-bold"
+                  }
+                >
+                  {stat.value}
+                </div>
+                <p
+                  className={
+                    stat.allClear
+                      ? "text-xs text-green-600 mt-1 font-medium"
+                      : "text-xs text-muted-foreground mt-1"
+                  }
+                >
+                  {stat.description}
+                </p>
               </CardContent>
             </Card>
           </StaggerItem>

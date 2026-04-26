@@ -14,13 +14,13 @@ import {
   CheckCircle,
   FileText,
   Users,
-  Zap,
   Shield,
   Star,
   ArrowRight,
   FolderOpen,
   Menu,
   X,
+  Sparkles,
 } from "lucide-react"
 
 const noop = () => () => {}
@@ -157,28 +157,22 @@ const features = [
       "Centralisez tous vos projets, clients et intervenants dans un espace unique et organisé.",
   },
   {
+    icon: Sparkles,
+    title: "Génération IA",
+    description:
+      "Générez un CCTP complet en quelques secondes. L'IA rédige, vous relisez et validez.",
+  },
+  {
     icon: FileText,
     title: "Documents professionnels",
     description:
       "Créez et gérez vos CCTP, notices, devis et comptes-rendus depuis une interface simple.",
   },
   {
-    icon: CheckCircle,
-    title: "Validation client en 1 clic",
-    description:
-      "Envoyez un lien sécurisé à votre client. Il approuve ou commente sans avoir de compte.",
-  },
-  {
     icon: Users,
     title: "Coordination des intervenants",
     description:
-      "Ajoutez plombiers, électriciens et autres corps de métier à vos projets facilement.",
-  },
-  {
-    icon: Zap,
-    title: "Multi-métiers",
-    description:
-      "Architecte, plombier, électricien — Chalto s'adapte à votre métier et vos documents.",
+      "Réunissez architectes, plombiers, électriciens dans un espace partagé par chantier.",
   },
   {
     icon: Shield,
@@ -587,6 +581,25 @@ export default function LandingPage() {
               </div>
             </AnimateIn>
 
+            {/* Hero feature — Validation client */}
+            <AnimateIn>
+              <Card className="mb-6 border-primary/40 bg-primary/5 hover:border-primary/70 transition-colors duration-200">
+                <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="bg-primary/15 w-14 h-14 rounded-xl flex items-center justify-center shrink-0">
+                    <CheckCircle className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-bold mb-1">Validation client en 1 clic</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Envoyez un lien sécurisé à votre client. Il approuve ou commente directement —{" "}
+                      <span className="text-foreground font-medium">sans créer de compte</span>.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimateIn>
+
+            {/* Grille 5 features */}
             <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => {
                 const Icon = feature.icon

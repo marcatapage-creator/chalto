@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { DOCUMENT_STATUS } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FolderOpen } from "lucide-react"
+import { FolderOpen, Plus } from "lucide-react"
 import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 import Link from "next/link"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
@@ -109,6 +109,18 @@ export default async function DashboardPage() {
                   </Link>
                 </StaggerItem>
               ))}
+              {projects.length < 5 && (
+                <StaggerItem>
+                  <Link href="/projects/new">
+                    <Card className="cursor-pointer border-dashed hover:border-primary/50 hover:bg-muted/30 transition-colors duration-150">
+                      <CardContent className="flex items-center gap-3 p-4 text-muted-foreground">
+                        <Plus className="h-4 w-4 shrink-0" />
+                        <p className="text-sm">Nouveau projet</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </StaggerItem>
+              )}
             </StaggerList>
           ) : (
             <Card>

@@ -16,22 +16,44 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { toast } from "sonner"
 
 export function DeleteProjectButton({
   projectId,
   projectName,
+  projectStatus,
 }: {
   projectId: string
   projectName: string
+  projectStatus?: string
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [archiving, setArchiving] = useState(false)
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
+
+  const isArchived = projectStatus === "archived"
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    const newStatus = isArchived ? "active" : "archived"
+    const { error } = await supabase
+      .from("projects")
+      .update({ status: newStatus })
+      .eq("id", projectId)
+    if (error) {
+      toast.error("Erreur lors de l'opération")
+    } else {
+      toast.success(isArchived ? "Projet désarchivé" : "Projet archivé")
+      router.refresh()
+    }
+    setArchiving(false)
+  }
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -49,7 +71,7 @@ export function DeleteProjectButton({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={archiving}>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -58,6 +80,20 @@ export function DeleteProjectButton({
             <Pencil className="mr-2 h-4 w-4" />
             Modifier
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleArchive}>
+            {isArchived ? (
+              <>
+                <ArchiveRestore className="mr-2 h-4 w-4" />
+                Désarchiver
+              </>
+            ) : (
+              <>
+                <Archive className="mr-2 h-4 w-4" />
+                Archiver
+              </>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setConfirmOpen(true)}
             className="text-destructive focus:text-destructive"
