@@ -292,14 +292,7 @@ function AIFeatureCard({
           to { --ai-angle: 360deg; }
         }
         .ai-card-border {
-          background: conic-gradient(
-            from var(--ai-angle),
-            hsl(224 79% 45%),
-            #8b5cf6,
-            #ec4899,
-            hsl(220 100% 82%),
-            hsl(224 79% 45%)
-          );
+          background: conic-gradient(from var(--ai-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, #ec489960, hsl(224 79% 65% / 0.45), transparent 75%);
           animation: ai-border-spin 7s linear infinite;
         }
       `}</style>
@@ -663,13 +656,7 @@ export default function LandingPage() {
                   inherits: false;
                 }
                 .hero-card-border {
-                  background: conic-gradient(
-                    from var(--hero-angle),
-                    hsl(224 79% 45%),
-                    #8b5cf6,
-                    hsl(220 100% 82%),
-                    hsl(224 79% 45%)
-                  );
+                  background: conic-gradient(from var(--hero-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, hsl(224 79% 65% / 0.45), transparent 75%);
                   animation: hero-border-spin 7s linear infinite;
                 }
               `}</style>
@@ -791,35 +778,41 @@ export default function LandingPage() {
                       <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
                     </div>
                   )}
-                  <Card className={`h-full ${plan.highlighted ? "border-primary shadow-lg" : ""}`}>
-                    <CardContent className="p-6 space-y-6">
-                      <div>
-                        <h3 className="font-bold text-lg">{plan.name}</h3>
-                        <p className="text-muted-foreground text-sm">{plan.description}</p>
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold">{plan.price}</span>
-                        {plan.period && (
-                          <span className="text-muted-foreground text-sm">{plan.period}</span>
-                        )}
-                      </div>
-                      <ul className="space-y-2">
-                        {plan.features.map((f) => (
-                          <li key={f} className="flex items-center gap-2 text-sm">
-                            <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button
-                        className="w-full"
-                        variant={plan.highlighted ? "default" : "outline"}
-                        asChild
-                      >
-                        <a href="#waitlist">{plan.cta}</a>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <div
+                    className={
+                      plan.highlighted ? "hero-card-border rounded-xl p-px h-full" : "h-full"
+                    }
+                  >
+                    <Card className={`h-full ${plan.highlighted ? "rounded-[11px] border-0" : ""}`}>
+                      <CardContent className="p-6 space-y-6">
+                        <div>
+                          <h3 className="font-bold text-lg">{plan.name}</h3>
+                          <p className="text-muted-foreground text-sm">{plan.description}</p>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold">{plan.price}</span>
+                          {plan.period && (
+                            <span className="text-muted-foreground text-sm">{plan.period}</span>
+                          )}
+                        </div>
+                        <ul className="space-y-2">
+                          {plan.features.map((f) => (
+                            <li key={f} className="flex items-center gap-2 text-sm">
+                              <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button
+                          className="w-full"
+                          variant={plan.highlighted ? "default" : "outline"}
+                          asChild
+                        >
+                          <a href="#waitlist">{plan.cta}</a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               ))}
             </StaggerGrid>
