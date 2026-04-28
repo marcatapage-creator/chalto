@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { DOCUMENT_STATUS } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { FolderOpen, Plus } from "lucide-react"
 import { FadeIn, StaggerList, StaggerItem } from "@/components/ui/motion"
 import Link from "next/link"
@@ -52,9 +53,17 @@ export default async function DashboardPage() {
   return (
     <div className="flex-1 overflow-auto">
       <div className="p-6 md:p-8 space-y-8">
-        <FadeIn>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Vue d&apos;ensemble de votre activité</p>
+        <FadeIn className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
+            <p className="text-muted-foreground">Vue d&apos;ensemble de votre activité</p>
+          </div>
+          <Button asChild>
+            <Link href="/projects/new">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nouveau projet</span>
+            </Link>
+          </Button>
         </FadeIn>
 
         <DashboardStats userId={user!.id} initialCounts={initialCounts} />

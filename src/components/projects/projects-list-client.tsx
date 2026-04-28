@@ -111,7 +111,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
               key={value}
               onClick={() => setFilter(value)}
               className={cn(
-                "inline-flex items-center gap-1.5 pl-3 pr-1.75 py-1.5 rounded-full text-sm font-medium transition-colors",
+                "inline-flex cursor-pointer items-center gap-1.5 pl-3 pr-1.75 py-1.5 rounded-full text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"

@@ -301,7 +301,7 @@ export function ProjectStepper({
                     className={cn(
                       "h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
                       isCompleted
-                        ? "bg-primary text-primary-foreground hover:bg-primary/80"
+                        ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                         : isActive
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "bg-muted text-muted-foreground"

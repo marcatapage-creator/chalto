@@ -57,7 +57,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
       data-slot="tabs-trigger"
       className={cn(
         // Base
-        "relative inline-flex h-[calc(100%-6px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap",
+        "relative inline-flex h-[calc(100%-6px)] flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap",
         "rounded-md px-3 py-1.5 text-sm font-medium",
         "border border-transparent",
         "transition-all duration-150 ease-out",
