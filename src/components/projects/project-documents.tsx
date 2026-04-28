@@ -73,7 +73,7 @@ function DocItem({
         onClick={() => onSelectDoc(doc)}
         className={cn(
           "cursor-pointer transition-all duration-500 hover:shadow-sm hover:bg-muted/50 group",
-          isSelected && "border-primary",
+          isSelected && "sm:border-primary sm:ring-2 sm:ring-primary/25",
           highlightedId === doc.id && "border-ring ring-3 ring-ring/50"
         )}
       >
