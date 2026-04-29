@@ -34,6 +34,11 @@ const buttonVariants = cva(
         "icon-lg": "size-8",
       },
     },
+    compoundVariants: [
+      { variant: "default", size: "xs", className: "pr-3" },
+      { variant: "default", size: ["default", "sm"], className: "pr-3.5" },
+      { variant: "default", size: "lg", className: "pr-[18px]" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
