@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
@@ -15,7 +16,13 @@ export const metadata: Metadata = {
     title: "Comment rédiger un CCTP en 2026 (avec modèle) | Chalto",
     description:
       "Le CCTP est un document clé dans tout projet de construction. Découvrez comment le rédiger efficacement.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 }
 
@@ -46,6 +53,18 @@ export default function ArticlePage() {
             importants d&apos;un marché de travaux. Mal rédigé, il expose à des litiges coûteux.
             Bien rédigé, il protège toutes les parties et clarifie les attentes dès le départ.
           </p>
+        </div>
+
+        {/* Hero image */}
+        <div className="rounded-xl overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80&auto=format&fit=crop"
+            alt="Rédaction de documents techniques sur chantier"
+            width={1200}
+            height={630}
+            className="w-full object-cover aspect-video"
+            priority
+          />
         </div>
 
         {/* Contenu */}

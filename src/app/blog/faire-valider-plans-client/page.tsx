@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
@@ -11,6 +12,18 @@ export const metadata: Metadata = {
   title: "Comment faire valider ses plans par un client sans email",
   description:
     "Les allers-retours par email font perdre un temps précieux aux architectes. Découvrez comment moderniser votre workflow de validation de plans avec vos clients.",
+  openGraph: {
+    title: "Comment faire valider ses plans par un client sans email | Chalto",
+    description:
+      "Les allers-retours par email font perdre un temps précieux. Voici comment moderniser votre workflow de validation.",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
 }
 
 export default function ArticlePage() {
@@ -39,6 +52,18 @@ export default function ArticlePage() {
             Les allers-retours par email font perdre un temps précieux. Voici comment moderniser
             votre workflow de validation pour gagner en efficacité et en professionnalisme.
           </p>
+        </div>
+
+        {/* Hero image */}
+        <div className="rounded-xl overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80&auto=format&fit=crop"
+            alt="Architecte révisant des plans avec un client"
+            width={1200}
+            height={630}
+            className="w-full object-cover aspect-video"
+            priority
+          />
         </div>
 
         {/* Contenu */}

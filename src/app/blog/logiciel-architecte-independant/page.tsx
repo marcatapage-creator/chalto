@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle, X } from "lucide-react"
@@ -11,6 +12,18 @@ export const metadata: Metadata = {
   title: "Quel logiciel pour un architecte indépendant en 2026 ?",
   description:
     "Archipad, Ooti, Chalto... Quel logiciel choisir quand on est architecte indépendant en 2026 ? Comparatif honnête des meilleurs outils pour gérer ses projets, ses clients et ses documents.",
+  openGraph: {
+    title: "Quel logiciel pour un architecte indépendant en 2026 ? | Chalto",
+    description:
+      "Comparatif honnête des meilleurs outils pour gérer ses projets, ses clients et ses documents.",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&q=80&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
 }
 
 export default function ArticlePage() {
@@ -40,6 +53,18 @@ export default function ArticlePage() {
             de s&apos;y retrouver. On fait le point sur ce qui existe vraiment et ce qui vaut le
             coup.
           </p>
+        </div>
+
+        {/* Hero image */}
+        <div className="rounded-xl overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&q=80&auto=format&fit=crop"
+            alt="Architecte indépendant travaillant sur son projet"
+            width={1200}
+            height={630}
+            className="w-full object-cover aspect-video"
+            priority
+          />
         </div>
 
         {/* Contenu */}

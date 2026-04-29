@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
@@ -15,7 +16,13 @@ export const metadata: Metadata = {
     title: "Comment faire signer un devis artisan rapidement | Chalto",
     description:
       "Devis en attente depuis 3 semaines ? Découvrez les méthodes concrètes pour faire signer vos devis plus vite.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 }
 
@@ -46,6 +53,18 @@ export default function ArticlePage() {
             C&apos;est le scénario le plus frustrant du métier. Voici pourquoi ça arrive et comment
             l&apos;éviter.
           </p>
+        </div>
+
+        {/* Hero image */}
+        <div className="rounded-xl overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80&auto=format&fit=crop"
+            alt="Signature d'un accord commercial entre deux personnes"
+            width={1200}
+            height={630}
+            className="w-full object-cover aspect-video"
+            priority
+          />
         </div>
 
         {/* Contenu */}

@@ -13,6 +13,51 @@ export const metadata: Metadata = {
 
 const articles = [
   {
+    slug: "compte-rendu-chantier",
+    title: "Comment rédiger un compte rendu de chantier efficace",
+    description:
+      "20 minutes de rédaction par semaine peuvent vous éviter des mois de litige. Le CR de chantier est l'outil de protection le plus sous-estimé du bâtiment.",
+    category: "Gestion de chantier",
+    date: "29 avril 2026",
+    readTime: "7 min",
+  },
+  {
+    slug: "reception-chantier-guide",
+    title: "Réception de chantier : guide complet (réserves, PV, délais)",
+    description:
+      "La réception est un acte juridique qui transfère la responsabilité des ouvrages. Tout savoir sur les réserves, le PV et les garanties légales.",
+    category: "Documents",
+    date: "29 avril 2026",
+    readTime: "8 min",
+  },
+  {
+    slug: "delai-paiement-btp",
+    title: "Délais de paiement dans le BTP : droits et recours",
+    description:
+      "Factures impayées, délais non respectés — connaissez vos droits légaux et les recours disponibles pour vous faire payer dans les temps.",
+    category: "Facturation",
+    date: "29 avril 2026",
+    readTime: "7 min",
+  },
+  {
+    slug: "remplacer-excel-chantier",
+    title: "Pourquoi Excel ne suffit plus pour gérer un chantier",
+    description:
+      "Excel est partout dans le BTP, mais il n'a pas été conçu pour ça. Voici les signaux qui montrent qu'il est temps de passer à autre chose.",
+    category: "Outils & logiciels",
+    date: "29 avril 2026",
+    readTime: "6 min",
+  },
+  {
+    slug: "notice-descriptive-travaux",
+    title: "Notice descriptive de travaux : qu'est-ce que c'est et comment la rédiger ?",
+    description:
+      "La notice descriptive traduit les plans en mots pour votre client. Un document contractuel essentiel pour éviter les malentendus.",
+    category: "Documents",
+    date: "29 avril 2026",
+    readTime: "6 min",
+  },
+  {
     slug: "rediger-cctp-batiment",
     title: "Comment rédiger un CCTP en 2026 (avec modèle)",
     description:

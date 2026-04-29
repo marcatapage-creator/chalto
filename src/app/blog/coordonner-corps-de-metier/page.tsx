@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
@@ -11,6 +12,18 @@ export const metadata: Metadata = {
   title: "Comment coordonner plusieurs corps de métier sur un chantier",
   description:
     "Architectes, plombiers, électriciens — gérer plusieurs intervenants sur un chantier est un défi quotidien. Voici les meilleures pratiques pour coordonner efficacement.",
+  openGraph: {
+    title: "Comment coordonner plusieurs corps de métier sur un chantier | Chalto",
+    description:
+      "Architectes, plombiers, électriciens — gérer plusieurs intervenants sur un chantier est un défi quotidien.",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
 }
 
 export default function ArticlePage() {
@@ -40,6 +53,18 @@ export default function ArticlePage() {
             intervenants ensemble sans chaos, c&apos;est tout un art. Voici les méthodes qui
             fonctionnent vraiment.
           </p>
+        </div>
+
+        {/* Hero image */}
+        <div className="rounded-xl overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80&auto=format&fit=crop"
+            alt="Ouvriers sur un chantier de construction"
+            width={1200}
+            height={630}
+            className="w-full object-cover aspect-video"
+            priority
+          />
         </div>
 
         {/* Contenu */}
