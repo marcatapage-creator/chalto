@@ -827,7 +827,7 @@ export function ContributorSpace({
                             <div className="flex items-start gap-3 flex-1">
                               <div
                                 className={cn(
-                                  "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 cursor-pointer transition-all",
+                                  "h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 cursor-pointer transition-all",
                                   task.status === "done"
                                     ? "border-primary bg-primary"
                                     : "border-muted-foreground hover:border-primary"
