@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
+import { ShareButtons } from "@/components/blog/share-buttons"
 
 export const revalidate = false
 
@@ -270,6 +271,12 @@ export default function ArticlePage() {
             </Link>
           </Button>
         </div>
+
+        {/* Partager */}
+        <ShareButtons
+          title="Comment faire valider ses plans par un client sans email"
+          url="https://chalto.fr/blog/faire-valider-plans-client"
+        />
 
         {/* Navigation */}
         <div className="border-t pt-8">
