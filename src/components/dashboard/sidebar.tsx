@@ -91,7 +91,7 @@ function SidebarContent({
       <Separator />
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 bg-muted dark:bg-transparent">
         {navigation.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -112,7 +112,7 @@ function SidebarContent({
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
               {item.countKey && (
-                <span className="ml-auto text-xs bg-background dark:bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto text-xs bg-background text-muted-foreground px-1.5 py-0.5 rounded-full">
                   {counts[item.countKey]}
                 </span>
               )}
@@ -168,7 +168,7 @@ export function Sidebar({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden xl:flex w-64 border-r bg-muted dark:bg-card flex-col h-full">
+      <aside className="hidden xl:flex w-64 border-r bg-card flex-col h-full">
         <SidebarContent profile={profile} counts={counts} notifProps={notifProps} />
       </aside>
 
