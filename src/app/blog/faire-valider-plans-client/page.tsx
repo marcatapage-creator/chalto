@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
 
+export const revalidate = false
+
 export const metadata: Metadata = {
   title: "Comment faire valider ses plans par un client sans email",
   description:

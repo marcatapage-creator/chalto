@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight } from "lucide-react"
 
+export const revalidate = false
+
 export const metadata: Metadata = {
   title: "Blog",
   description: "Conseils et guides pour les professionnels du bâtiment.",

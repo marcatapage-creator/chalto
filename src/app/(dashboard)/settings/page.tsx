@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { SettingsForm } from "@/components/settings/settings-form"
 import { FadeIn } from "@/components/ui/motion"
+import { getProfessions } from "@/lib/cached-queries"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -8,13 +9,10 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*, professions(id, label, slug)")
-    .eq("id", user!.id)
-    .single()
-
-  const { data: professions } = await supabase.from("professions").select("id, label, slug")
+  const [{ data: profile }, professions] = await Promise.all([
+    supabase.from("profiles").select("*, professions(id, label, slug)").eq("id", user!.id).single(),
+    getProfessions(),
+  ])
 
   return (
     <div className="flex-1 overflow-auto">
@@ -25,7 +23,7 @@ export default async function SettingsPage() {
         </FadeIn>
         <SettingsForm
           profile={profile}
-          professions={professions ?? []}
+          professions={professions}
           notifProfile={{
             id: profile?.id ?? "",
             notif_email_approved: profile?.notif_email_approved !== false,

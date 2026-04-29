@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, CheckCircle, X } from "lucide-react"
 
+export const revalidate = false
+
 export const metadata: Metadata = {
   title: "Quel logiciel pour un architecte indépendant en 2026 ?",
   description:
