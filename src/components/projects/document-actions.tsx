@@ -18,6 +18,8 @@ import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
 import { toast } from "sonner"
 import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 
 interface Contributor {
@@ -286,30 +288,32 @@ export function DocumentActions({
 
             {/* Type de demande (prestataires uniquement) */}
             {audience === "contributor" && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setRequestType("validation")}
-                  className={cn(
-                    "text-sm px-3 py-2 rounded-lg border-2 transition-all text-center",
-                    requestType === "validation"
-                      ? "border-primary bg-primary/5 font-medium"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  Pour validation
-                </button>
-                <button
-                  onClick={() => setRequestType("transmission")}
-                  className={cn(
-                    "text-sm px-3 py-2 rounded-lg border-2 transition-all text-center",
-                    requestType === "transmission"
-                      ? "border-primary bg-primary/5 font-medium"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  Pour information
-                </button>
-              </div>
+              <RadioGroup
+                value={requestType}
+                onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
+                className="grid grid-cols-2 gap-2"
+              >
+                {(
+                  [
+                    { value: "validation", label: "Pour validation" },
+                    { value: "transmission", label: "Pour information" },
+                  ] as const
+                ).map(({ value, label }) => (
+                  <Label
+                    key={value}
+                    htmlFor={`rt-${value}`}
+                    className={cn(
+                      "flex items-center gap-2.5 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none",
+                      requestType === value
+                        ? "border-primary bg-primary/5 font-medium"
+                        : "border-border hover:border-primary/50 font-normal text-muted-foreground"
+                    )}
+                  >
+                    <RadioGroupItem id={`rt-${value}`} value={value} />
+                    {label}
+                  </Label>
+                ))}
+              </RadioGroup>
             )}
 
             {/* Message facultatif */}
