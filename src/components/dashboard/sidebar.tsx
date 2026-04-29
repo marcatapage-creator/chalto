@@ -168,12 +168,12 @@ export function Sidebar({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden xl:flex w-64 border-r bg-card flex-col h-full">
+      <aside className="hidden xl:flex w-64 border-r bg-muted dark:bg-card flex-col h-full">
         <SidebarContent profile={profile} counts={counts} notifProps={notifProps} />
       </aside>
 
       {/* Mobile/tablet header + burger */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
+      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-muted dark:bg-card">
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
@@ -205,7 +205,7 @@ export function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-              className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
+              className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-muted dark:bg-card border-r"
             >
               <SidebarContent
                 profile={profile}
