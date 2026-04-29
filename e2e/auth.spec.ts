@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 
 test("login — le formulaire s'affiche correctement", async ({ page }) => {
   await page.goto("/login")
+  await page.getByRole("button", { name: /continuer avec email/i }).click()
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible()
   await expect(page.getByRole("textbox", { name: /mot de passe|password/i })).toBeVisible()
   await expect(page.getByRole("button", { name: /connexion|se connecter/i })).toBeVisible()
@@ -9,6 +10,7 @@ test("login — le formulaire s'affiche correctement", async ({ page }) => {
 
 test("login — email invalide affiche une erreur", async ({ page }) => {
   await page.goto("/login")
+  await page.getByRole("button", { name: /continuer avec email/i }).click()
   await page.getByRole("textbox", { name: /email/i }).fill("pasunemail")
   await page.getByRole("button", { name: /connexion|se connecter/i }).click()
   // Validation HTML5 native ou message d'erreur
