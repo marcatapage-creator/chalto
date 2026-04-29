@@ -13,6 +13,24 @@ export const metadata: Metadata = {
 
 const articles = [
   {
+    slug: "rediger-cctp-batiment",
+    title: "Comment rédiger un CCTP en 2026 (avec modèle)",
+    description:
+      "Le CCTP est un document clé dans tout projet de construction. Structure type, erreurs à éviter et comment l'IA peut vous faire gagner des heures.",
+    category: "Documents",
+    date: "29 avril 2026",
+    readTime: "7 min",
+  },
+  {
+    slug: "faire-signer-devis-artisan",
+    title: "Comment faire signer un devis artisan rapidement",
+    description:
+      "Devis en attente depuis 3 semaines ? Les méthodes concrètes pour accélérer la signature et réduire les abandons clients.",
+    category: "Relation client",
+    date: "29 avril 2026",
+    readTime: "6 min",
+  },
+  {
     slug: "faire-valider-plans-client",
     title: "Comment faire valider ses plans par un client sans email",
     description:
