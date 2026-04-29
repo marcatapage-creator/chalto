@@ -320,6 +320,10 @@ function AIFeatureCard({
   )
 }
 
+// Sections temporairement masquées — passer à true pour réafficher
+const SHOW_TESTIMONIALS = false
+const SHOW_PRICING = false
+
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -413,12 +417,16 @@ export default function LandingPage() {
               <a href="#features" className="hover:text-foreground transition-colors">
                 Fonctionnalités
               </a>
-              <a href="#pricing" className="hover:text-foreground transition-colors">
-                Tarifs
-              </a>
-              <a href="#testimonials" className="hover:text-foreground transition-colors">
-                Témoignages
-              </a>
+              {SHOW_PRICING && (
+                <a href="#pricing" className="hover:text-foreground transition-colors">
+                  Tarifs
+                </a>
+              )}
+              {SHOW_TESTIMONIALS && (
+                <a href="#testimonials" className="hover:text-foreground transition-colors">
+                  Témoignages
+                </a>
+              )}
               <Link href="/blog" className="hover:text-foreground transition-colors">
                 Blog
               </Link>
@@ -481,18 +489,24 @@ export default function LandingPage() {
                     { label: "Tarifs", id: "pricing" },
                     { label: "Témoignages", id: "testimonials" },
                     { label: "Rejoindre la bêta", id: "waitlist" },
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        scrollToSection(item.id)
-                        setMenuOpen(false)
-                      }}
-                      className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                  ]
+                    .filter((item) => {
+                      if (item.id === "pricing" && !SHOW_PRICING) return false
+                      if (item.id === "testimonials" && !SHOW_TESTIMONIALS) return false
+                      return true
+                    })
+                    .map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          scrollToSection(item.id)
+                          setMenuOpen(false)
+                        }}
+                        className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                   <Link
                     href="/blog"
                     onClick={() => setMenuOpen(false)}
@@ -722,102 +736,108 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials */}
-        <section id="testimonials" className="py-20 px-6 md:px-4">
-          <div className="max-w-6xl mx-auto">
-            <AnimateIn>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tight">Ils utilisent Chalto</h2>
-                <p className="text-muted-foreground mt-2">
-                  Des professionnels qui ont simplifié leur quotidien
-                </p>
-              </div>
-            </AnimateIn>
+        {SHOW_TESTIMONIALS && (
+          <section id="testimonials" className="py-20 px-6 md:px-4">
+            <div className="max-w-6xl mx-auto">
+              <AnimateIn>
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tight">Ils utilisent Chalto</h2>
+                  <p className="text-muted-foreground mt-2">
+                    Des professionnels qui ont simplifié leur quotidien
+                  </p>
+                </div>
+              </AnimateIn>
 
-            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <Card key={t.name} className="h-full">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex gap-1">
-                      {Array.from({ length: t.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {`"${t.content}"`}
-                    </p>
-                    <div>
-                      <p className="font-medium text-sm">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.role}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </StaggerGrid>
-          </div>
-        </section>
+              <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {testimonials.map((t) => (
+                  <Card key={t.name} className="h-full">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex gap-1">
+                        {Array.from({ length: t.rating }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                        ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {`"${t.content}"`}
+                      </p>
+                      <div>
+                        <p className="font-medium text-sm">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </StaggerGrid>
+            </div>
+          </section>
+        )}
 
         {/* Pricing */}
-        <section id="pricing" className="py-20 px-6 md:px-4 bg-muted/30">
-          <div className="max-w-5xl mx-auto">
-            <AnimateIn>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tight">
-                  Tarifs simples et transparents
-                </h2>
-                <p className="text-muted-foreground mt-2">
-                  Commencez gratuitement, évoluez selon vos besoins
-                </p>
-              </div>
-            </AnimateIn>
-
-            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              {plans.map((plan) => (
-                <div key={plan.name} className="relative flex flex-col pt-3">
-                  {plan.highlighted && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-                      <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
-                    </div>
-                  )}
-                  <div
-                    className={
-                      plan.highlighted ? "hero-card-border rounded-xl p-px h-full" : "h-full"
-                    }
-                  >
-                    <Card className={`h-full ${plan.highlighted ? "rounded-[11px] border-0" : ""}`}>
-                      <CardContent className="p-6 space-y-6">
-                        <div>
-                          <h3 className="font-bold text-lg">{plan.name}</h3>
-                          <p className="text-muted-foreground text-sm">{plan.description}</p>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">{plan.price}</span>
-                          {plan.period && (
-                            <span className="text-muted-foreground text-sm">{plan.period}</span>
-                          )}
-                        </div>
-                        <ul className="space-y-2">
-                          {plan.features.map((f) => (
-                            <li key={f} className="flex items-center gap-2 text-sm">
-                              <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                        <Button
-                          className="w-full"
-                          variant={plan.highlighted ? "default" : "outline"}
-                          asChild
-                        >
-                          <a href="#waitlist">{plan.cta}</a>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
+        {SHOW_PRICING && (
+          <section id="pricing" className="py-20 px-6 md:px-4 bg-muted/30">
+            <div className="max-w-5xl mx-auto">
+              <AnimateIn>
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tight">
+                    Tarifs simples et transparents
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Commencez gratuitement, évoluez selon vos besoins
+                  </p>
                 </div>
-              ))}
-            </StaggerGrid>
-          </div>
-        </section>
+              </AnimateIn>
+
+              <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                {plans.map((plan) => (
+                  <div key={plan.name} className="relative flex flex-col pt-3">
+                    {plan.highlighted && (
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                        <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
+                      </div>
+                    )}
+                    <div
+                      className={
+                        plan.highlighted ? "hero-card-border rounded-xl p-px h-full" : "h-full"
+                      }
+                    >
+                      <Card
+                        className={`h-full ${plan.highlighted ? "rounded-[11px] border-0" : ""}`}
+                      >
+                        <CardContent className="p-6 space-y-6">
+                          <div>
+                            <h3 className="font-bold text-lg">{plan.name}</h3>
+                            <p className="text-muted-foreground text-sm">{plan.description}</p>
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold">{plan.price}</span>
+                            {plan.period && (
+                              <span className="text-muted-foreground text-sm">{plan.period}</span>
+                            )}
+                          </div>
+                          <ul className="space-y-2">
+                            {plan.features.map((f) => (
+                              <li key={f} className="flex items-center gap-2 text-sm">
+                                <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                          <Button
+                            className="w-full"
+                            variant={plan.highlighted ? "default" : "outline"}
+                            asChild
+                          >
+                            <a href="#waitlist">{plan.cta}</a>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                ))}
+              </StaggerGrid>
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section className="py-20 px-6 md:px-4">
