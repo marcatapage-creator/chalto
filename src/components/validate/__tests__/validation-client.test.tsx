@@ -8,7 +8,11 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     from: () => ({
       select: () => ({
-        eq: () => ({ order: () => ({ then: (cb: (r: unknown) => void) => cb({ data: [] }) }) }),
+        eq: () => ({
+          order: () => ({
+            limit: () => ({ then: (cb: (r: unknown) => void) => cb({ data: [] }) }),
+          }),
+        }),
       }),
     }),
   }),
