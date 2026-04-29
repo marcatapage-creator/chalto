@@ -92,10 +92,17 @@ export function DocumentActions({
           return
         }
 
-        await supabase.rpc("send_document_to_client", {
+        const { error: rpcError } = await supabase.rpc("send_document_to_client", {
           p_document_id: documentId,
           p_status: status === "approved" ? "approved" : "sent",
         })
+
+        if (rpcError) {
+          console.error("[send_document_to_client]", rpcError)
+          toast.error("Erreur lors de la mise à jour du document — réessayez")
+          setLoading(false)
+          return
+        }
 
         if (selectedContributors.length > 0) {
           await supabase.from("document_contributors").upsert(
