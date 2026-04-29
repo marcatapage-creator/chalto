@@ -491,6 +491,7 @@ export function DocumentPanel({
       .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
+      .limit(50)
     if (error) {
       console.error("[document-panel] fetchAllValidations error:", error)
       toast.error("Impossible de charger les validations")
@@ -550,6 +551,7 @@ export function DocumentPanel({
       .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
+      .limit(50)
       .then(({ data }) => {
         if (data) setAllValidations(data)
       })
@@ -561,6 +563,7 @@ export function DocumentPanel({
       .select("contributor_id")
       .eq("document_id", document.id)
       .eq("request_type", "validation")
+      .limit(20)
       .then(async ({ data: dcs }) => {
         if (!dcs?.length) return
         const ids = dcs.map((d) => d.contributor_id)

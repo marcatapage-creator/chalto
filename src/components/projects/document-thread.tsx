@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FadeIn } from "@/components/ui/motion"
+
+const PAGE_SIZE = 50
 
 interface Message {
   id: string
@@ -25,23 +27,29 @@ interface DocumentThreadProps {
 
 export function DocumentThread({ documentId, authorName, authorRole }: DocumentThreadProps) {
   const [messages, setMessages] = useState<Message[]>([])
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const supabase = createClient()
+  const loadedCount = useRef(0)
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("document_id", documentId)
-        .order("created_at", { ascending: true })
-
-      if (data) setMessages(data)
-    }
-
-    fetchMessages()
+    supabase
+      .from("messages")
+      .select("*", { count: "exact" })
+      .eq("document_id", documentId)
+      .order("created_at", { ascending: false })
+      .limit(PAGE_SIZE)
+      .then(({ data, count }) => {
+        if (data) {
+          const chronological = [...data].reverse()
+          setMessages(chronological)
+          loadedCount.current = data.length
+          setHasMore((count ?? 0) > PAGE_SIZE)
+        }
+      })
 
     const channel = supabase
       .channel(`messages:${documentId}`)
@@ -54,7 +62,11 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
           filter: `document_id=eq.${documentId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message])
+          const incoming = payload.new as Message
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]
+          )
+          loadedCount.current += 1
         }
       )
       .subscribe((_status, err) => {
@@ -64,11 +76,28 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [documentId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [documentId, supabase])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  const handleLoadMore = useCallback(async () => {
+    setLoadingMore(true)
+    const { data: older } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("document_id", documentId)
+      .order("created_at", { ascending: false })
+      .range(loadedCount.current, loadedCount.current + PAGE_SIZE - 1)
+
+    if (older) {
+      setMessages((prev) => [...[...older].reverse(), ...prev])
+      loadedCount.current += older.length
+      setHasMore(older.length === PAGE_SIZE)
+    }
+    setLoadingMore(false)
+  }, [documentId, supabase])
 
   const handleSend = async () => {
     if (!content.trim()) return
@@ -88,7 +117,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      void handleSend()
     }
   }
 
@@ -96,6 +125,19 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
     <div className="flex flex-col h-full">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-50 max-h-100">
+        {hasMore && (
+          <div className="flex justify-center pb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLoadMore}
+              loading={loadingMore}
+              className="text-xs text-muted-foreground"
+            >
+              Charger les messages précédents
+            </Button>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-sm text-muted-foreground">Aucun message — démarrez la discussion</p>
@@ -103,7 +145,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
         ) : (
           messages.map((msg) => {
             const isPro = msg.author_role === "pro"
-            const initials = msg.author_name
+            const msgInitials = msg.author_name
               .split(" ")
               .map((n) => n[0])
               .join("")
@@ -120,7 +162,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
                         isPro ? "bg-primary text-primary-foreground" : "bg-muted"
                       )}
                     >
-                      {initials}
+                      {msgInitials}
                     </AvatarFallback>
                   </Avatar>
                   <div

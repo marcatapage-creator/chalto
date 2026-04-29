@@ -39,6 +39,7 @@ export default async function ProjectPage({
         .select("document_id, status, comment, approved_at, client_name")
         .in("document_id", docIds)
         .order("created_at", { ascending: false })
+        .limit(500)
     : { data: [] }
 
   const initialValidations: Record<

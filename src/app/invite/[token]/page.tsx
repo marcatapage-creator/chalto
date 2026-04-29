@@ -46,6 +46,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     .eq("project_id", contributor.project_id)
     .eq("assigned_to", contributor.contact_id)
     .neq("status", "rejected")
+    .limit(200)
     .then(({ data }) => data?.map((t) => t.id) ?? [])
 
   const [{ data: tasks }, { data: proProfile }, { data: docContributors }, { data: taskComments }] =
@@ -56,7 +57,8 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         .eq("project_id", contributor.project_id)
         .eq("assigned_to", contributor.contact_id)
         .neq("status", "rejected")
-        .order("created_at", { ascending: true }),
+        .order("created_at", { ascending: true })
+        .limit(200),
       admin
         .from("profiles")
         .select("full_name, company_name, logo_url, branding_enabled")
@@ -68,7 +70,8 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           "document_id, request_type, pro_message, documents(id, name, type, status, version, file_url, file_name, file_type, created_at)"
         )
         .eq("contributor_id", contributor.id)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(100),
       taskIds.length > 0
         ? admin
             .from("task_comments")

@@ -52,6 +52,7 @@ export function ValidationClient({ document, token }: { document: Document; toke
       .select("*")
       .eq("document_id", document.id)
       .order("version", { ascending: true })
+      .limit(20)
       .then(({ data }) => {
         if (data) setVersions(data)
       })

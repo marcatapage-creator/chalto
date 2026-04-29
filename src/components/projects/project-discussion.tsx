@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,7 +42,11 @@ export function ProjectDiscussion({
   onCountChange,
   onOpen,
 }: ProjectDiscussionProps) {
+  const PAGE_SIZE = 50
   const [messages, setMessages] = useState<Message[]>([])
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [internalOpen, setInternalOpen] = useState(autoOpen)
@@ -50,6 +54,7 @@ export function ProjectDiscussion({
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLDivElement>(null)
+  const loadedCount = useRef(0)
   const supabase = useMemo(() => createClient(), [])
 
   const handleToggle = () => {
@@ -65,17 +70,24 @@ export function ProjectDiscussion({
   }
 
   useEffect(() => {
-    onCountChange?.(messages.length)
-  }, [messages.length, onCountChange])
+    onCountChange?.(totalCount)
+  }, [totalCount, onCountChange])
 
   useEffect(() => {
     supabase
       .from("project_messages")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("project_id", projectId)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (data) setMessages(data)
+      .order("created_at", { ascending: false })
+      .limit(PAGE_SIZE)
+      .then(({ data, count }) => {
+        if (data) {
+          setMessages([...data].reverse())
+          loadedCount.current = data.length
+          const total = count ?? 0
+          setTotalCount(total)
+          setHasMore(total > PAGE_SIZE)
+        }
       })
 
     const channel = supabase
@@ -93,6 +105,8 @@ export function ProjectDiscussion({
           setMessages((prev) =>
             prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]
           )
+          loadedCount.current += 1
+          setTotalCount((n) => n + 1)
         }
       )
       .subscribe((_status, err) => {
@@ -103,6 +117,22 @@ export function ProjectDiscussion({
       void channel.unsubscribe()
       supabase.removeChannel(channel)
     }
+  }, [projectId, supabase])
+
+  const handleLoadMore = useCallback(async () => {
+    setLoadingMore(true)
+    const { data: older } = await supabase
+      .from("project_messages")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false })
+      .range(loadedCount.current, loadedCount.current + PAGE_SIZE - 1)
+    if (older) {
+      setMessages((prev) => [...[...older].reverse(), ...prev])
+      loadedCount.current += older.length
+      setHasMore(older.length === PAGE_SIZE)
+    }
+    setLoadingMore(false)
   }, [projectId, supabase])
 
   useEffect(() => {
@@ -196,6 +226,19 @@ export function ProjectDiscussion({
             <div className="border rounded-xl overflow-hidden">
               <div className="p-4 space-y-4">
                 <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
+                  {hasMore && (
+                    <div className="flex justify-center pb-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLoadMore}
+                        loading={loadingMore}
+                        className="text-xs text-muted-foreground"
+                      >
+                        Charger les messages précédents
+                      </Button>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Users className="h-6 w-6 text-muted-foreground mb-2" />

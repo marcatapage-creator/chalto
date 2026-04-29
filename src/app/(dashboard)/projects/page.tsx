@@ -26,9 +26,21 @@ export default async function ProjectsPage() {
     projectIds.length > 0
       ? await Promise.all([
           supabase.from("documents").select("project_id, status").in("project_id", projectIds),
-          supabase.from("tasks").select("project_id, status").in("project_id", projectIds),
-          supabase.from("contributors").select("project_id").in("project_id", projectIds),
-          supabase.from("project_messages").select("project_id").in("project_id", projectIds),
+          supabase
+            .from("tasks")
+            .select("project_id, status")
+            .in("project_id", projectIds)
+            .limit(2000),
+          supabase
+            .from("contributors")
+            .select("project_id")
+            .in("project_id", projectIds)
+            .limit(500),
+          supabase
+            .from("project_messages")
+            .select("project_id")
+            .in("project_id", projectIds)
+            .limit(2000),
         ])
       : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
 

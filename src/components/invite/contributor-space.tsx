@@ -148,6 +148,7 @@ export function ContributorSpace({
       .select("document_id, version, file_url, file_name")
       .in("document_id", docIds)
       .order("version", { ascending: false })
+      .limit(50)
       .then(({ data }) => {
         if (!data) return
         const byDoc: Record<
