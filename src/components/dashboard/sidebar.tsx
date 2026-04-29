@@ -112,7 +112,7 @@ function SidebarContent({
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
               {item.countKey && (
-                <span className="ml-auto text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto text-xs bg-background dark:bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
                   {counts[item.countKey]}
                 </span>
               )}
@@ -173,7 +173,7 @@ export function Sidebar({
       </aside>
 
       {/* Mobile/tablet header + burger */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-muted dark:bg-card">
+      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
@@ -205,7 +205,7 @@ export function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-              className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-muted dark:bg-card border-r"
+              className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
             >
               <SidebarContent
                 profile={profile}
