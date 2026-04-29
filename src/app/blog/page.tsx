@@ -141,13 +141,13 @@ export default function BlogPage() {
             <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
               <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden">
                 <div className="flex flex-col sm:flex-row">
-                  <div className="sm:w-48 sm:shrink-0">
+                  <div className="relative h-48 sm:h-auto sm:w-48 sm:shrink-0 sm:self-stretch">
                     <Image
                       src={article.image}
                       alt={article.title}
-                      width={400}
-                      height={240}
-                      className="w-full h-40 sm:h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 192px"
                     />
                   </div>
                   <CardContent className="p-6 space-y-3 flex flex-col justify-center">
