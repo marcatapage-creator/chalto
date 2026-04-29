@@ -43,6 +43,7 @@ export const validateContributorSchema = z.object({
   status: z.enum(["approved", "rejected", "commented"]),
   comment: z.string().nullish(),
   contributorName: nonEmpty,
+  contributorId: uuid.optional(),
   requestType: z.enum(["transmission", "validation"]).optional(),
 })
 

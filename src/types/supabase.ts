@@ -670,6 +670,7 @@ export type Database = {
           client_email: string | null
           client_name: string | null
           comment: string | null
+          contributor_id: string | null
           created_at: string | null
           document_id: string
           id: string
@@ -680,6 +681,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string | null
           comment?: string | null
+          contributor_id?: string | null
           created_at?: string | null
           document_id: string
           id?: string
@@ -690,6 +692,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string | null
           comment?: string | null
+          contributor_id?: string | null
           created_at?: string | null
           document_id?: string
           id?: string
@@ -701,6 +704,13 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "validations_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "contributors"
             referencedColumns: ["id"]
           },
         ]

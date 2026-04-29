@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const parsed = validateContributorSchema.safeParse(await request.json())
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
-    const { documentId, status, comment, contributorName, requestType } = parsed.data
+    const { documentId, status, comment, contributorName, contributorId, requestType } = parsed.data
     const isTransmission = requestType === "transmission"
 
     const admin = createAdminClient()
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
           status: effectiveStatus,
           comment: comment || null,
           client_name: contributorName,
+          contributor_id: contributorId ?? null,
           approved_at: new Date().toISOString(),
         }),
         admin

@@ -663,6 +663,7 @@ export function ContributorSpace({
                                       status: "commented",
                                       comment: docComment[doc.id]?.trim() || null,
                                       contributorName: contributor.name,
+                                      contributorId: contributor.id,
                                       requestType: "transmission",
                                     }),
                                   })
@@ -730,6 +731,7 @@ export function ContributorSpace({
                                       status: "rejected",
                                       comment: docComment[doc.id] ?? null,
                                       contributorName: contributor.name,
+                                      contributorId: contributor.id,
                                     }),
                                   })
                                   haptics.error()
@@ -754,6 +756,7 @@ export function ContributorSpace({
                                       status: "approved",
                                       comment: docComment[doc.id] ?? null,
                                       contributorName: contributor.name,
+                                      contributorId: contributor.id,
                                     }),
                                   })
                                   haptics.success()

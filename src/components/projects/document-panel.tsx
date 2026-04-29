@@ -111,6 +111,7 @@ export function DocumentPanel({
       comment?: string | null
       approved_at?: string | null
       client_name?: string | null
+      contributor_id?: string | null
     }>
   >([])
   const [validatorContributors, setValidatorContributors] = useState<
@@ -156,7 +157,7 @@ export function DocumentPanel({
   const fetchAllValidations = useCallback(async () => {
     const { data } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name")
+      .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
     if (data) setAllValidations(data)
@@ -551,7 +552,7 @@ export function DocumentPanel({
 
                 {/* Lignes prestataires */}
                 {validatorContributors.map((c) => {
-                  const cv = allValidations.find((v) => v.client_name === c.name)
+                  const cv = allValidations.find((v) => v.contributor_id === c.id)
                   const cfg = !cv
                     ? { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
                     : cv.status === "approved"
