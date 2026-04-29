@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Send, User, Users, CheckCircle } from "lucide-react"
+import { Send, User, Users, CheckCircle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
@@ -271,7 +271,7 @@ export function DocumentActions({
                         )}
                       >
                         {selectedContributors.includes(c.id) && (
-                          <CheckCircle className="h-3 w-3 text-primary-foreground" />
+                          <Check className="h-3 w-3 text-primary-foreground" />
                         )}
                       </div>
                       <div>
