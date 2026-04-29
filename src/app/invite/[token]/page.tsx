@@ -1,7 +1,36 @@
+import type { Metadata } from "next"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ContributorSpace } from "@/components/invite/contributor-space"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>
+}): Promise<Metadata> {
+  const { token } = await params
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("contributors")
+    .select("name, projects(name)")
+    .eq("invite_token", token)
+    .single()
+
+  const projectName = (data?.projects as { name?: string } | null)?.name
+  const title = projectName
+    ? `Espace collaboration — ${projectName}`
+    : "Espace collaboration Chalto"
+
+  return {
+    title,
+    openGraph: {
+      title: `${title} | Chalto`,
+      description: "Consultez vos tâches et documents, échangez avec votre équipe.",
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+  }
+}
 
 function TokenInvalid({ message }: { message: string }) {
   return (
