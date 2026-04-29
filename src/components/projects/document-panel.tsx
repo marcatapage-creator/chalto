@@ -679,7 +679,7 @@ export function DocumentPanel({
         </div>
       )}
 
-      {localStatus === "approved" && isChantier && (
+      {(localStatus === "approved" || localStatus === "commented") && isChantier && (
         <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Partager avec un prestataire
