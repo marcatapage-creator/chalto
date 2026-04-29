@@ -105,6 +105,21 @@ export function DocumentPanel({
     requestType: "validation" | "transmission" | null
     names: string[]
   }>({ requestType: null, names: [] })
+  const [allValidations, setAllValidations] = useState<
+    Array<{
+      status: string
+      comment?: string | null
+      approved_at?: string | null
+      client_name?: string | null
+    }>
+  >([])
+  const [validatorContributors, setValidatorContributors] = useState<
+    Array<{
+      id: string
+      name: string
+    }>
+  >([])
+
   const [message, setMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [proposing, setProposing] = useState(false)
@@ -138,6 +153,36 @@ export function DocumentPanel({
   const docStatus = docStatusMap[localStatus] ?? docStatusMap.draft
   const fileUrl = localFileUrl === undefined ? document.file_url : localFileUrl
 
+  const fetchAllValidations = useCallback(async () => {
+    const { data } = await supabase
+      .from("validations")
+      .select("status, comment, approved_at, client_name")
+      .eq("document_id", document.id)
+      .order("created_at", { ascending: true })
+    if (data) setAllValidations(data)
+  }, [document.id, supabase])
+
+  const fetchValidation = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("validations")
+      .select("status, comment, approved_at, client_name")
+      .eq("document_id", document.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error) {
+      console.error("[document-panel] fetchValidation error:", error)
+      return
+    }
+    if (data) {
+      setValidationEntry({ docId: document.id, data })
+      if (data.status) {
+        setLocalStatus(data.status)
+        onStatusChangeRef.current?.(document.id, data.status)
+      }
+    }
+  }, [document.id, supabase])
+
   useEffect(() => {
     supabase
       .from("validations")
@@ -162,27 +207,31 @@ export function DocumentPanel({
           onStatusChangeRef.current?.(document.id, data.status)
         }
       })
-  }, [document.id, document.status, supabase])
-
-  const fetchValidation = useCallback(async () => {
-    const { data, error } = await supabase
+    supabase
       .from("validations")
       .select("status, comment, approved_at, client_name")
       .eq("document_id", document.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (error) {
-      console.error("[document-panel] fetchValidation error:", error)
-      return
-    }
-    if (data) {
-      setValidationEntry({ docId: document.id, data })
-      if (data.status) {
-        setLocalStatus(data.status)
-        onStatusChangeRef.current?.(document.id, data.status)
-      }
-    }
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) setAllValidations(data)
+      })
+  }, [document.id, document.status, supabase])
+
+  useEffect(() => {
+    supabase
+      .from("document_contributors")
+      .select("contributor_id")
+      .eq("document_id", document.id)
+      .eq("request_type", "validation")
+      .then(async ({ data: dcs }) => {
+        if (!dcs?.length) return
+        const ids = dcs.map((d) => d.contributor_id)
+        const { data: contribs } = await supabase
+          .from("contributors")
+          .select("id, name")
+          .in("id", ids)
+        setValidatorContributors(contribs ?? [])
+      })
   }, [document.id, supabase])
 
   useEffect(() => {
@@ -229,7 +278,10 @@ export function DocumentPanel({
         { event: "INSERT", schema: "public", table: "validations" },
         (payload) => {
           const v = payload.new as { document_id: string }
-          if (v.document_id === document.id) void fetchValidation()
+          if (v.document_id === document.id) {
+            void fetchValidation()
+            void fetchAllValidations()
+          }
         }
       )
       .subscribe((_status, err) => {
@@ -238,7 +290,7 @@ export function DocumentPanel({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [document.id, fetchValidation, supabase])
+  }, [document.id, fetchValidation, fetchAllValidations, supabase])
 
   // Écoute le broadcast du prestataire pour afficher le commentaire immédiatement
   // sans dépendre du timing de fetchValidation ou des RLS sur validations
@@ -278,7 +330,7 @@ export function DocumentPanel({
     const res = await fetchWithTimeout("/api/send-validation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentId: document.id, message: message || null }),
+      body: JSON.stringify({ documentId: document.id, message: message || undefined }),
     })
     const data = await res.json()
     if (res.ok) {
@@ -462,6 +514,72 @@ export function DocumentPanel({
       {/* Contenu scrollable */}
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="px-4 py-4 space-y-3">
+          {/* Section Validations */}
+          {(allValidations.length > 0 || validatorContributors.length > 0) && (
+            <div className="space-y-2 pb-1">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Validations
+              </p>
+              <div className="space-y-1">
+                {/* Ligne client */}
+                {allValidations.some((v) => !v.client_name) &&
+                  (() => {
+                    const cv = allValidations.find((v) => !v.client_name)!
+                    const cfg =
+                      cv.status === "approved"
+                        ? { icon: CheckCircle, cls: "text-primary", label: "Approuvé" }
+                        : cv.status === "rejected"
+                          ? { icon: XCircle, cls: "text-destructive", label: "Refusé" }
+                          : { icon: MessageSquare, cls: "text-blue-500", label: "Lu" }
+                    const Icon = cfg.icon
+                    return (
+                      <div className="flex items-center gap-2 text-sm py-0.5">
+                        <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
+                        <span className="min-w-0 truncate">{clientName ?? "Client"}</span>
+                        <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
+                        {cv.approved_at && (
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {new Date(cv.approved_at).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                {/* Lignes prestataires */}
+                {validatorContributors.map((c) => {
+                  const cv = allValidations.find((v) => v.client_name === c.name)
+                  const cfg = !cv
+                    ? { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
+                    : cv.status === "approved"
+                      ? { icon: CheckCircle, cls: "text-primary", label: "Approuvé" }
+                      : cv.status === "rejected"
+                        ? { icon: XCircle, cls: "text-destructive", label: "Refusé" }
+                        : { icon: MessageSquare, cls: "text-blue-500", label: "Lu" }
+                  const Icon = cfg.icon
+                  return (
+                    <div key={c.id} className="flex items-center gap-2 text-sm py-0.5">
+                      <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
+                      <span className="min-w-0 truncate">{c.name}</span>
+                      <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
+                      {cv?.approved_at && (
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {new Date(cv.approved_at).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Fichier
           </p>
@@ -558,6 +676,23 @@ export function DocumentPanel({
               {sending ? "Envoi..." : "Envoyer au client"}
             </Button>
           )}
+        </div>
+      )}
+
+      {localStatus === "approved" && isChantier && (
+        <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Partager avec un prestataire
+          </p>
+          <DocumentActions
+            documentId={document.id}
+            documentName={document.name}
+            projectId={document.project_id}
+            clientName={clientName}
+            status={localStatus}
+            className="w-full"
+            onSent={() => {}}
+          />
         </div>
       )}
 

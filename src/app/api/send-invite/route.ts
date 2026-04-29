@@ -91,15 +91,66 @@ export async function POST(request: Request) {
       contributor = { ...contributor, invite_token: token, invite_expires_at: tokenExpiresAt }
     }
 
+    // Tâches assignées à ce contact sur ce projet
+    const { data: assignedTasks } = await supabase
+      .from("tasks")
+      .select("title, description, due_date")
+      .eq("project_id", projectId)
+      .eq("assigned_to", contactId)
+      .order("created_at", { ascending: true })
+
+    const hasTasks = assignedTasks && assignedTasks.length > 0
+
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
     const brandHeader = buildBrandHeader(proProfile)
 
+    const taskListHtml = hasTasks
+      ? `
+        <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+          <p style="margin: 0 0 12px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">
+            Tâche${assignedTasks.length > 1 ? "s" : ""} qui vous sont assignée${assignedTasks.length > 1 ? "s" : ""}
+          </p>
+          ${assignedTasks
+            .map(
+              (t) => `
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #eee; padding: 8px 0; margin: 0;">
+              <tr>
+                <td width="22" valign="top" style="padding-top: 2px;">
+                  <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #2260E8; border-radius: 3px;"></span>
+                </td>
+                <td valign="top">
+                  <p style="margin: 0; font-size: 14px; font-weight: 600;">${escapeHtml(t.title)}</p>
+                  ${t.description ? `<p style="margin: 2px 0 0; font-size: 12px; color: #666;">${escapeHtml(t.description)}</p>` : ""}
+                  ${t.due_date ? `<p style="margin: 4px 0 0; font-size: 11px; color: #999;">Échéance : ${new Date(t.due_date).toLocaleDateString("fr-FR")}</p>` : ""}
+                </td>
+              </tr>
+            </table>`
+            )
+            .join("")}
+        </div>`
+      : `
+        <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+          <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Projet</p>
+          <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(project?.name)}</p>
+          <p style="margin: 8px 0 0; font-size: 13px; color: #666;">
+            Vos documents et tâches seront accessibles dès que votre professionnel les partagera.
+          </p>
+        </div>`
+
+    const subject = hasTasks
+      ? `${escapeHtml(proName)} vous a assigné ${assignedTasks.length > 1 ? `${assignedTasks.length} tâches` : "une tâche"} sur "${escapeHtml(project?.name)}"`
+      : `${escapeHtml(proName)} vous a créé un espace de collaboration — "${escapeHtml(project?.name)}"`
+
+    const introText = hasTasks
+      ? `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à collaborer sur le projet <strong>${escapeHtml(project?.name)}</strong> et vous a assigné ${assignedTasks.length > 1 ? `${assignedTasks.length} tâches` : "une tâche"}. Connectez-vous à votre espace pour les consulter et mettre à jour leur avancement.`
+      : `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à rejoindre le projet <strong>${escapeHtml(project?.name)}</strong>. Votre espace personnel est accessible en un clic — consultez les documents partagés et suivez les échanges en temps réel.`
+
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
-      subject: `${escapeHtml(proName)} vous a créé un espace de collaboration — "${escapeHtml(project?.name)}"`,
+      subject,
       html: `
         <!DOCTYPE html>
         <html>
@@ -110,7 +161,7 @@ export async function POST(request: Request) {
             </div>
 
             <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-              Votre espace de collaboration est prêt
+              ${hasTasks ? `${assignedTasks.length > 1 ? "Des tâches vous ont été assignées" : "Une tâche vous a été assignée"}` : "Votre espace de collaboration est prêt"}
             </h1>
 
             <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
@@ -118,18 +169,10 @@ export async function POST(request: Request) {
             </p>
 
             <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
-              <strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à rejoindre
-              le projet <strong>${escapeHtml(project?.name)}</strong>. Votre espace personnel est accessible
-              en un clic — consultez les documents partagés et suivez les échanges en temps réel.
+              ${introText}
             </p>
 
-            <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 32px;">
-              <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Projet</p>
-              <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(project?.name)}</p>
-              <p style="margin: 8px 0 0; font-size: 13px; color: #666;">
-                Vos documents et tâches seront accessibles dès que votre professionnel les partagera.
-              </p>
-            </div>
+            ${taskListHtml}
 
             <a href="${inviteUrl}"
                style="display: inline-block; background: #2260E8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">

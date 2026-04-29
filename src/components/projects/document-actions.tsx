@@ -79,7 +79,7 @@ export function DocumentActions({
         await fetchWithTimeout("/api/send-validation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ documentId, message: message || null }),
+          body: JSON.stringify({ documentId, message: message || undefined }),
         })
 
         haptics.success()
@@ -94,7 +94,7 @@ export function DocumentActions({
 
         await supabase.rpc("send_document_to_client", {
           p_document_id: documentId,
-          p_status: "sent",
+          p_status: status === "approved" ? "approved" : "sent",
         })
 
         if (selectedContributors.length > 0) {
@@ -116,7 +116,7 @@ export function DocumentActions({
             contributorIds: selectedContributors,
             documentName,
             projectId,
-            message: message || null,
+            message: message || undefined,
             requestType,
           }),
         })
@@ -143,17 +143,14 @@ export function DocumentActions({
     setLoading(false)
   }
 
-  if (status === "approved") {
-    return (
-      <Badge variant="outline" className="text-primary border-primary">
-        <CheckCircle className="h-3 w-3 mr-1" />
-        Approuvé
-      </Badge>
-    )
-  }
-
   return (
     <>
+      {status === "approved" && (
+        <Badge variant="outline" className="text-primary border-primary shrink-0">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Approuvé
+        </Badge>
+      )}
       <OnboardingTooltip
         id="send-document"
         title="Envoyez au client"
@@ -164,13 +161,16 @@ export function DocumentActions({
       >
         <Button
           size="sm"
-          variant="default"
-          onClick={() => setOpen(true)}
+          variant={status === "approved" ? "outline" : "default"}
+          onClick={() => {
+            if (status === "approved") setAudience("contributor")
+            setOpen(true)
+          }}
           disabled={status === "sent"}
           className={cn(className)}
         >
           <Send className="h-4 w-4 mr-2" />
-          {status === "sent" ? "Envoyé" : "Envoyer"}
+          {status === "sent" ? "Envoyé" : status === "approved" ? "Partager" : "Envoyer"}
         </Button>
       </OnboardingTooltip>
 
@@ -187,22 +187,31 @@ export function DocumentActions({
             {/* Choix audience */}
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => setAudience("client")}
+                onClick={() => status !== "approved" && setAudience("client")}
+                disabled={status === "approved"}
                 className={cn(
                   "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                  audience === "client"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                  status === "approved"
+                    ? "border-border opacity-40 cursor-not-allowed"
+                    : audience === "client"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
                 )}
               >
                 <User
                   className={cn(
                     "h-6 w-6",
-                    audience === "client" ? "text-primary" : "text-muted-foreground"
+                    audience === "client" && status !== "approved"
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   )}
                 />
                 <span className="text-sm font-medium">Mon client</span>
-                {clientName && <span className="text-xs text-muted-foreground">{clientName}</span>}
+                {status === "approved" ? (
+                  <span className="text-xs text-muted-foreground">Déjà approuvé</span>
+                ) : (
+                  clientName && <span className="text-xs text-muted-foreground">{clientName}</span>
+                )}
               </button>
 
               <button
