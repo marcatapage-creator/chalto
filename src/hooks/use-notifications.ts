@@ -54,31 +54,42 @@ export function useNotifications(userId: string) {
         supabase.realtime.setAuth(session.access_token)
       }
 
-      channel = supabase
-        .channel(`notifications:${userId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const notif = payload.new as Notification
-            setNotifications((prev) => [notif, ...prev].slice(0, 20))
-            if (!isInitialLoad.current) {
-              toast(notif.title, { description: notif.body })
+      let retries = 0
+      const subscribe = () => {
+        channel = supabase
+          .channel(`notifications:${userId}-${Date.now()}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "notifications",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              const notif = payload.new as Notification
+              setNotifications((prev) => [notif, ...prev].slice(0, 20))
+              if (!isInitialLoad.current) {
+                toast(notif.title, { description: notif.body })
+              }
             }
-          }
-        )
-        .subscribe((status) => {
-          if (status === "CHANNEL_ERROR") {
-            console.error(
-              "Notifications realtime: échec abonnement — vérifier Realtime activé sur la table"
-            )
-          }
-        })
+          )
+          .subscribe((status) => {
+            if (status === "CHANNEL_ERROR") {
+              if (retries < 2) {
+                retries++
+                console.warn(`[notifications] Realtime CHANNEL_ERROR — retry ${retries}/2`)
+                if (channel) void supabase.removeChannel(channel)
+                setTimeout(subscribe, 2000 * retries)
+              } else {
+                console.warn(
+                  "[notifications] Realtime indisponible après 2 tentatives — les notifications in-app ne seront pas temps réel"
+                )
+              }
+            }
+          })
+      }
+      subscribe()
     }
 
     void setup()
