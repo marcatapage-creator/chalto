@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight } from "lucide-react"
@@ -20,6 +21,8 @@ const articles = [
     category: "Gestion de chantier",
     date: "29 avril 2026",
     readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "reception-chantier-guide",
@@ -29,6 +32,8 @@ const articles = [
     category: "Documents",
     date: "29 avril 2026",
     readTime: "8 min",
+    image:
+      "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "delai-paiement-btp",
@@ -38,6 +43,8 @@ const articles = [
     category: "Facturation",
     date: "29 avril 2026",
     readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "remplacer-excel-chantier",
@@ -47,6 +54,8 @@ const articles = [
     category: "Outils & logiciels",
     date: "29 avril 2026",
     readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "notice-descriptive-travaux",
@@ -56,6 +65,8 @@ const articles = [
     category: "Documents",
     date: "29 avril 2026",
     readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "rediger-cctp-batiment",
@@ -65,6 +76,8 @@ const articles = [
     category: "Documents",
     date: "29 avril 2026",
     readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "faire-signer-devis-artisan",
@@ -74,6 +87,8 @@ const articles = [
     category: "Relation client",
     date: "29 avril 2026",
     readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "faire-valider-plans-client",
@@ -83,6 +98,8 @@ const articles = [
     category: "Workflow",
     date: "17 avril 2026",
     readTime: "5 min",
+    image:
+      "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "coordonner-corps-de-metier",
@@ -92,6 +109,8 @@ const articles = [
     category: "Gestion de chantier",
     date: "10 avril 2026",
     readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80&auto=format&fit=crop",
   },
   {
     slug: "logiciel-architecte-independant",
@@ -101,6 +120,8 @@ const articles = [
     category: "Outils",
     date: "3 avril 2026",
     readTime: "8 min",
+    image:
+      "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80&auto=format&fit=crop",
   },
 ]
 
@@ -118,23 +139,34 @@ export default function BlogPage() {
         <div className="flex flex-col gap-4">
           {articles.map((article) => (
             <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
-              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer">
-                <CardContent className="p-6 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">{article.category}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {article.date} · {article.readTime} de lecture
-                    </span>
+              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden">
+                <div className="flex flex-col sm:flex-row">
+                  <div className="sm:w-48 sm:shrink-0">
+                    <Image
+                      src={article.image}
+                      alt={article.title}
+                      width={400}
+                      height={240}
+                      className="w-full h-40 sm:h-full object-cover"
+                    />
                   </div>
-                  <h2 className="font-bold text-xl leading-tight">{article.title}</h2>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {article.description}
-                  </p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                    Lire l&apos;article
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </CardContent>
+                  <CardContent className="p-6 space-y-3 flex flex-col justify-center">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">{article.category}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {article.date} · {article.readTime} de lecture
+                      </span>
+                    </div>
+                    <h2 className="font-bold text-xl leading-tight">{article.title}</h2>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {article.description}
+                    </p>
+                    <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                      Lire l&apos;article
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </CardContent>
+                </div>
               </Card>
             </Link>
           ))}
