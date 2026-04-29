@@ -182,7 +182,7 @@ function ValidationsSection({
     return { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
   }
 
-  const clientValidation = allValidations.find((v) => !v.client_name)
+  const clientValidation = allValidations.find((v) => v.contributor_id === null)
 
   return (
     <div className="space-y-2 pb-1">
@@ -486,11 +486,16 @@ export function DocumentPanel({
   const fileUrl = localFileUrl === undefined ? document.file_url : localFileUrl
 
   const fetchAllValidations = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("validations")
       .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
+    if (error) {
+      console.error("[document-panel] fetchAllValidations error:", error)
+      toast.error("Impossible de charger les validations")
+      return
+    }
     if (data) setAllValidations(data)
   }, [document.id, supabase])
 
@@ -504,6 +509,7 @@ export function DocumentPanel({
       .maybeSingle()
     if (error) {
       console.error("[document-panel] fetchValidation error:", error)
+      toast.error("Impossible de charger le statut du document")
       return
     }
     if (data) {
@@ -586,7 +592,7 @@ export function DocumentPanel({
 
   useEffect(() => {
     const channel = supabase
-      .channel(`document-watch:${document.id}-${Date.now()}`)
+      .channel(`document-panel:${document.id}`)
       .on(
         "postgres_changes",
         {
@@ -607,26 +613,17 @@ export function DocumentPanel({
       )
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "validations" },
-        (payload) => {
-          const v = payload.new as { document_id: string }
-          if (v.document_id === document.id) {
-            void fetchValidation()
-            void fetchAllValidations()
-          }
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "validations",
+          filter: `document_id=eq.${document.id}`,
+        },
+        () => {
+          void fetchValidation()
+          void fetchAllValidations()
         }
       )
-      .subscribe((_status, err) => {
-        if (err) console.error("[document-watch] Realtime error:", err)
-      })
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [document.id, fetchValidation, fetchAllValidations, supabase])
-
-  useEffect(() => {
-    const channel = supabase
-      .channel(`documents:${document.project_id}`)
       .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
         const p = payload as {
           documentId: string
@@ -648,12 +645,12 @@ export function DocumentPanel({
         onStatusChangeRef.current?.(document.id, "commented")
       })
       .subscribe((_status, err) => {
-        if (err) console.error("[documents-broadcast] Realtime error:", err)
+        if (err) console.error("[document-panel] Realtime error:", err)
       })
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [document.id, document.project_id, supabase])
+  }, [document.id, fetchValidation, fetchAllValidations, supabase])
 
   const handleSend = async () => {
     setSending(true)
