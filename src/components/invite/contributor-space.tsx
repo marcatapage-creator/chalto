@@ -415,7 +415,7 @@ export function ContributorSpace({
               {docs.length > 0 && (
                 <span
                   className={cn(
-                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
                     docsRead ? "bg-muted" : "bg-red-500 text-white"
                   )}
                 >
@@ -434,7 +434,7 @@ export function ContributorSpace({
               {tasks.length > 0 && (
                 <span
                   className={cn(
-                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
                     tasksRead ? "bg-muted" : "bg-red-500 text-white"
                   )}
                 >
@@ -453,7 +453,7 @@ export function ContributorSpace({
               {discussionCount > 0 && (
                 <span
                   className={cn(
-                    "text-xs px-1.5 py-0.5 rounded-full shrink-0",
+                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
                     discussionRead ? "bg-muted" : "bg-red-500 text-white"
                   )}
                 >
