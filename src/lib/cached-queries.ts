@@ -1,9 +1,9 @@
 import { unstable_cache } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export const getProfessions = unstable_cache(
   async () => {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data } = await supabase.from("professions").select("id, label, slug")
     return data ?? []
   },
