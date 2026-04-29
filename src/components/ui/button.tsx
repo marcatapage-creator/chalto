@@ -35,9 +35,9 @@ const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      { variant: "default", size: "xs", className: "pr-3" },
-      { variant: "default", size: ["default", "sm"], className: "pr-3.5" },
-      { variant: "default", size: "lg", className: "pr-[18px]" },
+      { variant: "default", size: "xs", className: "md:pr-3" },
+      { variant: "default", size: ["default", "sm"], className: "md:pr-3.5" },
+      { variant: "default", size: "lg", className: "md:pr-[18px]" },
     ],
     defaultVariants: {
       variant: "default",
