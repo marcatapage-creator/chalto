@@ -139,7 +139,7 @@ export default function BlogPage() {
         <div className="flex flex-col gap-4">
           {articles.map((article) => (
             <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
-              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden">
+              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden py-0">
                 <div className="flex flex-col sm:flex-row">
                   <div className="relative h-48 sm:h-auto sm:w-48 sm:shrink-0 sm:self-stretch">
                     <Image
