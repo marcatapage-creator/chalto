@@ -283,6 +283,15 @@ export function DocumentPanel({
       })
   )
 
+  const handleRemoveFile = async () => {
+    await supabase
+      .from("documents")
+      .update({ file_url: null, file_name: null, file_type: null, file_size: null })
+      .eq("id", document.id)
+    setLocalFileUrl(null)
+    toast.success("Fichier supprimé")
+  }
+
   const handleProposeV2 = async () => {
     setProposing(true)
     const newVersion = localVersion + 1
@@ -417,6 +426,7 @@ export function DocumentPanel({
               fileUrl={fileUrl}
               fileName={document.file_name ?? document.name}
               fileType={document.file_type ?? "application/pdf"}
+              onRemove={localStatus === "draft" ? handleRemoveFile : undefined}
             />
           ) : (
             <FileUpload

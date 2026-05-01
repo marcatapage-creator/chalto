@@ -2,15 +2,16 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Download, X, FileText, ExternalLink, FileDown } from "lucide-react"
+import { Maximize2, Download, X, Trash2, FileText, ExternalLink, FileDown } from "lucide-react"
 
 interface FileViewerProps {
   fileUrl: string
   fileName: string
   fileType: string
+  onRemove?: () => void
 }
 
-export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
+export function FileViewer({ fileUrl, fileName, fileType, onRemove }: FileViewerProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const [isAndroid] = useState(
     () => typeof window !== "undefined" && /Android/i.test(navigator.userAgent)
@@ -25,6 +26,16 @@ export function FileViewer({ fileUrl, fileName, fileType }: FileViewerProps) {
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur-sm border-b">
         <p className="text-xs font-medium truncate max-w-50">{fileName}</p>
         <div className="flex items-center gap-1">
+          {onRemove && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={onRemove}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
