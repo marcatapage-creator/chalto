@@ -121,7 +121,7 @@ test("6.2 — la génération CCTP aboutit et confirme l'ajout en brouillon", as
   await expect(page.getByText(/génération en cours|rédaction/i).first()).toBeVisible({
     timeout: 5_000,
   })
-  await expect(page.getByText(/document généré|brouillon/i).first()).toBeVisible({
+  await expect(page.getByText(/document généré/i).first()).toBeVisible({
     timeout: 90_000,
   })
 })
@@ -151,7 +151,7 @@ test("6.3 — aucune erreur console fatale pendant la génération", async ({ pa
   await page.getByRole("button", { name: "Gros œuvre" }).click()
   await page.getByRole("button", { name: "Générer" }).click()
 
-  await expect(page.getByText(/document généré|brouillon/i).first()).toBeVisible({
+  await expect(page.getByText(/document généré/i).first()).toBeVisible({
     timeout: 90_000,
   })
 
