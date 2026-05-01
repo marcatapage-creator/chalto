@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     const { data: document } = await admin
       .from("documents")
-      .select("*, projects(name, user_id)")
+      .select("*, version, projects(name, user_id)")
       .eq("id", documentId)
       .single()
 
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
           client_name: contributorName,
           contributor_id: contributorId ?? null,
           approved_at: new Date().toISOString(),
+          version: document.version ?? 1,
         }),
         admin
           .from("profiles")

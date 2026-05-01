@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const { data: document } = await admin
       .from("documents")
-      .select("*, projects(name, user_id, client_name, client_email)")
+      .select("*, version, projects(name, user_id, client_name, client_email)")
       .eq("validation_token", token)
       .single()
 
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
           status,
           comment: comment || null,
           approved_at: status === "approved" ? new Date().toISOString() : null,
+          version: document.version ?? 1,
         }),
         admin.from("documents").update({ status }).eq("id", document.id),
         admin

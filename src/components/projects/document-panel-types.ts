@@ -11,6 +11,7 @@ export interface ValidationEntry {
   approved_at?: string | null
   client_name?: string | null
   contributor_id?: string | null
+  version?: number | null
 }
 
 export interface ContributorValidator {

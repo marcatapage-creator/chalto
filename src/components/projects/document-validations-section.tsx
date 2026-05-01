@@ -6,12 +6,21 @@ export function ValidationsSection({
   allValidations,
   validatorContributors,
   clientName,
+  activeVersion,
 }: {
   allValidations: ValidationEntry[]
   validatorContributors: ContributorValidator[]
   clientName?: string
+  activeVersion?: number
 }) {
-  if (allValidations.length === 0 && validatorContributors.length === 0) return null
+  // Filtre par version : on garde les validations de la version active,
+  // plus les validations legacy (version=null) uniquement sur la version courante.
+  const visibleValidations =
+    activeVersion == null
+      ? allValidations
+      : allValidations.filter((v) => v.version === activeVersion || v.version == null)
+
+  if (visibleValidations.length === 0 && validatorContributors.length === 0) return null
 
   const statusCfg = (status?: string | null) => {
     if (status === "approved") return { icon: CheckCircle, cls: "text-primary", label: "Approuvé" }
@@ -20,7 +29,7 @@ export function ValidationsSection({
     return { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
   }
 
-  const clientValidation = allValidations.find((v) => v.contributor_id === null)
+  const clientValidation = visibleValidations.find((v) => v.contributor_id === null)
 
   return (
     <div className="space-y-2 pb-1">
@@ -50,7 +59,7 @@ export function ValidationsSection({
           })()}
 
         {validatorContributors.map((c) => {
-          const cv = allValidations.find((v) => v.contributor_id === c.id)
+          const cv = visibleValidations.find((v) => v.contributor_id === c.id)
           const cfg = statusCfg(cv?.status)
           const Icon = cfg.icon
           return (

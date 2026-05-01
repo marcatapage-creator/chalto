@@ -128,7 +128,7 @@ export function DocumentPanel({
   const fetchAllValidations = useCallback(async () => {
     const { data, error } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
@@ -416,6 +416,7 @@ export function DocumentPanel({
             allValidations={allValidations}
             validatorContributors={validatorContributors}
             clientName={clientName}
+            activeVersion={activeVersionTab ?? localVersion}
           />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
