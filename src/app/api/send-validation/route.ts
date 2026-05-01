@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const parsed = sendValidationSchema.safeParse(await request.json())
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
-    const { documentId, message } = parsed.data
+    const { documentId, message, requestType = "validation" } = parsed.data
     const supabase = await createClient()
 
     const {
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
       documentName: document.name,
       validationUrl,
       message: message ?? undefined,
+      requestType,
       logoUrl: profile?.branding_enabled ? (profile.logo_url ?? null) : null,
       companyName: profile?.branding_enabled ? (profile.company_name ?? null) : null,
     })
@@ -77,7 +78,11 @@ export async function POST(request: Request) {
 
     const { error: updateError } = await supabase
       .from("documents")
-      .update({ status: DOCUMENT_STATUS.SENT, pro_message: message ?? null })
+      .update({
+        status: DOCUMENT_STATUS.SENT,
+        pro_message: message ?? null,
+        request_type: requestType,
+      })
       .eq("id", documentId)
 
     if (updateError) {

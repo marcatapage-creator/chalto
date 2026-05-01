@@ -24,6 +24,7 @@ export async function sendValidationEmail({
   documentName,
   validationUrl,
   message,
+  requestType = "validation",
   logoUrl,
   companyName,
 }: {
@@ -34,9 +35,11 @@ export async function sendValidationEmail({
   documentName: string
   validationUrl: string
   message?: string
+  requestType?: "validation" | "transmission"
   logoUrl?: string | null
   companyName?: string | null
 }) {
+  const isTransmission = requestType === "transmission"
   const brandHeader = logoUrl
     ? `<img src="${logoUrl}" alt="${escapeHtml(companyName) || "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
     : `<div style="display: inline-flex; align-items: center; gap: 8px;">
@@ -49,7 +52,9 @@ export async function sendValidationEmail({
   return getResend().emails.send({
     from: FROM,
     to: clientEmail,
-    subject: `${senderName} vous soumet un document à valider`,
+    subject: isTransmission
+      ? `${senderName} vous transmet un document pour information`
+      : `${senderName} vous soumet un document à valider`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -60,7 +65,7 @@ export async function sendValidationEmail({
           </div>
 
           <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-            Document à valider
+            ${isTransmission ? "Document transmis pour information" : "Document à valider"}
           </h1>
 
           <p style="color: #555; margin: 0 0 32px; font-size: 15px;">
@@ -68,13 +73,13 @@ export async function sendValidationEmail({
           </p>
 
           <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
-            <strong>${escapeHtml(proName)}</strong> vous soumet un document pour validation
+            <strong>${escapeHtml(proName)}</strong> ${isTransmission ? "vous transmet un document pour information" : "vous soumet un document pour validation"}
             dans le cadre du projet <strong>${escapeHtml(projectName)}</strong>.
           </p>
 
           <a href="${validationUrl}"
              style="display: inline-block; background: #3b5fdb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
-            Consulter et valider →
+            ${isTransmission ? "Consulter le document →" : "Consulter et valider →"}
           </a>
 
           <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">

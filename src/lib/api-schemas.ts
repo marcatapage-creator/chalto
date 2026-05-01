@@ -8,6 +8,7 @@ const nonEmpty = z.string().min(1)
 export const sendValidationSchema = z.object({
   documentId: uuid,
   message: z.string().optional(),
+  requestType: z.enum(["validation", "transmission"]).optional(),
 })
 
 export const sendInviteSchema = z.object({
@@ -34,7 +35,7 @@ export const sendWelcomeSchema = z.object({
 // Routes publiques (client / prestataire via token)
 export const validateSchema = z.object({
   token,
-  status: z.enum(["approved", "rejected"]),
+  status: z.enum(["approved", "rejected", "commented"]),
   comment: z.string().nullish(),
 })
 

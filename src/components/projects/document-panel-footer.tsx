@@ -1,16 +1,12 @@
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { DocumentActions } from "@/components/projects/document-actions"
-import { Send, Clock, Link2, RotateCcw } from "lucide-react"
+import { Clock, Link2, RotateCcw } from "lucide-react"
 import type { AudienceInfo } from "./document-panel-types"
 
 interface DocumentPanelFooterProps {
   localStatus: string
   isChantier: boolean
-  fileUrl: string | null | undefined
-  message: string
-  onMessageChange: (msg: string) => void
-  sending: boolean
+  fileUrl?: string | null
   proposing: boolean
   documentId: string
   documentName: string
@@ -19,7 +15,6 @@ interface DocumentPanelFooterProps {
   localVersion: number
   audienceInfo: AudienceInfo
   onSent: () => void
-  onSend: () => void
   onProposeV2: () => void
   onCopyLink: () => void
 }
@@ -28,9 +23,6 @@ export function DocumentPanelFooter({
   localStatus,
   isChantier,
   fileUrl,
-  message,
-  onMessageChange,
-  sending,
   proposing,
   documentId,
   documentName,
@@ -39,7 +31,6 @@ export function DocumentPanelFooter({
   localVersion,
   audienceInfo,
   onSent,
-  onSend,
   onProposeV2,
   onCopyLink,
 }: DocumentPanelFooterProps) {
@@ -47,33 +38,18 @@ export function DocumentPanelFooter({
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          {isChantier ? "Envoyer pour validation ou transmission" : "Envoyer pour validation"}
+          Envoyer pour validation ou transmission
         </p>
-        {!isChantier && (
-          <Textarea
-            placeholder="Ajouter un mot pour le client (facultatif)..."
-            value={message}
-            onChange={(e) => onMessageChange(e.target.value)}
-            rows={2}
-            className="resize-none text-sm"
-          />
-        )}
-        {isChantier ? (
-          <DocumentActions
-            documentId={documentId}
-            documentName={documentName}
-            projectId={projectId}
-            clientName={clientName}
-            status={localStatus}
-            className="w-full"
-            onSent={onSent}
-          />
-        ) : (
-          <Button onClick={onSend} disabled={!fileUrl} loading={sending} className="w-full">
-            <Send className="h-4 w-4 mr-2" />
-            {sending ? "Envoi..." : "Envoyer au client"}
-          </Button>
-        )}
+        <DocumentActions
+          documentId={documentId}
+          documentName={documentName}
+          projectId={projectId}
+          clientName={clientName}
+          status={localStatus}
+          fileUrl={fileUrl}
+          className="w-full"
+          onSent={onSent}
+        />
       </div>
     )
   }

@@ -7,11 +7,8 @@ import { Button } from "@/components/ui/button"
 import { FileUpload } from "@/components/projects/file-upload"
 import { FileViewer } from "@/components/projects/file-viewer"
 import { createClient } from "@/lib/supabase/client"
-import { haptics } from "@/lib/haptics"
-import { analytics } from "@/lib/analytics"
 import { FileText, X } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
-import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { toast } from "sonner"
 import { docStatusMap } from "@/lib/doc-status"
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel"
@@ -92,8 +89,6 @@ export function DocumentPanel({
   })
   const [allValidations, setAllValidations] = useState<ValidationEntry[]>([])
   const [validatorContributors, setValidatorContributors] = useState<ContributorValidator[]>([])
-  const [message, setMessage] = useState("")
-  const [sending, setSending] = useState(false)
   const [proposing, setProposing] = useState(false)
 
   const handleVersionTabChange = useCallback(
@@ -288,31 +283,6 @@ export function DocumentPanel({
       })
   )
 
-  const handleSend = async () => {
-    setSending(true)
-    const res = await fetchWithTimeout("/api/send-validation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentId: document.id, message: message || undefined }),
-    })
-    const data = await res.json()
-    if (res.ok) {
-      haptics.success()
-      analytics.documentSent()
-      toast.success("Email de validation envoyé au client ✅")
-      setMessage("")
-      setLocalStatus("sent")
-      onStatusChange?.(document.id, "sent")
-    } else if (data.error === "Erreur mise à jour document") {
-      toast.error("Erreur lors de la mise à jour du document")
-    } else if (data.error === "Pas d'email client") {
-      toast.error("Ajoutez l'email du client dans le projet")
-    } else {
-      toast.error("Erreur lors de l'envoi")
-    }
-    setSending(false)
-  }
-
   const handleProposeV2 = async () => {
     setProposing(true)
     const newVersion = localVersion + 1
@@ -462,9 +432,6 @@ export function DocumentPanel({
         localStatus={localStatus}
         isChantier={isChantier}
         fileUrl={fileUrl}
-        message={message}
-        onMessageChange={setMessage}
-        sending={sending}
         proposing={proposing}
         documentId={document.id}
         documentName={document.name}
@@ -476,7 +443,6 @@ export function DocumentPanel({
           setLocalStatus("sent")
           onStatusChange?.(document.id, "sent")
         }}
-        onSend={handleSend}
         onProposeV2={handleProposeV2}
         onCopyLink={handleCopyLink}
       />

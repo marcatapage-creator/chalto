@@ -37,7 +37,7 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
 
   const { data: document } = await admin
     .from("documents")
-    .select("*, projects(name, client_name, phase, user_id)")
+    .select("*, request_type, projects(name, client_name, phase, user_id)")
     .eq("validation_token", token)
     .single()
 
@@ -106,7 +106,11 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
             </div>
           )}
         </div>
-        <ValidationClient document={document} token={token} />
+        <ValidationClient
+          document={document}
+          token={token}
+          requestType={(document.request_type as "validation" | "transmission") ?? "validation"}
+        />
       </div>
     </div>
   )

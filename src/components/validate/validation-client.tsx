@@ -37,11 +37,24 @@ interface DocumentVersion {
   created_at: string
 }
 
-export function ValidationClient({ document, token }: { document: Document; token: string }) {
+export function ValidationClient({
+  document,
+  token,
+  requestType = "validation",
+}: {
+  document: Document
+  token: string
+  requestType?: "validation" | "transmission"
+}) {
+  const isTransmission = requestType === "transmission"
   const [comment, setComment] = useState("")
-  const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
+  const [status, setStatus] = useState<"pending" | "approved" | "rejected" | "commented">("pending")
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(document.status === "approved" || document.status === "rejected")
+  const [done, setDone] = useState(
+    document.status === "approved" ||
+      document.status === "rejected" ||
+      document.status === "commented"
+  )
   const [versions, setVersions] = useState<DocumentVersion[]>([])
   const [activeVersion, setActiveVersion] = useState<number | null>(null)
   const supabase = useMemo(() => createClient(), [])
@@ -66,19 +79,19 @@ export function ValidationClient({ document, token }: { document: Document; toke
   const currentFileType = activeVersionData?.file_type ?? document.file_type
   const isLatestVersion = activeVersion === null
 
-  const handleValidation = async (decision: "approved" | "rejected") => {
+  const handleValidation = async (decision: "approved" | "rejected" | "commented") => {
     setLoading(true)
     await fetchWithTimeout("/api/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, status: decision, comment: comment || null }),
     })
-    if (decision === "approved") {
-      haptics.success()
-      analytics.documentApproved()
-    } else {
+    if (decision === "rejected") {
       haptics.error()
       analytics.documentRejected()
+    } else {
+      haptics.success()
+      if (decision === "approved") analytics.documentApproved()
     }
     setStatus(decision)
     setDone(true)
@@ -86,10 +99,20 @@ export function ValidationClient({ document, token }: { document: Document; toke
   }
 
   if (done || status !== "pending") {
+    const isCommented = status === "commented" || document.status === "commented"
+    const isApproved = status === "approved" || document.status === "approved"
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          {status === "approved" || document.status === "approved" ? (
+          {isCommented ? (
+            <>
+              <CheckCircle className="h-12 w-12 text-primary mb-4" />
+              <h2 className="text-xl font-bold">Réception confirmée</h2>
+              <p className="text-muted-foreground mt-2">
+                Votre professionnel a été notifié de la bonne réception.
+              </p>
+            </>
+          ) : isApproved ? (
             <>
               <CheckCircle className="h-12 w-12 text-primary mb-4" />
               <h2 className="text-xl font-bold">Document approuvé</h2>
@@ -139,9 +162,11 @@ export function ValidationClient({ document, token }: { document: Document; toke
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              Document soumis à votre validation
+              {isTransmission
+                ? "Document transmis pour information"
+                : "Document soumis à votre validation"}
             </span>
-            <Badge variant="outline">En attente</Badge>
+            <Badge variant="outline">{isTransmission ? "Pour information" : "En attente"}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -231,12 +256,18 @@ export function ValidationClient({ document, token }: { document: Document; toke
             <CardHeader>
               <CardTitle className="text-sm">Votre commentaire (optionnel)</CardTitle>
               <CardDescription>
-                Laissez un message au professionnel avant de valider ou refuser
+                {isTransmission
+                  ? "Laissez un message à votre professionnel si vous le souhaitez"
+                  : "Laissez un message au professionnel avant de valider ou refuser"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Tout me semble correct... / Je souhaite modifier..."
+                placeholder={
+                  isTransmission
+                    ? "J'ai bien pris connaissance du document..."
+                    : "Tout me semble correct... / Je souhaite modifier..."
+                }
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
@@ -244,27 +275,45 @@ export function ValidationClient({ document, token }: { document: Document; toke
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => handleValidation("rejected")}
-              loading={loading}
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Refuser
-            </Button>
-            <Button size="lg" onClick={() => handleValidation("approved")} loading={loading}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Approuver
-            </Button>
-          </div>
-
-          <p className="text-xs text-muted-foreground text-center">
-            En approuvant ce document, vous confirmez en avoir pris connaissance et validez son
-            contenu.
-          </p>
+          {isTransmission ? (
+            <>
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={() => handleValidation("commented")}
+                loading={loading}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                J&apos;ai bien reçu ce document
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Votre professionnel sera notifié de la bonne réception.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => handleValidation("rejected")}
+                  loading={loading}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Refuser
+                </Button>
+                <Button size="lg" onClick={() => handleValidation("approved")} loading={loading}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approuver
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                En approuvant ce document, vous confirmez en avoir pris connaissance et validez son
+                contenu.
+              </p>
+            </>
+          )}
         </>
       )}
     </div>

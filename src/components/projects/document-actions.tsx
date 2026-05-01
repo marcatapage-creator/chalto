@@ -11,6 +11,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Send, User, Users, CheckCircle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -34,8 +41,65 @@ interface DocumentActionsProps {
   projectId: string
   clientName?: string
   status: string
+  fileUrl?: string | null
   className?: string
   onSent?: () => void
+}
+
+const REQUEST_TYPE_OPTIONS = [
+  { value: "validation", label: "Pour validation" },
+  { value: "transmission", label: "Pour information" },
+] as const
+
+function RequestTypeSelector({
+  value,
+  onChange,
+}: {
+  value: "validation" | "transmission"
+  onChange: (v: "validation" | "transmission") => void
+}) {
+  return (
+    <>
+      {/* Mobile : Select dropdown */}
+      <div className="sm:hidden">
+        <Select value={value} onValueChange={(v) => onChange(v as "validation" | "transmission")}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {REQUEST_TYPE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Desktop : boutons radio stylisés */}
+      <RadioGroup
+        value={value}
+        onValueChange={(v) => onChange(v as "validation" | "transmission")}
+        className="hidden sm:grid grid-cols-2 gap-2"
+      >
+        {REQUEST_TYPE_OPTIONS.map(({ value: val, label }) => (
+          <Label
+            key={val}
+            htmlFor={`rt-${val}`}
+            className={cn(
+              "flex items-center gap-2.5 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none",
+              value === val
+                ? "border-primary bg-primary/5 font-medium"
+                : "border-border hover:border-primary/50 font-normal text-muted-foreground"
+            )}
+          >
+            <RadioGroupItem id={`rt-${val}`} value={val} />
+            {label}
+          </Label>
+        ))}
+      </RadioGroup>
+    </>
+  )
 }
 
 export function DocumentActions({
@@ -44,6 +108,7 @@ export function DocumentActions({
   projectId,
   clientName,
   status,
+  fileUrl,
   className,
   onSent,
 }: DocumentActionsProps) {
@@ -78,15 +143,28 @@ export function DocumentActions({
 
     try {
       if (audience === "client") {
-        await fetchWithTimeout("/api/send-validation", {
+        const res = await fetchWithTimeout("/api/send-validation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ documentId, message: message || undefined }),
+          body: JSON.stringify({ documentId, message: message || undefined, requestType }),
         })
-
+        const data = await res.json()
+        if (!res.ok) {
+          toast.error(
+            data.error === "Pas d'email client"
+              ? "Ajoutez l'email du client dans le projet"
+              : (data.error ?? "Erreur lors de l'envoi")
+          )
+          setLoading(false)
+          return
+        }
         haptics.success()
         analytics.documentSent()
-        toast.success("Email de validation envoyé au client ✅")
+        toast.success(
+          requestType === "transmission"
+            ? "Document transmis au client ✅"
+            : "Email de validation envoyé au client ✅"
+        )
       } else {
         if (selectedContributors.length === 0) {
           toast.error("Sélectionnez au moins un prestataire")
@@ -106,17 +184,15 @@ export function DocumentActions({
           return
         }
 
-        if (selectedContributors.length > 0) {
-          await supabase.from("document_contributors").upsert(
-            selectedContributors.map((contributorId) => ({
-              document_id: documentId,
-              contributor_id: contributorId,
-              request_type: requestType,
-              pro_message: message || null,
-            })),
-            { onConflict: "document_id,contributor_id" }
-          )
-        }
+        await supabase.from("document_contributors").upsert(
+          selectedContributors.map((contributorId) => ({
+            document_id: documentId,
+            contributor_id: contributorId,
+            request_type: requestType,
+            pro_message: message || null,
+          })),
+          { onConflict: "document_id,contributor_id" }
+        )
 
         const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
@@ -286,35 +362,8 @@ export function DocumentActions({
               </div>
             )}
 
-            {/* Type de demande (prestataires uniquement) */}
-            {audience === "contributor" && (
-              <RadioGroup
-                value={requestType}
-                onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
-                className="grid grid-cols-2 gap-2"
-              >
-                {(
-                  [
-                    { value: "validation", label: "Pour validation" },
-                    { value: "transmission", label: "Pour information" },
-                  ] as const
-                ).map(({ value, label }) => (
-                  <Label
-                    key={value}
-                    htmlFor={`rt-${value}`}
-                    className={cn(
-                      "flex items-center gap-2.5 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none",
-                      requestType === value
-                        ? "border-primary bg-primary/5 font-medium"
-                        : "border-border hover:border-primary/50 font-normal text-muted-foreground"
-                    )}
-                  >
-                    <RadioGroupItem id={`rt-${value}`} value={value} />
-                    {label}
-                  </Label>
-                ))}
-              </RadioGroup>
-            )}
+            {/* Type de demande (client + prestataires) */}
+            <RequestTypeSelector value={requestType} onChange={setRequestType} />
 
             {/* Message facultatif */}
             <Textarea
@@ -334,15 +383,19 @@ export function DocumentActions({
               className="w-full"
               onClick={handleSend}
               disabled={
-                loading || (audience === "contributor" && selectedContributors.length === 0)
+                loading ||
+                (audience === "client" && !fileUrl) ||
+                (audience === "contributor" && selectedContributors.length === 0)
               }
             >
               <Send className="h-4 w-4 mr-2" />
               {loading
                 ? "Envoi en cours..."
-                : audience === "client"
-                  ? "Envoyer au client"
-                  : `Envoyer à ${selectedContributors.length} prestataire(s)`}
+                : audience === "client" && !fileUrl
+                  ? "Uploadez un fichier d'abord"
+                  : audience === "client"
+                    ? "Envoyer au client"
+                    : `Envoyer à ${selectedContributors.length} prestataire(s)`}
             </Button>
           </div>
         </DialogContent>
