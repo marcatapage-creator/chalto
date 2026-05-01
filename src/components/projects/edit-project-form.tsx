@@ -11,32 +11,11 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { getProfessionConfig } from "@/lib/profession-config"
 
 const steps = [
   { id: 1, label: "Le projet" },
   { id: 2, label: "Le cadrage" },
-]
-
-const workTypes = [
-  "Construction neuve",
-  "Rénovation complète",
-  "Rénovation partielle",
-  "Extension",
-  "Aménagement intérieur",
-  "Ravalement / façade",
-  "Plomberie",
-  "Électricité",
-  "Menuiserie",
-  "Autre",
-]
-
-const budgetRanges = [
-  "< 10 000€",
-  "10 000€ — 50 000€",
-  "50 000€ — 150 000€",
-  "150 000€ — 500 000€",
-  "> 500 000€",
-  "Non défini",
 ]
 
 interface Project {
@@ -52,7 +31,14 @@ interface Project {
   constraints?: string | null
 }
 
-export function EditProjectForm({ project }: { project: Project }) {
+export function EditProjectForm({
+  project,
+  professionSlug,
+}: {
+  project: Project
+  professionSlug?: string | null
+}) {
+  const { workTypes, budgetRanges } = getProfessionConfig(professionSlug)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -8,5 +8,5 @@ export const getProfessions = unstable_cache(
     return data ?? []
   },
   ["professions"],
-  { revalidate: 3600 }
+  { revalidate: 300 }
 )

@@ -16,35 +16,16 @@ import {
 import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
 import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
-import {
-  ClipboardList,
-  Pencil,
-  CheckSquare,
-  HardHat,
-  Search,
-  Archive,
-  ChevronRight,
-  Check,
-  ListTodo,
-  MessageSquare,
-  UserPlus,
-} from "lucide-react"
+import { ChevronRight, Check, Archive, CheckSquare } from "lucide-react"
+import { getProfessionConfig } from "@/lib/profession-config"
 
 const CHANTIER_DISMISSED_KEY = "chantier_onboarding_dismissed"
 const CLOTURE_DISMISSED_KEY = "cloture_warning_dismissed"
 
-const phases = [
-  { id: "cadrage", label: "Cadrage", icon: ClipboardList },
-  { id: "conception", label: "Conception", icon: Pencil },
-  { id: "validation", label: "Validation", icon: CheckSquare },
-  { id: "chantier", label: "Chantier", icon: HardHat },
-  { id: "reception", label: "Réception", icon: Search },
-  { id: "cloture", label: "Clôturé", icon: Archive },
-]
-
 interface ProjectStepperProps {
   projectId: string
   currentPhase: string
+  professionSlug?: string | null
   readOnly?: boolean
   onPhaseChange?: (phase: string) => void
 }
@@ -52,6 +33,7 @@ interface ProjectStepperProps {
 export function ProjectStepper({
   projectId,
   currentPhase,
+  professionSlug,
   readOnly = false,
   onPhaseChange,
 }: ProjectStepperProps) {
@@ -63,6 +45,9 @@ export function ProjectStepper({
   const [dontShowClotureAgain, setDontShowClotureAgain] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  const config = getProfessionConfig(professionSlug)
+  const { phases, chantierDialog, chantierBlockedToast, stepperTooltip } = config
 
   const currentIndex = phases.findIndex((p) => p.id === phase)
   const nextPhase = phases[currentIndex + 1]
@@ -91,7 +76,7 @@ export function ProjectStepper({
   const handlePhaseClick = (targetId: string, targetIndex: number) => {
     if (readOnly || targetIndex >= currentIndex) return
     if (isChantierPhase(phase) && targetIndex < chantierIndex) {
-      toast.warning("Retour impossible : le chantier est déjà amorcé.")
+      toast.warning(chantierBlockedToast)
       return
     }
     void doGoBack(targetId)
@@ -147,40 +132,21 @@ export function ProjectStepper({
     void doAdvance()
   }
 
+  const ChantierIcon = chantierDialog.items[0]?.icon
+
   return (
     <>
       <Dialog open={showChantierDialog} onOpenChange={setShowChantierDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <HardHat className="h-5 w-5 text-primary" />
-              Phase Chantier débloquée
+              {ChantierIcon && <ChantierIcon className="h-5 w-5 text-primary" />}
+              {chantierDialog.title}
             </DialogTitle>
-            <DialogDescription>
-              Vous entrez en phase chantier. Voici ce que vous pouvez faire maintenant :
-            </DialogDescription>
+            <DialogDescription>{chantierDialog.description}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-1">
-            {[
-              {
-                icon: UserPlus,
-                title: "Inviter vos prestataires",
-                description:
-                  "Ajoutez les intervenants du chantier pour leur donner accès au projet.",
-              },
-              {
-                icon: ListTodo,
-                title: "Tâches",
-                description:
-                  "Créez des tâches et affectez-les à vos prestataires pour suivre l'avancement du chantier.",
-              },
-              {
-                icon: MessageSquare,
-                title: "Fil de discussion chantier",
-                description:
-                  "Échangez directement avec vos prestataires via un fil de conversation dédié à ce chantier.",
-              },
-            ].map(({ icon: Icon, title, description }) => (
+            {chantierDialog.items.map(({ icon: Icon, title, description }) => (
               <div key={title} className="flex items-start gap-3 rounded-lg border p-3">
                 <Icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                 <div>
@@ -204,6 +170,7 @@ export function ProjectStepper({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <Dialog open={showClotureDialog} onOpenChange={setShowClotureDialog}>
         <DialogContent>
           <DialogHeader>
@@ -256,7 +223,7 @@ export function ProjectStepper({
           <OnboardingTooltip
             id="project-stepper"
             title="Phases du projet"
-            description="Suivez l'avancement de votre projet de la conception à la réception — phase par phase."
+            description={stepperTooltip}
             position="bottom"
             align="start"
           >
@@ -288,7 +255,6 @@ export function ProjectStepper({
 
             return (
               <Fragment key={p.id}>
-                {/* Étape */}
                 <div
                   className={cn(
                     "flex flex-col items-center gap-1.5 shrink-0 transition-opacity duration-200",
@@ -324,7 +290,6 @@ export function ProjectStepper({
                   </p>
                 </div>
 
-                {/* Connecteur */}
                 {index < phases.length - 1 && (
                   <div
                     className={cn(

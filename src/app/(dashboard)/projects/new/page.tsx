@@ -1,57 +1,70 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
+import { getProfessionConfig } from "@/lib/profession-config"
+
+type ProfessionOption = { id: string; slug: string; label: string }
 
 const steps = [
   { id: 1, label: "Le projet" },
   { id: 2, label: "Le cadrage" },
 ]
 
-const workTypes = [
-  "Construction neuve",
-  "Rénovation complète",
-  "Rénovation partielle",
-  "Extension",
-  "Aménagement intérieur",
-  "Ravalement / façade",
-  "Plomberie",
-  "Électricité",
-  "Menuiserie",
-  "Autre",
-]
-
-const budgetRanges = [
-  "< 10 000€",
-  "10 000€ — 50 000€",
-  "50 000€ — 150 000€",
-  "150 000€ — 500 000€",
-  "> 500 000€",
-  "Non défini",
-]
-
 export default function NewProjectPage() {
   const [step, setStep] = useState(1)
+  const [professionSlug, setProfessionSlug] = useState<string | null>(null)
+  const [professionId, setProfessionId] = useState<string | null>(null)
+  const [availableProfessions, setAvailableProfessions] = useState<ProfessionOption[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      Promise.all([
+        supabase
+          .from("profiles")
+          .select("profession_id, professions!profession_id(id, slug)")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("user_professions")
+          .select("professions(id, slug, label)")
+          .eq("user_id", user.id),
+      ]).then(([{ data: profile }, { data: userProfs }]) => {
+        const profs = (userProfs ?? [])
+          .map((r) => r.professions as unknown as ProfessionOption | null)
+          .filter((p): p is ProfessionOption => p !== null)
+
+        setAvailableProfessions(profs)
+
+        // Par défaut : profession primaire
+        const primary = profile?.professions as unknown as { id: string; slug: string } | null
+        setProfessionSlug(primary?.slug ?? null)
+        setProfessionId((profile?.profession_id as string | null) ?? null)
+      })
+    })
+  }, [])
+
+  const { workTypes, budgetRanges } = getProfessionConfig(professionSlug)
+
   const [form, setForm] = useState({
-    // Étape 1
     name: "",
     client_name: "",
     client_email: "",
     address: "",
     description: "",
-    // Étape 2
     work_type: "",
     budget_range: "",
     deadline: "",
@@ -63,6 +76,13 @@ export default function NewProjectPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleProfessionSwitch = (prof: ProfessionOption) => {
+    setProfessionSlug(prof.slug)
+    setProfessionId(prof.id)
+    // Reset les choix dépendant de la profession
+    setForm((f) => ({ ...f, work_type: "", budget_range: "" }))
   }
 
   const handleNext = () => {
@@ -98,6 +118,7 @@ export default function NewProjectPage() {
         user_id: user.id,
         status: "active",
         phase: "cadrage",
+        profession_id: professionId,
       })
       .select()
       .single()
@@ -176,6 +197,49 @@ export default function NewProjectPage() {
               <CardDescription>Les informations de base visibles par votre client</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Sélecteur de profession — visible uniquement en multi-profession */}
+              {availableProfessions.length > 1 && (
+                <div className="space-y-2 pb-2 border-b">
+                  <Label>Type de projet</Label>
+                  {/* Mobile : select natif */}
+                  <div className="sm:hidden relative">
+                    <select
+                      className="w-full appearance-none px-3 py-2 rounded-lg text-sm border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+                      value={professionId ?? ""}
+                      onChange={(e) => {
+                        const prof = availableProfessions.find((p) => p.id === e.target.value)
+                        if (prof) handleProfessionSwitch(prof)
+                      }}
+                    >
+                      {availableProfessions.map((prof) => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                  {/* Desktop : boutons toggle */}
+                  <div className="hidden sm:flex gap-2">
+                    {availableProfessions.map((prof) => (
+                      <button
+                        key={prof.id}
+                        type="button"
+                        onClick={() => handleProfessionSwitch(prof)}
+                        className={cn(
+                          "flex-1 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150",
+                          professionId === prof.id
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border hover:border-primary/50 hover:bg-muted"
+                        )}
+                      >
+                        {prof.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="name">Nom du projet *</Label>
                 <Input
@@ -244,7 +308,6 @@ export default function NewProjectPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Type de travaux */}
               <div className="space-y-2">
                 <Label>Type de travaux</Label>
                 <div className="flex flex-wrap gap-2">
@@ -266,7 +329,6 @@ export default function NewProjectPage() {
                 </div>
               </div>
 
-              {/* Budget */}
               <div className="space-y-2">
                 <Label>Budget estimé</Label>
                 <div className="flex flex-wrap gap-2">
@@ -288,7 +350,6 @@ export default function NewProjectPage() {
                 </div>
               </div>
 
-              {/* Délai */}
               <div className="space-y-2">
                 <Label htmlFor="deadline">Délai souhaité</Label>
                 <Input
@@ -300,7 +361,6 @@ export default function NewProjectPage() {
                 />
               </div>
 
-              {/* Contraintes */}
               <div className="space-y-2">
                 <Label htmlFor="constraints">
                   Contraintes particulières

@@ -20,8 +20,10 @@ test("9.3 — navigation rapide entre projets, pas d'erreur Realtime", async ({ 
   await page.goto("/dashboard")
   await expect(page).toHaveURL(/dashboard/)
 
-  // Trouver et visiter le premier projet disponible
-  const projectLinks = page.getByRole("link", { name: /voir|ouvrir|→/i })
+  // Trouver et visiter le premier projet disponible (liens vers /projects/<uuid>)
+  const projectLinks = page.locator('a[href^="/projects/"]').filter({
+    hasNot: page.locator('[href="/projects"]'),
+  })
   const count = await projectLinks.count()
 
   if (count === 0) {

@@ -83,6 +83,7 @@ interface ProjectPageClientProps {
   phase: string
   contacts: Contact[]
   authorName: string
+  professionSlug?: string | null
   initialHighlightId?: string | null
   initialValidations?: Record<string, ValidationData>
 }
@@ -94,6 +95,7 @@ export function ProjectPageClient({
   phase,
   contacts,
   authorName,
+  professionSlug,
   initialHighlightId,
   initialValidations = {},
 }: ProjectPageClientProps) {
@@ -396,6 +398,7 @@ export function ProjectPageClient({
                     <ProjectStepper
                       projectId={project.id}
                       currentPhase={phase}
+                      professionSlug={professionSlug}
                       onPhaseChange={(newPhase) => {
                         if (isChantierPhase(newPhase)) {
                           setDocsOpen(false)
@@ -419,6 +422,7 @@ export function ProjectPageClient({
               projectName={project.name}
               workType={project.work_type}
               clientName={project.client_name}
+              professionSlug={professionSlug}
               selectedDocId={selectedDoc?.id ?? null}
               onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
               onDeleteDoc={handleDeleteDoc}

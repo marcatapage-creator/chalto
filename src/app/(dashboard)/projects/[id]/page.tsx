@@ -17,7 +17,12 @@ export default async function ProjectPage({
 
   const [{ data: project }, { data: documents }, { data: contacts }, { data: profile }] =
     await Promise.all([
-      supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
+      supabase
+        .from("projects")
+        .select("*, professions(slug)")
+        .eq("id", id)
+        .eq("user_id", user!.id)
+        .single(),
       supabase
         .from("documents")
         .select("*")
@@ -55,6 +60,7 @@ export default async function ProjectPage({
   if (!project) notFound()
 
   const authorName = profile?.full_name ?? profile?.email ?? "Pro"
+  const professionSlug = (project.professions as unknown as { slug: string } | null)?.slug ?? null
 
   return (
     <ProjectPageClient
@@ -64,6 +70,7 @@ export default async function ProjectPage({
       userId={user!.id}
       phase={project.phase ?? "cadrage"}
       authorName={authorName}
+      professionSlug={professionSlug}
       initialHighlightId={highlight ?? null}
       initialValidations={initialValidations}
     />

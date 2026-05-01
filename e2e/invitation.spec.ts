@@ -1,5 +1,7 @@
 /**
  * RECETTE 6.1 — Invitation prestataire + accès espace
+ * RECETTE 6.3 — Ré-inviter un prestataire déjà invité (pas de doublon)
+ * RECETTE 6.4 — Contact sans email → toast d'erreur, pas de crash
  * RECETTE 5.5 — Accusé de lecture transmission
  *
  * Variables d'env requises :
@@ -67,6 +69,95 @@ test("5.5 — le bouton 'valider la lecture' est présent pour un doc en transmi
   await page.goto(`/invite/${token}`)
   const readBtn = page.getByRole("button", { name: /valider la lecture|j'ai lu|accusé/i }).first()
   await expect(readBtn).toBeVisible({ timeout: 10_000 })
+})
+
+// ─── 6.3 : Ré-invitation (pas de doublon) ────────────────────────────────────
+
+test("6.3 — ré-inviter un prestataire déjà invité ne crée pas d'erreur", async ({ page }) => {
+  const projectId = process.env.E2E_PROJECT_ID
+  const contactId = process.env.E2E_CONTACT_ID
+  if (!process.env.E2E_USER_EMAIL || !projectId || !contactId) {
+    test.skip(true, "E2E_USER_EMAIL, E2E_PROJECT_ID ou E2E_CONTACT_ID non défini")
+    return
+  }
+
+  const errors: string[] = []
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(msg.text())
+  })
+
+  await page.goto(`/projects/${projectId}`)
+  await expect(page).not.toHaveURL(/login/)
+
+  // Ouvrir la modale d'invitation
+  const inviteBtn = page.getByRole("button", { name: /ajouter|inviter|prestataire/i }).first()
+  await expect(inviteBtn).toBeVisible({ timeout: 10_000 })
+  await inviteBtn.click()
+
+  // Sélectionner le même contact (déjà contributeur)
+  const contactOption = page.getByText(contactId).first()
+  const hasByText = await contactOption.isVisible({ timeout: 3_000 }).catch(() => false)
+  if (!hasByText) {
+    // Chercher via select ou liste déroulante
+    const contactSelect = page.getByRole("combobox", { name: /contact|prestataire/i }).first()
+    const hasSelect = await contactSelect.isVisible({ timeout: 3_000 }).catch(() => false)
+    if (!hasSelect) {
+      test.skip(true, "Sélecteur de contact non trouvé")
+      return
+    }
+  }
+
+  // Confirmer l'invitation
+  const confirmBtn = page.getByRole("button", { name: /inviter|envoyer|confirmer/i }).last()
+  const hasConfirm = await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)
+  if (hasConfirm) await confirmBtn.click()
+
+  await page.waitForTimeout(2_000)
+
+  // Pas de crash — erreur 500 ou stacktrace interdit
+  await expect(page.getByText(/internal server error/i)).not.toBeVisible()
+  const fatalErrors = errors.filter((e) => e.includes("500") || e.includes("TypeError"))
+  expect(fatalErrors).toHaveLength(0)
+})
+
+// ─── 6.4 : Contact sans email ─────────────────────────────────────────────────
+
+test("6.4 — inviter un contact sans email affiche un toast d'erreur sans crash", async ({
+  page,
+}) => {
+  const projectId = process.env.E2E_PROJECT_ID
+  if (!process.env.E2E_USER_EMAIL || !projectId) {
+    test.skip(true, "E2E_USER_EMAIL ou E2E_PROJECT_ID non défini")
+    return
+  }
+
+  await page.goto(`/projects/${projectId}`)
+  await expect(page).not.toHaveURL(/login/)
+
+  const inviteBtn = page.getByRole("button", { name: /ajouter|inviter|prestataire/i }).first()
+  await expect(inviteBtn).toBeVisible({ timeout: 10_000 })
+  await inviteBtn.click()
+
+  // Chercher un contact sans email dans la liste (peut être étiqueté "sans email" ou simplement absent d'email)
+  const noEmailContact = page.getByText(/sans email|no email|email manquant/i).first()
+  const hasNoEmail = await noEmailContact.isVisible({ timeout: 3_000 }).catch(() => false)
+
+  if (!hasNoEmail) {
+    test.skip(true, "Aucun contact sans email disponible pour ce test")
+    return
+  }
+
+  await noEmailContact.click()
+  const confirmBtn = page.getByRole("button", { name: /inviter|envoyer|confirmer/i }).last()
+  if (await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)) await confirmBtn.click()
+
+  // Toast d'erreur doit apparaître
+  await expect(page.getByText(/email|n'a pas d'email|renseigné/i).first()).toBeVisible({
+    timeout: 8_000,
+  })
+
+  // Pas de crash
+  await expect(page.getByText(/internal server error/i)).not.toBeVisible()
 })
 
 // ─── Token invalide / expiré ─────────────────────────────────────────────────

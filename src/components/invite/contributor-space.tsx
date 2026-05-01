@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useState, useMemo, useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -12,25 +11,21 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import {
   CheckSquare,
-  ArrowRight,
   Plus,
-  Check,
   Clock,
-  Zap,
-  FileText,
-  Users,
   CheckCircle,
   XCircle,
   MessageSquare,
   ChevronDown,
 } from "lucide-react"
-import { TaskComments } from "@/components/projects/task-comments"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { FileViewer } from "@/components/projects/file-viewer"
 import { haptics } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
-import Link from "next/link"
+import { ContributorHeader } from "./contributor-header"
+import { ContributorCTA } from "./contributor-cta"
+import { ContributorTaskCard } from "./contributor-task-card"
 
 interface Task {
   id: string
@@ -70,34 +65,6 @@ interface ContributorSpaceProps {
     }[]
   >
 }
-
-const statusConfig: Record<
-  string,
-  { label: string; color: string; next?: string; nextLabel?: string }
-> = {
-  todo: {
-    label: "À faire",
-    color: "bg-muted text-muted-foreground",
-    next: "in_progress",
-    nextLabel: "Démarrer",
-  },
-  in_progress: {
-    label: "En cours",
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    next: "done",
-    nextLabel: "Terminer",
-  },
-  done: {
-    label: "Terminé",
-    color: "bg-primary/10 text-primary",
-  },
-}
-
-const ctaFeatures = [
-  { icon: FileText, label: "Documents" },
-  { icon: Users, label: "Clients" },
-  { icon: Zap, label: "Validations" },
-]
 
 type DocRow = {
   document_id: string
@@ -191,12 +158,18 @@ export function ContributorSpace({
     try {
       const seenDocs: string[] = JSON.parse(localStorage.getItem(docsKey) ?? "[]")
       if (!initialDocs.every((dc) => seenDocs.includes(dc.document_id))) setDocsRead(false)
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage read error", e)
+    }
     try {
       const seenTasks: string[] = JSON.parse(localStorage.getItem(tasksKey) ?? "[]")
       const ids = initialTasks.filter((t) => t.status !== "suggestion").map((t) => t.id)
       if (ids.length > 0 && !ids.every((id) => seenTasks.includes(id))) setTasksRead(false)
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage read error", e)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -204,7 +177,10 @@ export function ContributorSpace({
     try {
       const docsKey = `chalto_seen_docs_${contributor.invite_token}`
       localStorage.setItem(docsKey, JSON.stringify(initialDocs.map((dc) => dc.document_id)))
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage write error", e)
+    }
     setDocsRead(true)
   }
 
@@ -212,7 +188,10 @@ export function ContributorSpace({
     try {
       const tasksKey = `chalto_seen_tasks_${contributor.invite_token}`
       localStorage.setItem(tasksKey, JSON.stringify(tasks.map((t) => t.id)))
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage write error", e)
+    }
     setTasksRead(true)
   }
 
@@ -222,7 +201,10 @@ export function ContributorSpace({
       const discussionKey = `chalto_seen_discussion_${contributor.invite_token}`
       const stored = parseInt(localStorage.getItem(discussionKey) ?? "0", 10)
       if (discussionCount > stored) setDiscussionRead(false)
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage read error", e)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [discussionCount])
 
@@ -230,7 +212,10 @@ export function ContributorSpace({
     try {
       const discussionKey = `chalto_seen_discussion_${contributor.invite_token}`
       localStorage.setItem(discussionKey, String(discussionCount))
-    } catch {}
+    } catch (e) {
+      if (process.env.NODE_ENV === "development")
+        console.warn("[contributor-space] localStorage write error", e)
+    }
     setDiscussionRead(true)
   }
 
@@ -378,93 +363,28 @@ export function ContributorSpace({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header + Nav — un seul bloc sticky pour éviter tout écart */}
-      <div className="sticky top-0 z-20">
-        <header className="border-b bg-card">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={companyName ?? "Logo"}
-                width={120}
-                height={32}
-                className="object-contain max-h-8"
-              />
-            ) : (
-              <div className="flex items-center gap-2">
-                <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
-                <span className="font-bold">Chalto</span>
-              </div>
-            )}
-            <Badge variant="outline" className="text-xs">
-              Espace prestataire
-            </Badge>
-          </div>
-        </header>
-
-        {/* Navigation */}
-        <nav className="bg-background/95 backdrop-blur border-b">
-          <div className="max-w-2xl mx-auto px-4 flex">
-            <button
-              onClick={() => {
-                markDocsRead()
-                scrollToSection(docsRef, setDocsOpen)
-              }}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-            >
-              <span className="truncate">Documents</span>
-              {docs.length > 0 && (
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
-                    docsRead ? "bg-muted" : "bg-red-500 text-white"
-                  )}
-                >
-                  {docs.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                markTasksRead()
-                scrollToSection(tasksRef, setTasksOpen)
-              }}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-            >
-              <span className="truncate">Tâches</span>
-              {tasks.length > 0 && (
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
-                    tasksRead ? "bg-muted" : "bg-red-500 text-white"
-                  )}
-                >
-                  {tasks.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                markDiscussionRead()
-                scrollToSection(discussionRef, setDiscussionOpen)
-              }}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
-            >
-              <span className="truncate">Discussion</span>
-              {discussionCount > 0 && (
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1",
-                    discussionRead ? "bg-muted" : "bg-red-500 text-white"
-                  )}
-                >
-                  {discussionCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </nav>
-      </div>
+      <ContributorHeader
+        logoUrl={logoUrl}
+        companyName={companyName}
+        docsCount={docs.length}
+        tasksCount={tasks.length}
+        discussionCount={discussionCount}
+        docsRead={docsRead}
+        tasksRead={tasksRead}
+        discussionRead={discussionRead}
+        onDocsClick={() => {
+          markDocsRead()
+          scrollToSection(docsRef, setDocsOpen)
+        }}
+        onTasksClick={() => {
+          markTasksRead()
+          scrollToSection(tasksRef, setTasksOpen)
+        }}
+        onDiscussionClick={() => {
+          markDiscussionRead()
+          scrollToSection(discussionRef, setDiscussionOpen)
+        }}
+      />
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
         {/* Contexte projet */}
@@ -813,90 +733,17 @@ export function ContributorSpace({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {tasks.map((task) => {
-                    const config = statusConfig[task.status] ?? statusConfig.todo
-                    return (
-                      <Card
-                        key={task.id}
-                        className={cn(
-                          "transition-all duration-200",
-                          task.status === "done" && "opacity-70"
-                        )}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 flex-1">
-                              <div
-                                className={cn(
-                                  "h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 cursor-pointer transition-all",
-                                  task.status === "done"
-                                    ? "border-primary bg-primary"
-                                    : "border-muted-foreground hover:border-primary"
-                                )}
-                                onClick={() =>
-                                  task.status !== "done" && handleStatusChange(task.id, "done")
-                                }
-                              >
-                                {task.status === "done" && (
-                                  <Check className="h-3 w-3 text-primary-foreground" />
-                                )}
-                              </div>
-
-                              <div className="flex-1">
-                                <p
-                                  className={cn(
-                                    "text-sm font-medium",
-                                    task.status === "done" && "line-through text-muted-foreground"
-                                  )}
-                                >
-                                  {task.title}
-                                </p>
-                                {task.description && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {task.description}
-                                  </p>
-                                )}
-                                {task.due_date && (
-                                  <div className="flex items-center gap-1 mt-1.5">
-                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(task.due_date).toLocaleDateString("fr-FR", {
-                                        day: "numeric",
-                                        month: "long",
-                                      })}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <Badge className={cn("text-xs shrink-0", config.color)}>
-                              {config.label}
-                            </Badge>
-                          </div>
-
-                          {config.next && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground mt-2"
-                              onClick={() => handleStatusChange(task.id, config.next!)}
-                            >
-                              {config.nextLabel}
-                              <ArrowRight className="ml-1 h-3 w-3" />
-                            </Button>
-                          )}
-                        </CardContent>
-                        <TaskComments
-                          taskId={task.id}
-                          authorName={contributor.name}
-                          authorRole="prestataire"
-                          contributorToken={contributor.invite_token}
-                          initialComments={initialTaskComments[task.id]}
-                        />
-                      </Card>
-                    )
-                  })}
+                  {tasks.map((task) => (
+                    <ContributorTaskCard
+                      key={task.id}
+                      task={task}
+                      onStatusChange={handleStatusChange}
+                      authorName={contributor.name}
+                      authorRole="prestataire"
+                      contributorToken={contributor.invite_token}
+                      initialComments={initialTaskComments[task.id]}
+                    />
+                  ))}
                 </div>
               )}
 
@@ -992,43 +839,7 @@ export function ContributorSpace({
 
         <Separator />
 
-        {/* CTA Chalto */}
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Image src="/Logo.svg" alt="Chalto" width={24} height={24} />
-              <span className="font-bold">Chalto</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-base">
-                Et si vous utilisiez Chalto pour vos propres projets ?
-              </h3>
-              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Gérez vos chantiers, partagez vos documents et faites valider vos livrables par vos
-                clients — simplement, depuis votre téléphone.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-3 py-2">
-              {ctaFeatures.map((item) => (
-                <div key={item.label} className="flex flex-col items-center gap-1.5 text-center">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <item.icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{item.label}</span>
-                </div>
-              ))}
-            </div>
-            <Button className="w-full" asChild>
-              <Link href="/#waitlist">
-                Créer mon compte gratuitement
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Gratuit · Sans carte bancaire · Prêt en 2 minutes
-            </p>
-          </CardContent>
-        </Card>
+        <ContributorCTA />
       </div>
     </div>
   )

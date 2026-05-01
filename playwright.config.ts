@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test"
+import dotenv from "dotenv"
+import path from "path"
+
+// Charge .env.local pour que E2E_USER_EMAIL/PASSWORD soient disponibles en local
+dotenv.config({ path: path.resolve(__dirname, ".env.local") })
 
 // En CI, on pointe vers le site déployé — pas besoin de démarrer un serveur local
 const baseURL = process.env.BASE_URL ?? "http://localhost:3000"

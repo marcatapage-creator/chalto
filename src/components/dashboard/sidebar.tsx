@@ -17,9 +17,9 @@ import { useState, useEffect, useTransition } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 type Profile = {
+  id: string
   full_name?: string | null
   email?: string | null
-  professions?: { label: string; icon: string } | null
 }
 
 type Counts = { projects: number; contacts: number }
@@ -81,9 +81,6 @@ function SidebarContent({
             <AnimatedLogo width={28} height={28} />
             <span className="font-bold text-lg">Chalto</span>
           </div>
-          {profile?.professions && (
-            <p className="text-xs text-muted-foreground mt-1 ml-9">{profile.professions.label}</p>
-          )}
         </div>
         {showBell && <NotificationBell {...notifProps} popoverAlign="start" />}
       </div>

@@ -7,25 +7,22 @@ import * as Sentry from "@sentry/nextjs"
 Sentry.init({
   dsn: "https://740d6d001caf9bdb8f8488c869238467@o4511269564055552.ingest.de.sentry.io/4511269570871376",
 
-  // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
-  // Enable logs to be sent to Sentry
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 0,
   enableLogs: true,
-
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
   replaysSessionSampleRate: 0.1,
-
-  // Define how likely Replay events are sampled when an error occurs.
   replaysOnErrorSampleRate: 1.0,
-
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
+
+  beforeSend(event, hint) {
+    const err = hint?.originalException
+    // Bug SDK Sentry + Next.js App Router : performance.measure() timestamp négatif
+    // lors de navigations rapides / redirects (pas une erreur applicative)
+    if (err instanceof TypeError && err.message.includes("cannot have a negative time stamp"))
+      return null
+    return event
+  },
 })
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart

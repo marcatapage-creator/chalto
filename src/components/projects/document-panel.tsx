@@ -4,28 +4,28 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/projects/file-upload"
 import { FileViewer } from "@/components/projects/file-viewer"
-import { DocumentActions } from "@/components/projects/document-actions"
 import { createClient } from "@/lib/supabase/client"
 import { haptics } from "@/lib/haptics"
 import { analytics } from "@/lib/analytics"
-import {
-  FileText,
-  X,
-  CheckCircle,
-  XCircle,
-  MessageSquare,
-  Send,
-  Clock,
-  Link2,
-  RotateCcw,
-} from "lucide-react"
+import { FileText, X } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { toast } from "sonner"
 import { docStatusMap } from "@/lib/doc-status"
+import { useRealtimeChannel } from "@/hooks/use-realtime-channel"
+import { ValidationResultBanner } from "./document-validation-banner"
+import { ValidationsSection } from "./document-validations-section"
+import { DocumentVersionTabs } from "./document-version-tabs"
+import { DocumentPanelFooter } from "./document-panel-footer"
+import type {
+  ValidationData,
+  ValidationEntry,
+  ContributorValidator,
+  PrevVersion,
+  AudienceInfo,
+} from "./document-panel-types"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,38 +43,6 @@ interface Document {
   file_size?: number
 }
 
-interface ValidationData {
-  status: string
-  comment?: string | null
-  approved_at?: string
-  client_name?: string
-}
-
-interface ValidationEntry {
-  status: string
-  comment?: string | null
-  approved_at?: string | null
-  client_name?: string | null
-  contributor_id?: string | null
-}
-
-interface ContributorValidator {
-  id: string
-  name: string
-}
-
-interface PrevVersion {
-  version: number
-  file_url: string | null
-  file_name?: string
-  file_type?: string
-}
-
-interface AudienceInfo {
-  requestType: "validation" | "transmission" | null
-  names: string[]
-}
-
 export interface DocumentPanelProps {
   document: Document
   userId: string
@@ -84,334 +52,6 @@ export interface DocumentPanelProps {
   showClose?: boolean
   onStatusChange?: (docId: string, status: string, version?: number) => void
   initialValidation?: ValidationData | null
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ValidationResultBanner({
-  validation,
-  localStatus,
-}: {
-  validation: ValidationData | null
-  localStatus: string
-}) {
-  if (!validation || localStatus === "sent" || localStatus === "draft") return null
-
-  return (
-    <div className="px-4 py-3 border-b shrink-0">
-      {validation.status === "commented" ? (
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-          <MessageSquare className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-              Commenté par {validation.client_name ?? "le prestataire"}
-            </p>
-            {validation.comment && (
-              <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>
-            )}
-            {validation.approved_at && (
-              <p className="text-xs text-muted-foreground">
-                {new Date(validation.approved_at).toLocaleDateString("fr-FR", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div
-          className={cn(
-            "flex items-start gap-3 p-3 rounded-lg",
-            validation.status === "approved" ? "bg-primary/10" : "bg-destructive/10"
-          )}
-        >
-          {validation.status === "approved" ? (
-            <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-          ) : (
-            <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-          )}
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {validation.status === "approved"
-                ? `Approuvé par ${validation.client_name ?? "le client"}`
-                : `Refusé par ${validation.client_name ?? "le client"}`}
-            </p>
-            {validation.comment && (
-              <div className="flex items-start gap-2">
-                <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>
-              </div>
-            )}
-            {validation.approved_at && (
-              <p className="text-xs text-muted-foreground">
-                {new Date(validation.approved_at).toLocaleDateString("fr-FR", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ValidationsSection({
-  allValidations,
-  validatorContributors,
-  clientName,
-}: {
-  allValidations: ValidationEntry[]
-  validatorContributors: ContributorValidator[]
-  clientName?: string
-}) {
-  if (allValidations.length === 0 && validatorContributors.length === 0) return null
-
-  const statusCfg = (status?: string | null) => {
-    if (status === "approved") return { icon: CheckCircle, cls: "text-primary", label: "Approuvé" }
-    if (status === "rejected") return { icon: XCircle, cls: "text-destructive", label: "Refusé" }
-    if (status === "commented") return { icon: MessageSquare, cls: "text-blue-500", label: "Lu" }
-    return { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
-  }
-
-  const clientValidation = allValidations.find((v) => v.contributor_id === null)
-
-  return (
-    <div className="space-y-2 pb-1">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Validations
-      </p>
-      <div className="space-y-1">
-        {clientValidation &&
-          (() => {
-            const cfg = statusCfg(clientValidation.status)
-            const Icon = cfg.icon
-            return (
-              <div className="flex items-center gap-2 text-sm py-0.5">
-                <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
-                <span className="min-w-0 truncate">{clientName ?? "Client"}</span>
-                <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
-                {clientValidation.approved_at && (
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {new Date(clientValidation.approved_at).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                )}
-              </div>
-            )
-          })()}
-
-        {validatorContributors.map((c) => {
-          const cv = allValidations.find((v) => v.contributor_id === c.id)
-          const cfg = statusCfg(cv?.status)
-          const Icon = cfg.icon
-          return (
-            <div key={c.id} className="flex items-center gap-2 text-sm py-0.5">
-              <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
-              <span className="min-w-0 truncate">{c.name}</span>
-              <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
-              {cv?.approved_at && (
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {new Date(cv.approved_at).toLocaleDateString("fr-FR", {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function DocumentVersionTabs({
-  prevVersions,
-  localVersion,
-  activeVersionTab,
-  onVersionChange,
-}: {
-  prevVersions: PrevVersion[]
-  localVersion: number
-  activeVersionTab: number | null
-  onVersionChange: (version: number | null) => void
-}) {
-  if (prevVersions.length === 0) return null
-
-  return (
-    <div className="flex text-xs border rounded-lg overflow-hidden">
-      <button
-        onClick={() => onVersionChange(null)}
-        className={cn(
-          "flex-1 px-3 py-1.5 transition-colors",
-          activeVersionTab === null
-            ? "bg-background font-medium"
-            : "bg-muted/50 text-muted-foreground hover:text-foreground"
-        )}
-      >
-        V{localVersion} · En cours
-      </button>
-      {prevVersions.map((pv) => (
-        <button
-          key={pv.version}
-          onClick={() => onVersionChange(pv.version)}
-          className={cn(
-            "flex-1 px-3 py-1.5 transition-colors border-l",
-            activeVersionTab === pv.version
-              ? "bg-background font-medium"
-              : "bg-muted/50 text-muted-foreground hover:text-foreground"
-          )}
-        >
-          V{pv.version}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function DocumentPanelFooter({
-  localStatus,
-  isChantier,
-  fileUrl,
-  message,
-  onMessageChange,
-  sending,
-  proposing,
-  documentId,
-  documentName,
-  projectId,
-  clientName,
-  localVersion,
-  audienceInfo,
-  onSent,
-  onSend,
-  onProposeV2,
-  onCopyLink,
-}: {
-  localStatus: string
-  isChantier: boolean
-  fileUrl: string | null | undefined
-  message: string
-  onMessageChange: (msg: string) => void
-  sending: boolean
-  proposing: boolean
-  documentId: string
-  documentName: string
-  projectId: string
-  clientName?: string
-  localVersion: number
-  audienceInfo: AudienceInfo
-  onSent: () => void
-  onSend: () => void
-  onProposeV2: () => void
-  onCopyLink: () => void
-}) {
-  if (localStatus === "draft") {
-    return (
-      <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          {isChantier ? "Envoyer pour validation ou transmission" : "Envoyer pour validation"}
-        </p>
-        {!isChantier && (
-          <Textarea
-            placeholder="Ajouter un mot pour le client (facultatif)..."
-            value={message}
-            onChange={(e) => onMessageChange(e.target.value)}
-            rows={2}
-            className="resize-none text-sm"
-          />
-        )}
-        {isChantier ? (
-          <DocumentActions
-            documentId={documentId}
-            documentName={documentName}
-            projectId={projectId}
-            clientName={clientName}
-            status={localStatus}
-            className="w-full"
-            onSent={onSent}
-          />
-        ) : (
-          <Button onClick={onSend} disabled={!fileUrl} loading={sending} className="w-full">
-            <Send className="h-4 w-4 mr-2" />
-            {sending ? "Envoi..." : "Envoyer au client"}
-          </Button>
-        )}
-      </div>
-    )
-  }
-
-  if ((localStatus === "approved" || localStatus === "commented") && isChantier) {
-    return (
-      <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Partager avec un prestataire
-        </p>
-        <DocumentActions
-          documentId={documentId}
-          documentName={documentName}
-          projectId={projectId}
-          clientName={clientName}
-          status={localStatus}
-          className="w-full"
-          onSent={() => {}}
-        />
-      </div>
-    )
-  }
-
-  if (localStatus === "sent") {
-    return (
-      <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          {audienceInfo.requestType === "transmission" ? "Transmission" : "Validation"}
-        </p>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4 shrink-0" />
-          <span>
-            {audienceInfo.requestType === "transmission"
-              ? `En attente de lecture de ${audienceInfo.names.join(", ") || "du destinataire"}`
-              : audienceInfo.names.length > 0
-                ? `En attente de validation de ${audienceInfo.names.join(", ")}`
-                : `En attente de réponse de ${clientName ?? "du client"}`}
-          </span>
-        </div>
-        {!audienceInfo.requestType && (
-          <Button variant="outline" size="sm" className="w-full" onClick={onCopyLink}>
-            <Link2 className="h-4 w-4 mr-2" />
-            Copier le lien de validation
-          </Button>
-        )}
-      </div>
-    )
-  }
-
-  if (localStatus === "rejected") {
-    return (
-      <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Suite à donner
-        </p>
-        <Button variant="outline" className="w-full" onClick={onProposeV2} loading={proposing}>
-          <RotateCcw className="h-4 w-4 mr-2" />
-          {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
-        </Button>
-      </div>
-    )
-  }
-
-  return null
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -593,9 +233,8 @@ export function DocumentPanel({
       })
   }, [document.id, localStatus, supabase])
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(`document-panel:${document.id}`)
+  useRealtimeChannel(supabase, `document-panel:${document.id}`, (channel) =>
+    channel
       .on(
         "postgres_changes",
         {
@@ -647,13 +286,7 @@ export function DocumentPanel({
         })
         onStatusChangeRef.current?.(document.id, "commented")
       })
-      .subscribe((_status, err) => {
-        if (err) console.error("[document-panel] Realtime error:", err)
-      })
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [document.id, fetchValidation, fetchAllValidations, supabase])
+  )
 
   const handleSend = async () => {
     setSending(true)

@@ -9,10 +9,23 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ data: profile }, professions] = await Promise.all([
-    supabase.from("profiles").select("*, professions(id, label, slug)").eq("id", user!.id).single(),
+  const [{ data: profile }, professions, { data: userProfessionsRows }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*, professions!profession_id(id, label, slug)")
+      .eq("id", user!.id)
+      .single(),
     getProfessions(),
+    supabase
+      .from("user_professions")
+      .select("professions(id, label, slug)")
+      .eq("user_id", user!.id),
   ])
+
+  type ProfRow = { id: string; label: string; slug: string }
+  const userProfessions = (userProfessionsRows ?? [])
+    .map((r) => r.professions as unknown as ProfRow | null)
+    .filter((p): p is ProfRow => p !== null)
 
   return (
     <div className="flex-1 overflow-auto">
@@ -24,6 +37,7 @@ export default async function SettingsPage() {
         <SettingsForm
           profile={profile}
           professions={professions}
+          userProfessions={userProfessions}
           notifProfile={{
             id: profile?.id ?? "",
             notif_email_approved: profile?.notif_email_approved !== false,

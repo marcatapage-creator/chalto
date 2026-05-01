@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Building2, Wrench, Zap, Hammer, HardHat } from "lucide-react"
+import { Building2, Sofa, Wrench, Zap, Hammer, HardHat } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
 import { createDemoProject } from "@/lib/create-demo-project"
@@ -16,6 +16,12 @@ const professions = [
     label: "Architecte",
     description: "Plans, permis, CCTP, notices",
     icon: Building2,
+  },
+  {
+    slug: "architecte_interieur",
+    label: "Architecte d'intérieur",
+    description: "Aménagement, décoration, design d'espaces",
+    icon: Sofa,
   },
   {
     slug: "plombier",

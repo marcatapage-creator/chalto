@@ -128,6 +128,19 @@
 
 ---
 
+## 12. Tests Playwright — couverture obligatoire
+
+> **Étape bloquante.** Tout nouveau code (feature, fix, refacto visible) doit être couvert par au moins un test Playwright avant push.
+
+| # | Action | Résultat attendu |
+|---|--------|-----------------|
+| 12.1 | Identifier les flux nouveaux ou modifiés dans ce push | Liste explicite des composants/routes touchés. |
+| 12.2 | Vérifier qu'un fichier de test Playwright existe pour chaque flux (`e2e/`) | Tous les flux concernés ont un fichier `.spec.ts` correspondant. |
+| 12.3 | Lancer `npm run test:e2e` (app en cours d'exécution) | Tous les tests passent — aucun test en `skip` ou `only` non justifié. |
+| 12.4 | Si un flux n'est pas couvert | **Écrire le test avant de pousser.** Aucune exception sans validation explicite de l'équipe. |
+
+---
+
 ## Priorités en cas de temps limité
 
 Si la recette complète n'est pas réalisable, valider **au minimum** ces flux critiques :
@@ -137,6 +150,7 @@ Si la recette complète n'est pas réalisable, valider **au minimum** ces flux c
 3. **5.5** — Accusé de lecture transmission + email pro  
 4. **6.1** — Invitation prestataire + accès espace  
 5. **9.3** — Pas d'erreur Realtime en navigation  
+6. **12.3** — Tous les tests Playwright passent  
 
 ---
 

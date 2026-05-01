@@ -9,13 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -49,11 +42,13 @@ interface Profile {
 export function SettingsForm({
   profile,
   professions,
+  userProfessions = [],
   notifProfile,
   brandingProfile,
 }: {
   profile: Profile
   professions: Profession[]
+  userProfessions?: { id: string; label: string; slug: string }[]
   notifProfile: React.ComponentProps<typeof NotificationsForm>["profile"]
   brandingProfile: React.ComponentProps<typeof BrandingForm>["profile"]
 }) {
@@ -158,22 +153,53 @@ export function SettingsForm({
             <CardTitle>Votre métier</CardTitle>
             <CardDescription>Détermine les templates et documents disponibles</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Select
-              value={form.profession_id}
-              onValueChange={(value) => setForm({ ...form, profession_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner votre métier" />
-              </SelectTrigger>
-              <SelectContent>
-                {professions.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <CardContent className="space-y-3">
+            {userProfessions.length > 1 ? (
+              <>
+                <div className="space-y-2">
+                  {userProfessions.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-lg border px-3 py-2 bg-muted/40"
+                    >
+                      <span className="text-sm font-medium">{p.label}</span>
+                      {p.id === form.profession_id && (
+                        <span className="text-xs text-muted-foreground">Principal</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mode multi-métier actif. Pour modifier vos métiers,{" "}
+                  <a
+                    href="mailto:hello@chalto.fr"
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    contactez-nous
+                  </a>
+                  .
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between rounded-lg border px-3 py-2 bg-muted/40">
+                  <span className="text-sm font-medium">
+                    {professions.find((p) => p.id === form.profession_id)?.label ?? "Non défini"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Verrouillé</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pour changer de métier ou accéder au mode multi-métier,{" "}
+                  <a
+                    href="mailto:hello@chalto.fr"
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    contactez-nous
+                  </a>
+                  .
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 

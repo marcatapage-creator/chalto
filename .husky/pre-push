@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo ""
+echo "┌─────────────────────────────────────────────┐"
+echo "│  🔍  Vérification pré-push — Tests E2E       │"
+echo "└─────────────────────────────────────────────┘"
+echo ""
+echo "Lancement de la suite Playwright…"
+echo "(Les tests sans variables d'env sont skippés automatiquement)"
+echo ""
+
+npm run test:e2e
+
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "┌─────────────────────────────────────────────┐"
+  echo "│  ❌  Des tests E2E ont échoué                │"
+  echo "│     Push bloqué — corrige les tests d'abord  │"
+  echo "└─────────────────────────────────────────────┘"
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "┌─────────────────────────────────────────────┐"
+echo "│  ✅  Tous les tests passent — push autorisé  │"
+echo "└─────────────────────────────────────────────┘"
+echo ""

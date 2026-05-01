@@ -15,11 +15,11 @@ export default async function ProjectsPage() {
 
   const { data } = await supabase
     .from("projects")
-    .select("*")
+    .select("*, professions(slug, label)")
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
-  const allProjects = data ?? []
 
+  const allProjects = data ?? []
   const projectIds = allProjects.map((p) => p.id)
 
   const [{ data: docRows }, { data: taskRows }, { data: contributorRows }, { data: msgRows }] =
@@ -44,29 +44,41 @@ export default async function ProjectsPage() {
         ])
       : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
 
-  const projects: ProjectWithCounts[] = allProjects.map((p) => ({
-    id: p.id,
-    name: p.name,
-    client_name: p.client_name,
-    address: p.address,
-    status: p.status,
-    phase: p.phase,
-    created_at: p.created_at,
-    counts: {
-      docs: docRows?.filter((d) => d.project_id === p.id).length ?? 0,
-      pending:
-        docRows?.filter((d) => d.project_id === p.id && d.status === DOCUMENT_STATUS.SENT).length ??
-        0,
-      approved:
-        docRows?.filter((d) => d.project_id === p.id && d.status === DOCUMENT_STATUS.APPROVED)
-          .length ?? 0,
-      tasks:
-        taskRows?.filter((t) => t.project_id === p.id && ["todo", "in_progress"].includes(t.status))
-          .length ?? 0,
-      messages: msgRows?.filter((m) => m.project_id === p.id).length ?? 0,
-      contributors: contributorRows?.filter((c) => c.project_id === p.id).length ?? 0,
-    },
-  }))
+  const projects: ProjectWithCounts[] = allProjects.map((p) => {
+    const profession = p.professions as unknown as { slug: string; label: string } | null
+    return {
+      id: p.id,
+      name: p.name,
+      client_name: p.client_name,
+      address: p.address,
+      status: p.status,
+      phase: p.phase,
+      created_at: p.created_at,
+      professionSlug: profession?.slug ?? null,
+      professionLabel: profession?.label ?? null,
+      counts: {
+        docs: docRows?.filter((d) => d.project_id === p.id).length ?? 0,
+        pending:
+          docRows?.filter((d) => d.project_id === p.id && d.status === DOCUMENT_STATUS.SENT)
+            .length ?? 0,
+        approved:
+          docRows?.filter((d) => d.project_id === p.id && d.status === DOCUMENT_STATUS.APPROVED)
+            .length ?? 0,
+        tasks:
+          taskRows?.filter(
+            (t) => t.project_id === p.id && ["todo", "in_progress"].includes(t.status)
+          ).length ?? 0,
+        messages: msgRows?.filter((m) => m.project_id === p.id).length ?? 0,
+        contributors: contributorRows?.filter((c) => c.project_id === p.id).length ?? 0,
+      },
+    }
+  })
+
+  projects.sort((a, b) => {
+    const aIsArchi = a.professionSlug === "architecte" ? 0 : 1
+    const bIsArchi = b.professionSlug === "architecte" ? 0 : 1
+    return aIsArchi - bIsArchi
+  })
 
   return (
     <div className="flex-1 overflow-auto">

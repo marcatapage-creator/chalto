@@ -22,12 +22,13 @@ interface GenerateDocumentDialogProps {
   projectName: string
   workType: string
   clientName?: string
+  professionSlug?: string | null
 }
 
-type DocumentType = "cctp"
+type DocumentType = "cctp" | "aps"
 type NiveauPrestation = "economique" | "standard" | "premium"
 
-const LOTS = [
+const LOTS_ARCHITECTE = [
   "Gros œuvre",
   "Charpente",
   "Menuiserie",
@@ -35,7 +36,21 @@ const LOTS = [
   "Électricité",
   "Revêtements",
   "Façade",
-] as const
+]
+
+const PIECES_ARCHI_INTERIEUR = [
+  "Salon / Séjour",
+  "Salle à manger",
+  "Cuisine",
+  "Chambre principale",
+  "Chambre(s)",
+  "Salle de bain",
+  "WC / Toilettes",
+  "Entrée / Hall",
+  "Bureau",
+  "Dressing",
+  "Terrasse / Extérieur",
+]
 
 const NIVEAUX: { value: NiveauPrestation; label: string; description: string }[] = [
   {
@@ -51,11 +66,22 @@ const NIVEAUX: { value: NiveauPrestation; label: string; description: string }[]
   { value: "premium", label: "Premium", description: "Matériaux haut de gamme, finitions luxe" },
 ]
 
-interface CCTPAnswers {
+interface Answers {
   lots: string[]
+  pieces: string[]
   materiaux: string
+  ambiance: string
   contraintes: string
   niveau: NiveauPrestation
+}
+
+const EMPTY_ANSWERS: Answers = {
+  lots: [],
+  pieces: [],
+  materiaux: "",
+  ambiance: "",
+  contraintes: "",
+  niveau: "standard",
 }
 
 type Step = 1 | 2 | 3
@@ -65,26 +91,28 @@ export function GenerateDocumentDialog({
   projectName,
   workType,
   clientName,
+  professionSlug,
 }: GenerateDocumentDialogProps) {
+  const isArchiInterieur = professionSlug === "architecte_interieur"
+
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>(1)
-  const [docType, setDocType] = useState<DocumentType>("cctp")
-  const [answers, setAnswers] = useState<CCTPAnswers>({
-    lots: [],
-    materiaux: "",
-    contraintes: "",
-    niveau: "standard",
-  })
+  const [docType, setDocType] = useState<DocumentType>(isArchiInterieur ? "aps" : "cctp")
+  const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS)
   const [generating, setGenerating] = useState(false)
   const [done, setDone] = useState(false)
   const router = useRouter()
 
-  const toggleLot = (lot: string) => {
+  const toggleItem = (field: "lots" | "pieces", value: string) => {
     setAnswers((prev) => ({
       ...prev,
-      lots: prev.lots.includes(lot) ? prev.lots.filter((l) => l !== lot) : [...prev.lots, lot],
+      [field]: prev[field].includes(value)
+        ? prev[field].filter((v) => v !== value)
+        : [...prev[field], value],
     }))
   }
+
+  const canProceed = docType === "aps" ? answers.pieces.length > 0 : answers.lots.length > 0
 
   const handleGenerate = async () => {
     setStep(3)
@@ -99,6 +127,7 @@ export function GenerateDocumentDialog({
           projectName,
           workType,
           clientName,
+          professionSlug,
           documentType: docType,
           answers,
         }),
@@ -126,15 +155,15 @@ export function GenerateDocumentDialog({
     if (!val) {
       setTimeout(() => {
         setStep(1)
-        setDocType("cctp")
-        setAnswers({ lots: [], materiaux: "", contraintes: "", niveau: "standard" })
+        setDocType(isArchiInterieur ? "aps" : "cctp")
+        setAnswers(EMPTY_ANSWERS)
         setGenerating(false)
         setDone(false)
       }, 200)
     }
   }
 
-  const canProceedStep2 = answers.lots.length > 0
+  const docLabel = docType === "aps" ? "APS" : "CCTP"
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -177,100 +206,140 @@ export function GenerateDocumentDialog({
         {step === 1 && (
           <div className="space-y-3 py-2">
             <p className="text-sm text-muted-foreground">Choisissez un type de document</p>
-            <button
-              onClick={() => {
-                setDocType("cctp")
-                setStep(2)
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-primary bg-primary/5 text-left transition-colors"
-            >
-              <FileText className="h-4 w-4 text-primary shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-sm">CCTP</p>
-                  <Badge variant="secondary" className="text-xs shrink-0">
-                    Disponible
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-                  Spécifications techniques par lot
-                </p>
-              </div>
-            </button>
 
-            {/* Autres types — à venir */}
-            {(["DPGF", "Notice descriptive"] as const).map((label) => (
-              <button
-                key={label}
-                disabled
-                className="w-full flex items-center gap-3 p-3 rounded-xl border border-border text-left opacity-40 cursor-not-allowed"
-              >
-                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{label}</p>
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      Bientôt
-                    </Badge>
+            {isArchiInterieur ? (
+              <>
+                <button
+                  onClick={() => {
+                    setDocType("aps")
+                    setStep(2)
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-primary bg-primary/5 text-left transition-colors"
+                >
+                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">APS</p>
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        Disponible
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                      Avant-Projet Sommaire — note d&apos;intention et orientations
+                    </p>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+                {(["APD", "Notice descriptive", "DPGF"] as const).map((label) => (
+                  <button
+                    key={label}
+                    disabled
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-border text-left opacity-40 cursor-not-allowed"
+                  >
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{label}</p>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          Bientôt
+                        </Badge>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setDocType("cctp")
+                    setStep(2)
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-primary bg-primary/5 text-left transition-colors"
+                >
+                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">CCTP</p>
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        Disponible
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                      Spécifications techniques par lot
+                    </p>
+                  </div>
+                </button>
+                {(["DPGF", "Notice descriptive"] as const).map((label) => (
+                  <button
+                    key={label}
+                    disabled
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-border text-left opacity-40 cursor-not-allowed"
+                  >
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{label}</p>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          Bientôt
+                        </Badge>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         )}
 
-        {/* Étape 2 — Questions CCTP */}
-        {step === 2 && (
+        {/* Étape 2 — APS */}
+        {step === 2 && docType === "aps" && (
           <div className="space-y-5 py-2">
-            {/* Lots */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Lots concernés <span className="text-destructive">*</span>
+                Pièces concernées <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
-                {LOTS.map((lot) => (
+                {PIECES_ARCHI_INTERIEUR.map((piece) => (
                   <button
-                    key={lot}
-                    onClick={() => toggleLot(lot)}
+                    key={piece}
+                    onClick={() => toggleItem("pieces", piece)}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                      answers.lots.includes(lot)
+                      answers.pieces.includes(piece)
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-muted-foreground border-border hover:border-primary/50"
                     )}
                   >
-                    {lot}
+                    {piece}
                   </button>
                 ))}
               </div>
-              {answers.lots.length === 0 && (
-                <p className="text-xs text-muted-foreground">Sélectionnez au moins un lot</p>
+              {answers.pieces.length === 0 && (
+                <p className="text-xs text-muted-foreground">Sélectionnez au moins une pièce</p>
               )}
             </div>
 
-            {/* Matériaux */}
             <div className="space-y-2">
-              <Label htmlFor="materiaux" className="text-sm font-medium">
-                Matériaux souhaités
+              <Label htmlFor="ambiance" className="text-sm font-medium">
+                Ambiance et style souhaités
               </Label>
               <Textarea
-                id="materiaux"
-                placeholder="Ex : béton banché, ossature bois, menuiseries aluminium thermolaqué..."
-                value={answers.materiaux}
-                onChange={(e) => setAnswers((prev) => ({ ...prev, materiaux: e.target.value }))}
+                id="ambiance"
+                placeholder="Ex : Japandi minimaliste, tons neutres, matières naturelles, touches de couleur..."
+                value={answers.ambiance}
+                onChange={(e) => setAnswers((prev) => ({ ...prev, ambiance: e.target.value }))}
                 rows={2}
                 className="resize-none text-sm"
               />
             </div>
 
-            {/* Contraintes */}
             <div className="space-y-2">
               <Label htmlFor="contraintes" className="text-sm font-medium">
                 Contraintes particulières
               </Label>
               <Textarea
                 id="contraintes"
-                placeholder="Ex : site classé, zone sismique, délai serré, accès difficile..."
+                placeholder="Ex : copropriété, hauteur sous plafond réduite, budget serré, délai court..."
                 value={answers.contraintes}
                 onChange={(e) => setAnswers((prev) => ({ ...prev, contraintes: e.target.value }))}
                 rows={2}
@@ -278,7 +347,6 @@ export function GenerateDocumentDialog({
               />
             </div>
 
-            {/* Niveau de prestation */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Niveau de prestation</Label>
               <div className="grid grid-cols-3 gap-2">
@@ -306,7 +374,98 @@ export function GenerateDocumentDialog({
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
                 Retour
               </Button>
-              <Button onClick={handleGenerate} disabled={!canProceedStep2} className="flex-1">
+              <Button onClick={handleGenerate} disabled={!canProceed} className="flex-1">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Générer
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Étape 2 — CCTP */}
+        {step === 2 && docType === "cctp" && (
+          <div className="space-y-5 py-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Lots concernés <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {LOTS_ARCHITECTE.map((lot) => (
+                  <button
+                    key={lot}
+                    onClick={() => toggleItem("lots", lot)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                      answers.lots.includes(lot)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                    )}
+                  >
+                    {lot}
+                  </button>
+                ))}
+              </div>
+              {answers.lots.length === 0 && (
+                <p className="text-xs text-muted-foreground">Sélectionnez au moins un lot</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="materiaux" className="text-sm font-medium">
+                Matériaux souhaités
+              </Label>
+              <Textarea
+                id="materiaux"
+                placeholder="Ex : béton banché, ossature bois, menuiseries aluminium thermolaqué..."
+                value={answers.materiaux}
+                onChange={(e) => setAnswers((prev) => ({ ...prev, materiaux: e.target.value }))}
+                rows={2}
+                className="resize-none text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contraintes" className="text-sm font-medium">
+                Contraintes particulières
+              </Label>
+              <Textarea
+                id="contraintes"
+                placeholder="Ex : site classé, zone sismique, délai serré, accès difficile..."
+                value={answers.contraintes}
+                onChange={(e) => setAnswers((prev) => ({ ...prev, contraintes: e.target.value }))}
+                rows={2}
+                className="resize-none text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Niveau de prestation</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {NIVEAUX.map(({ value, label, description }) => (
+                  <button
+                    key={value}
+                    onClick={() => setAnswers((prev) => ({ ...prev, niveau: value }))}
+                    className={cn(
+                      "flex flex-col items-start p-3 rounded-lg border text-left transition-colors",
+                      answers.niveau === value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    <span className="text-xs font-semibold">{label}</span>
+                    <span className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                      {description}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                Retour
+              </Button>
+              <Button onClick={handleGenerate} disabled={!canProceed} className="flex-1">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Générer
               </Button>
@@ -323,7 +482,9 @@ export function GenerateDocumentDialog({
                 <div>
                   <p className="font-medium">Génération en cours…</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Le CCTP est en cours de rédaction, cela peut prendre quelques secondes.
+                    {docType === "aps"
+                      ? "L'APS est en cours de rédaction, cela peut prendre quelques secondes."
+                      : "Le CCTP est en cours de rédaction, cela peut prendre quelques secondes."}
                   </p>
                 </div>
               </>
@@ -333,7 +494,7 @@ export function GenerateDocumentDialog({
                 <div>
                   <p className="font-medium">Document généré ✅</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Le CCTP a été ajouté à vos documents en brouillon.
+                    L&apos;{docLabel} a été ajouté à vos documents en brouillon.
                   </p>
                 </div>
                 <Button onClick={() => handleOpenChange(false)} className="mt-2">

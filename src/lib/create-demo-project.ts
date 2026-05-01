@@ -18,6 +18,16 @@ export async function createDemoProject(
       workType: string
     }
   > = {
+    architecte_interieur: {
+      projectName: "🛋️ Projet démo — Appartement Lefèvre",
+      clientName: "Camille Lefèvre",
+      clientEmail: "demo@chalto.fr",
+      address: "18 rue du Faubourg Saint-Antoine, 75011 Paris",
+      description: "Aménagement complet d'un appartement de 75m² — ambiance contemporaine",
+      documentName: "Book de projet — Planches d'ambiance",
+      documentType: "Notice",
+      workType: "Aménagement d'espace",
+    },
     architecte: {
       projectName: "🏠 Projet démo — Rénovation Dupont",
       clientName: "Marie Dupont",

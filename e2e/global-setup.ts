@@ -1,6 +1,9 @@
 import { chromium, type FullConfig } from "@playwright/test"
+import dotenv from "dotenv"
 import fs from "fs"
 import path from "path"
+
+dotenv.config({ path: path.resolve(__dirname, "../.env.local") })
 
 const AUTH_FILE = path.join(__dirname, ".auth/user.json")
 
@@ -20,6 +23,7 @@ export default async function globalSetup(config: FullConfig) {
   const page = await browser.newPage()
 
   await page.goto(`${baseURL}/login`)
+  await page.getByRole("button", { name: /continuer avec email/i }).click()
   await page.getByRole("textbox", { name: /email/i }).fill(email)
   await page.getByRole("textbox", { name: /mot de passe|password/i }).fill(password)
   await page.getByRole("button", { name: /connexion|se connecter/i }).click()

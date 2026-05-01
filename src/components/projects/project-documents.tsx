@@ -43,6 +43,7 @@ interface ProjectDocumentsProps {
   projectName: string
   workType?: string
   clientName?: string
+  professionSlug?: string | null
   selectedDocId: string | null
   onSelectDoc: (doc: Document) => void
   onDeleteDoc?: (docId: string) => void
@@ -153,6 +154,7 @@ export function ProjectDocuments({
   projectName,
   workType,
   clientName,
+  professionSlug,
   selectedDocId,
   onSelectDoc,
   onDeleteDoc,
@@ -205,6 +207,7 @@ export function ProjectDocuments({
               projectName={projectName}
               workType={workType ?? ""}
               clientName={clientName}
+              professionSlug={professionSlug}
             />
             <AddDocumentDialog projectId={projectId} />
           </div>
