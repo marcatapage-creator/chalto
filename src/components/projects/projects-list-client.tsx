@@ -103,7 +103,7 @@ export function ProjectCard({ project }: { project: ProjectWithCounts }) {
             <div className="min-w-0">
               <div className="xl:hidden mb-2 flex items-center gap-2">
                 <Badge variant={status.variant}>{status.label}</Badge>
-                <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 pb-0.5 text-xs font-medium leading-none text-muted-foreground">
+                <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
                   {phaseLabel}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export function ProjectCard({ project }: { project: ProjectWithCounts }) {
             {status.label}
           </Badge>
           <div className="hidden xl:flex items-center gap-4 px-6 shrink-0">
-            <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 pb-0.5 text-xs font-medium leading-none text-muted-foreground">
+            <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
               {phaseLabel}
             </span>
             <Indicator icon={FileText} value={c.docs} title="Documents" />
