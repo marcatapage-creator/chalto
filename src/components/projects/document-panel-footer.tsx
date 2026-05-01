@@ -47,6 +47,7 @@ export function DocumentPanelFooter({
           clientName={clientName}
           status={localStatus}
           fileUrl={fileUrl}
+          isChantier={isChantier}
           className="w-full"
           onSent={onSent}
         />

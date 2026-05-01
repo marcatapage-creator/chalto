@@ -42,6 +42,7 @@ interface DocumentActionsProps {
   clientName?: string
   status: string
   fileUrl?: string | null
+  isChantier?: boolean
   className?: string
   onSent?: () => void
 }
@@ -109,6 +110,7 @@ export function DocumentActions({
   clientName,
   status,
   fileUrl,
+  isChantier = false,
   className,
   onSent,
 }: DocumentActionsProps) {
@@ -269,57 +271,61 @@ export function DocumentActions({
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Choix audience */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => status !== "approved" && setAudience("client")}
-                disabled={status === "approved"}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                  status === "approved"
-                    ? "border-border opacity-40 cursor-not-allowed"
-                    : audience === "client"
+            {/* Choix audience — prestataires uniquement en phase chantier */}
+            {isChantier && (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => status !== "approved" && setAudience("client")}
+                  disabled={status === "approved"}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                    status === "approved"
+                      ? "border-border opacity-40 cursor-not-allowed"
+                      : audience === "client"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <User
+                    className={cn(
+                      "h-6 w-6",
+                      audience === "client" && status !== "approved"
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    )}
+                  />
+                  <span className="text-sm font-medium">Mon client</span>
+                  {status === "approved" ? (
+                    <span className="text-xs text-muted-foreground">Déjà approuvé</span>
+                  ) : (
+                    clientName && (
+                      <span className="text-xs text-muted-foreground">{clientName}</span>
+                    )
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setAudience("contributor")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                    audience === "contributor"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
-                )}
-              >
-                <User
-                  className={cn(
-                    "h-6 w-6",
-                    audience === "client" && status !== "approved"
-                      ? "text-primary"
-                      : "text-muted-foreground"
                   )}
-                />
-                <span className="text-sm font-medium">Mon client</span>
-                {status === "approved" ? (
-                  <span className="text-xs text-muted-foreground">Déjà approuvé</span>
-                ) : (
-                  clientName && <span className="text-xs text-muted-foreground">{clientName}</span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setAudience("contributor")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                  audience === "contributor"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <Users
-                  className={cn(
-                    "h-6 w-6",
-                    audience === "contributor" ? "text-primary" : "text-muted-foreground"
-                  )}
-                />
-                <span className="text-sm font-medium">Prestataires</span>
-                <span className="text-xs text-muted-foreground">
-                  {contributors.length} sur le projet
-                </span>
-              </button>
-            </div>
+                >
+                  <Users
+                    className={cn(
+                      "h-6 w-6",
+                      audience === "contributor" ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
+                  <span className="text-sm font-medium">Prestataires</span>
+                  <span className="text-xs text-muted-foreground">
+                    {contributors.length} sur le projet
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Sélection prestataires */}
             {audience === "contributor" && (
