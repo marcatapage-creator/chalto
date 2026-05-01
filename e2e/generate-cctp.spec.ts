@@ -12,7 +12,7 @@
  */
 import { test, expect } from "@playwright/test"
 
-test.beforeEach((_fixtures, testInfo) => {
+test.beforeEach(({}, testInfo) => {
   if (!process.env.E2E_USER_EMAIL || !process.env.E2E_PROJECT_ID) {
     testInfo.skip(true, "E2E_USER_EMAIL ou E2E_PROJECT_ID non défini")
   }
