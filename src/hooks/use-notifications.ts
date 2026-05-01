@@ -25,6 +25,7 @@ export function useNotifications(userId: string) {
 
     let cancelled = false
     let channel: ReturnType<typeof supabase.channel> | null = null
+    let retryTimer: ReturnType<typeof setTimeout> | null = null
 
     const setup = async () => {
       isInitialLoad.current = true
@@ -56,8 +57,9 @@ export function useNotifications(userId: string) {
 
       let retries = 0
       const subscribe = () => {
+        if (cancelled) return
         channel = supabase
-          .channel(`notifications:${userId}-${Date.now()}`)
+          .channel(`notifications:${userId}:${crypto.randomUUID()}`)
           .on(
             "postgres_changes",
             {
@@ -80,7 +82,7 @@ export function useNotifications(userId: string) {
                 retries++
                 console.warn(`[notifications] Realtime CHANNEL_ERROR — retry ${retries}/2`)
                 if (channel) void supabase.removeChannel(channel)
-                setTimeout(subscribe, 2000 * retries)
+                retryTimer = setTimeout(subscribe, 2000 * retries)
               } else {
                 console.warn(
                   "[notifications] Realtime indisponible après 2 tentatives — les notifications in-app ne seront pas temps réel"
@@ -96,6 +98,7 @@ export function useNotifications(userId: string) {
 
     return () => {
       cancelled = true
+      if (retryTimer) clearTimeout(retryTimer)
       if (channel) void supabase.removeChannel(channel)
     }
   }, [userId, supabase])
