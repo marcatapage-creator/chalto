@@ -16,9 +16,12 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? "github" : "list",
   globalSetup: "./e2e/global-setup.ts",
+  globalTeardown: "./e2e/global-teardown.ts",
   use: {
     baseURL,
     trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
     storageState: "e2e/.auth/user.json",
   },
   projects: [

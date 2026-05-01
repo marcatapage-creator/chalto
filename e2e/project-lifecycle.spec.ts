@@ -70,6 +70,12 @@ test("2.2 — modifier le nom du projet persiste", async ({ page }) => {
   const newName = `Projet Modifié E2E ${Date.now()}`
   await nameInput.fill(newName)
 
+  // Le formulaire est en 2 étapes — passer à l'étape 2 si nécessaire
+  const suivantBtn = page.getByRole("button", { name: /suivant/i })
+  if (await suivantBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await suivantBtn.click()
+  }
+
   await page
     .getByRole("button", { name: /enregistrer|sauvegarder|mettre à jour/i })
     .first()

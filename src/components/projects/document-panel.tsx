@@ -183,7 +183,7 @@ export function DocumentPanel({
       })
     supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
@@ -396,6 +396,7 @@ export function DocumentPanel({
             validatorContributors={validatorContributors}
             clientName={clientName}
             activeVersion={activeVersionTab ?? localVersion}
+            isCurrentVersion={activeVersionTab === null}
           />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">

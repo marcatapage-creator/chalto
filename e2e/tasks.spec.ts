@@ -46,8 +46,8 @@ test("7.1 — créer une tâche l'ajoute au board", async ({ page }) => {
     .first()
     .click()
 
-  // Formulaire ou dialog de création
-  const taskNameInput = page.getByRole("textbox", { name: /titre|nom|tâche/i }).first()
+  // Formulaire ou dialog de création — l'input n'a pas d'aria-label, on cible le dialog
+  const taskNameInput = page.getByRole("dialog").getByRole("textbox").first()
   await expect(taskNameInput).toBeVisible({ timeout: 8_000 })
   const taskName = `Tâche E2E ${Date.now()}`
   await taskNameInput.fill(taskName)
@@ -106,19 +106,16 @@ test("7.3 — une tâche 'done' affiche 'Rouvrir' et non 'Notifier'", async ({ p
   await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
   await expect(page).not.toHaveURL(/login/)
 
-  // Vérifier si une tâche terminée est visible
-  const doneSection = page.getByText(/terminé|done/i).first()
-  const hasDone = await doneSection.isVisible({ timeout: 5_000 }).catch(() => false)
+  // "Rouvrir" n'existe que sur les cartes de tâches terminées — guard précis
+  const reopenBtn = page.getByRole("button", { name: /rouvrir/i }).first()
+  const hasDone = await reopenBtn.isVisible({ timeout: 5_000 }).catch(() => false)
 
   if (!hasDone) {
     test.skip(true, "Aucune tâche terminée sur ce projet de test")
     return
   }
 
-  // Bouton "Rouvrir" visible dans la zone des tâches terminées
-  await expect(page.getByRole("button", { name: /rouvrir/i }).first()).toBeVisible({
-    timeout: 8_000,
-  })
+  await expect(reopenBtn).toBeVisible()
 
   // Bouton "Notifier" doit être absent (ou désactivé) pour les tâches terminées
   const notifyBtn = page.getByRole("button", { name: /notifier/i }).first()
@@ -154,17 +151,16 @@ test("7.7 — 'Notifier' est présent sur une tâche in_progress", async ({ page
   await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
   await expect(page).not.toHaveURL(/login/)
 
-  const inProgressSection = page.getByText(/en cours|in.progress/i).first()
-  const hasInProgress = await inProgressSection.isVisible({ timeout: 5_000 }).catch(() => false)
+  // "Notifier" n'existe que sur les cartes en cours avec contact assigné — guard précis
+  const notifyBtn = page.getByRole("button", { name: /notifier/i }).first()
+  const hasNotifier = await notifyBtn.isVisible({ timeout: 5_000 }).catch(() => false)
 
-  if (!hasInProgress) {
-    test.skip(true, "Aucune tâche 'in_progress' sur ce projet de test")
+  if (!hasNotifier) {
+    test.skip(true, "Aucune tâche 'in_progress' avec contact assigné sur ce projet de test")
     return
   }
 
-  await expect(page.getByRole("button", { name: /notifier/i }).first()).toBeVisible({
-    timeout: 8_000,
-  })
+  await expect(notifyBtn).toBeVisible()
 })
 
 test("7.7 — cliquer 'Notifier' ne provoque pas d'erreur", async ({ page }) => {

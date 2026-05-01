@@ -50,18 +50,18 @@ test("4.2 — le client peut approuver le document", async ({ page }) => {
 })
 
 test("4.3 — le client peut refuser avec un commentaire", async ({ page }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  const token = process.env.E2E_VALIDATION_TOKEN_REFUSE ?? process.env.E2E_VALIDATION_TOKEN
   if (!token) {
     test.skip(true, "E2E_VALIDATION_TOKEN non défini")
     return
   }
 
   await page.goto(`/validate/${token}`)
-  await page.getByRole("button", { name: /refuser/i }).click()
+  // Remplir le commentaire AVANT de cliquer Refuser (le bouton appelle l'API directement)
   const textarea = page.getByRole("textbox")
   if (await textarea.isVisible()) {
     await textarea.fill("Des ajustements sont nécessaires sur ce document.")
   }
-  await page.getByRole("button", { name: /envoyer|confirmer/i }).click()
+  await page.getByRole("button", { name: /refuser/i }).click()
   await expect(page.getByText(/refusé|pris en compte/i)).toBeVisible({ timeout: 10_000 })
 })

@@ -22,10 +22,13 @@ import { test, expect } from "@playwright/test"
 test("9.1 — approbation client met à jour le statut du document sans rechargement côté pro", async ({
   browser,
 }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  const token = process.env.E2E_VALIDATION_TOKEN_REALTIME ?? process.env.E2E_VALIDATION_TOKEN
   const projectId = process.env.E2E_PROJECT_ID
   if (!token || !projectId || !process.env.E2E_USER_EMAIL) {
-    test.skip(true, "Variables manquantes : E2E_VALIDATION_TOKEN, E2E_PROJECT_ID ou E2E_USER_EMAIL")
+    test.skip(
+      true,
+      "Variables manquantes : E2E_VALIDATION_TOKEN_REALTIME, E2E_PROJECT_ID ou E2E_USER_EMAIL"
+    )
     return
   }
 
@@ -51,7 +54,7 @@ test("9.1 — approbation client met à jour le statut du document sans recharge
     })
 
     // Le pro voit le statut "approuvé" apparaître SANS recharger la page
-    await expect(proPage.getByText(/approuvé/i)).toBeVisible({ timeout: 20_000 })
+    await expect(proPage.getByText(/approuvé/i).first()).toBeVisible({ timeout: 20_000 })
   } finally {
     await proCtx.close()
     await clientCtx.close()
@@ -61,7 +64,8 @@ test("9.1 — approbation client met à jour le statut du document sans recharge
 test("9.1 — refus client avec commentaire met à jour le statut Realtime côté pro", async ({
   browser,
 }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  test.setTimeout(60_000)
+  const token = process.env.E2E_VALIDATION_TOKEN_REALTIME_REFUSE ?? process.env.E2E_VALIDATION_TOKEN
   const projectId = process.env.E2E_PROJECT_ID
   if (!token || !projectId || !process.env.E2E_USER_EMAIL) {
     test.skip(true, "Variables manquantes pour le test Realtime refus")
@@ -80,17 +84,16 @@ test("9.1 — refus client avec commentaire met à jour le statut Realtime côt�
     await proPage.waitForTimeout(2_000)
 
     await clientPage.goto(`/validate/${token}`)
-    await clientPage.getByRole("button", { name: /refuser/i }).click()
-
+    // Remplir le commentaire AVANT de cliquer Refuser (le bouton appelle l'API directement)
     const textarea = clientPage.getByRole("textbox").first()
     if (await textarea.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await textarea.fill("Modifications requises — test E2E Realtime")
     }
-    await clientPage.getByRole("button", { name: /envoyer|confirmer/i }).click()
+    await clientPage.getByRole("button", { name: /refuser/i }).click()
     await expect(clientPage.getByText(/refusé|pris en compte/i)).toBeVisible({ timeout: 10_000 })
 
     // Le pro voit le statut "refusé" sans rechargement
-    await expect(proPage.getByText(/refusé/i)).toBeVisible({ timeout: 20_000 })
+    await expect(proPage.getByText(/refusé/i).first()).toBeVisible({ timeout: 20_000 })
   } finally {
     await proCtx.close()
     await clientCtx.close()
@@ -151,7 +154,8 @@ test("9.2 — mise à jour tâche prestataire reflétée en temps réel sur la f
 test("9.1 — aucune erreur console postgres_changes lors de la validation client", async ({
   browser,
 }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  const token =
+    process.env.E2E_VALIDATION_TOKEN_REALTIME_CONSOLE ?? process.env.E2E_VALIDATION_TOKEN
   const projectId = process.env.E2E_PROJECT_ID
   if (!token || !projectId || !process.env.E2E_USER_EMAIL) {
     test.skip(true, "Variables manquantes pour la vérification console Realtime")

@@ -91,6 +91,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
     )
 
     if (insertError || !doc) {
+      console.error("[add-document] insertError:", insertError)
       setError("Erreur lors de la création du document")
       setLoading(false)
       return

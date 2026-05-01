@@ -70,16 +70,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
       - name: Run e2e tests
         run: npm run test:e2e
         env:
-          # Pointe vers le site déployé — pas de serveur local nécessaire
-          BASE_URL: https://www.chalto.fr
+          # Pointe vers le site staging — jamais la prod
+          BASE_URL: ${{ vars.E2E_BASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          # Les IDs suivants sont générés par le seed si SERVICE_ROLE_KEY est fourni.
+          # Conservés comme fallback si le seed est désactivé.
           E2E_PROJECT_ID: ${{ secrets.E2E_PROJECT_ID }}
           E2E_INVITE_TOKEN: ${{ secrets.E2E_INVITE_TOKEN }}
           E2E_INVITE_TOKEN_VALIDATION: ${{ secrets.E2E_INVITE_TOKEN_VALIDATION }}
