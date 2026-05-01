@@ -84,7 +84,7 @@ function Indicator({
   )
 }
 
-function ProjectCard({ project }: { project: ProjectWithCounts }) {
+export function ProjectCard({ project }: { project: ProjectWithCounts }) {
   const status = statusMap[project.status] ?? statusMap.draft
   const phaseLabel =
     getProfessionConfig(project.professionSlug).phases.find(
@@ -194,7 +194,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
     const list = professionFilter
       ? projects.filter((p) => p.professionSlug === professionFilter)
       : projects
-    if (statusFilter === "") return list.filter((p) => p.status !== "archived")
+    if (statusFilter === "") return list
     return list.filter((p) => p.status === statusFilter)
   }, [projects, statusFilter, professionFilter])
 

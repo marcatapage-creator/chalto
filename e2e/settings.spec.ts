@@ -8,7 +8,7 @@
  */
 import { test, expect } from "@playwright/test"
 
-test.beforeEach(({ page: _ }, testInfo) => {
+test.beforeEach((_fixtures, testInfo) => {
   if (!process.env.E2E_USER_EMAIL) {
     testInfo.skip(true, "E2E_USER_EMAIL non défini")
   }

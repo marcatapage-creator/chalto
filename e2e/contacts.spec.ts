@@ -11,7 +11,7 @@ import { test, expect } from "@playwright/test"
 const E2E_CONTACT_NAME = `E2E Contact ${Date.now()}`
 const E2E_CONTACT_EMAIL = "e2e-contact@example-test.com"
 
-test.beforeEach(({ page: _ }, testInfo) => {
+test.beforeEach((_fixtures, testInfo) => {
   if (!process.env.E2E_USER_EMAIL) {
     testInfo.skip(true, "E2E_USER_EMAIL non défini")
   }
