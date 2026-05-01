@@ -82,6 +82,8 @@ jobs:
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
           E2E_PROJECT_ID: ${{ secrets.E2E_PROJECT_ID }}
           E2E_INVITE_TOKEN: ${{ secrets.E2E_INVITE_TOKEN }}
+          E2E_INVITE_TOKEN_VALIDATION: ${{ secrets.E2E_INVITE_TOKEN_VALIDATION }}
+          E2E_INVITE_TOKEN_TRANSMISSION: ${{ secrets.E2E_INVITE_TOKEN_TRANSMISSION }}
           E2E_VALIDATION_TOKEN: ${{ secrets.E2E_VALIDATION_TOKEN }}
 
       - name: Upload Playwright report
