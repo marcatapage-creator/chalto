@@ -11,14 +11,18 @@ type SetupFn = (channel: RealtimeChannel) => RealtimeChannel
  */
 export function useRealtimeChannel(supabase: SupabaseClient, channelName: string, setup: SetupFn) {
   const setupRef = useRef(setup)
+  // Unique per-mount suffix prevents "cannot add postgres_changes after subscribe()" when
+  // RealtimeClient.channel() returns an existing subscribed channel instead of a fresh one.
+  const instanceId = useRef(crypto.randomUUID())
 
   useLayoutEffect(() => {
     setupRef.current = setup
   })
 
   useEffect(() => {
-    const channel = setupRef.current(supabase.channel(channelName)).subscribe((_status, err) => {
-      if (err) console.error(`[${channelName}] Realtime error:`, err)
+    const uniqueName = `${channelName}:${instanceId.current}`
+    const channel = setupRef.current(supabase.channel(uniqueName)).subscribe((_status, err) => {
+      if (err) console.error(`[${uniqueName}] Realtime error:`, err)
     })
     return () => {
       supabase.removeChannel(channel)
