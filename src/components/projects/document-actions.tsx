@@ -265,9 +265,7 @@ export function DocumentActions({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Envoyer ce document</DialogTitle>
-            <DialogDescription>
-              Choisissez à qui envoyer &quot;{documentName}&quot;
-            </DialogDescription>
+            <DialogDescription>Choisissez le type de requête</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
