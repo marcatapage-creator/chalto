@@ -7,6 +7,7 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { headers } from "next/headers"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -80,12 +81,13 @@ export const viewport: Viewport = {
 // Runs before React hydration to apply stored theme and prevent FOUC
 const themeScript = `(function(){try{var t=localStorage.getItem('theme'),d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t||t==='system')&&d)document.documentElement.classList.add('dark')}catch(e){}})();`
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined
   return (
     <html lang="fr" suppressHydrationWarning>
       {}
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
         <ThemeProvider>
