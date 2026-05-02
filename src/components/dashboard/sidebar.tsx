@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users, LifeBuoy } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -31,6 +31,7 @@ const navigation = [
   { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
   { label: "Annuaire", href: "/contacts", icon: Users, countKey: "contacts" as const },
   { label: "Paramètres", href: "/settings", icon: Settings, countKey: null },
+  { label: "Support", href: "/support", icon: LifeBuoy, countKey: null },
 ]
 
 function SidebarContent({
@@ -56,6 +57,7 @@ function SidebarContent({
     router.prefetch("/projects")
     router.prefetch("/contacts")
     router.prefetch("/settings")
+    router.prefetch("/support")
   }, [router])
 
   const handleLogout = async () => {
