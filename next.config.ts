@@ -16,10 +16,10 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel-scripts.com https://*.sentry.io",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://kwujirvteyggdfrizict.supabase.co https://images.unsplash.com",
+      "img-src 'self' data: blob: https://hyukwaquuyoojejkqmvb.supabase.co https://images.unsplash.com",
       "font-src 'self'",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com",
-      "frame-src https://kwujirvteyggdfrizict.supabase.co",
+      "frame-src https://hyukwaquuyoojejkqmvb.supabase.co",
       "frame-ancestors 'none'",
     ].join("; "),
   },
@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "kwujirvteyggdfrizict.supabase.co",
+        hostname: "hyukwaquuyoojejkqmvb.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
       {
