@@ -72,6 +72,11 @@ export default async function globalSetup(config: FullConfig) {
     auth: { persistSession: false },
   })
 
+  // ── 2a. S'assure que le bucket storage "documents" existe ─────────────────
+  await admin.storage.createBucket("documents", { public: true }).catch(() => {
+    // Ignore si le bucket existe déjà (erreur 409)
+  })
+
   // Récupère l'ID de l'utilisateur E2E
   const { data: profile } = await admin.from("profiles").select("id").eq("email", email).single()
 
