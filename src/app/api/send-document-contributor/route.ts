@@ -51,10 +51,12 @@ export async function POST(request: Request) {
     const projectName = project?.name ?? "le projet"
     const brandHeader = buildBrandHeader(proProfile)
 
+    const baseUrl = new URL(request.url).origin
+
     const sends = contributors
       .filter((c) => c.email && c.invite_token)
       .map((c) => {
-        const spaceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${c.invite_token}`
+        const spaceUrl = `${baseUrl}/invite/${c.invite_token}`
         return resend.emails.send({
           from: "Chalto <noreply@chalto.fr>",
           to: c.email,

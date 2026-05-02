@@ -101,7 +101,8 @@ export async function POST(request: Request) {
 
     const hasTasks = assignedTasks && assignedTasks.length > 0
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
+    const baseUrl = new URL(request.url).origin
+    const inviteUrl = `${baseUrl}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
     const brandHeader = buildBrandHeader(proProfile)

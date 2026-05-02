@@ -59,7 +59,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Prestataire non invité" }, { status: 400 })
     }
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
+    const baseUrl = new URL(request.url).origin
+    const inviteUrl = `${baseUrl}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? "Votre professionnel"
     const brandHeader = buildBrandHeader(proProfile)
 
