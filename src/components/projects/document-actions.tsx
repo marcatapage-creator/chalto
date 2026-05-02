@@ -390,14 +390,14 @@ export function DocumentActions({
               onClick={handleSend}
               disabled={
                 loading ||
-                (audience === "client" && !fileUrl) ||
+                (audience === "client" && requestType === "validation" && !fileUrl) ||
                 (audience === "contributor" && selectedContributors.length === 0)
               }
             >
               <Send className="h-4 w-4 mr-2" />
               {loading
                 ? "Envoi en cours..."
-                : audience === "client" && !fileUrl
+                : audience === "client" && requestType === "validation" && !fileUrl
                   ? "Uploadez un fichier d'abord"
                   : audience === "client"
                     ? "Envoyer au client"
