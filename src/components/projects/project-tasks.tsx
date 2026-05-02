@@ -27,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
@@ -79,6 +80,8 @@ interface ProjectTasksProps {
   externalInvitedIds?: Set<string>
   defaultOpen?: boolean
   onOpen?: () => void
+  unreadCount?: number
+  onNewPrestaComment?: () => void
 }
 
 const columns = [
@@ -97,6 +100,8 @@ export function ProjectTasks({
   externalInvitedIds,
   defaultOpen = true,
   onOpen,
+  unreadCount = 0,
+  onNewPrestaComment,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
@@ -455,7 +460,14 @@ export function ProjectTasks({
             )}
           />
           <h3 className="font-semibold">Tâches</h3>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+          <span
+            className={cn(
+              "text-xs px-1.5 py-0.5 rounded-full transition-colors",
+              unreadCount > 0
+                ? "bg-destructive text-destructive-foreground font-semibold"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
             {tasks.length}
           </span>
         </div>
@@ -735,28 +747,26 @@ export function ProjectTasks({
                                           </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                          {col.id !== "todo" && (
+                                          {col.id === "in_progress" && (
                                             <DropdownMenuItem
                                               onClick={() => handleStatusChange(task.id, "todo")}
                                             >
-                                              À faire
+                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                                              Mettre en pause
                                             </DropdownMenuItem>
                                           )}
-                                          {col.id !== "in_progress" && (
+                                          {col.id === "done" && (
                                             <DropdownMenuItem
                                               onClick={() =>
                                                 handleStatusChange(task.id, "in_progress")
                                               }
                                             >
-                                              En cours
+                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                                              Rouvrir
                                             </DropdownMenuItem>
                                           )}
-                                          {col.id !== "done" && (
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(task.id, "done")}
-                                            >
-                                              Terminé
-                                            </DropdownMenuItem>
+                                          {(col.id === "in_progress" || col.id === "done") && (
+                                            <DropdownMenuSeparator />
                                           )}
                                           {task.assigned_to &&
                                             contributorTokens[task.assigned_to] && (
@@ -832,7 +842,7 @@ export function ProjectTasks({
                                       </div>
                                     )}
 
-                                    {col.id !== "done" ? (
+                                    {col.id !== "done" && (
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -847,22 +857,13 @@ export function ProjectTasks({
                                         {col.id === "todo" ? "Démarrer" : "Terminer"}
                                         <ArrowRight className="ml-1 h-3 w-3" />
                                       </Button>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-                                        onClick={() => handleStatusChange(task.id, "in_progress")}
-                                      >
-                                        <ArrowLeft className="mr-1 h-3 w-3" />
-                                        Rouvrir
-                                      </Button>
                                     )}
                                   </CardContent>
                                   <TaskComments
                                     taskId={task.id}
                                     authorName={authorName}
                                     authorRole="pro"
+                                    onNewPrestaComment={onNewPrestaComment}
                                   />
                                 </Card>
                               </StaggerItem>

@@ -13,6 +13,9 @@ export function escapeHtml(str: string | null | undefined): string {
 const FROM = "Chalto <noreply@chalto.fr>"
 
 function getResend() {
+  if (process.env.SKIP_EMAILS === "true") {
+    return { emails: { send: async () => ({ data: null, error: null }) } } as unknown as Resend
+  }
   return new Resend(process.env.RESEND_API_KEY)
 }
 

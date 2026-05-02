@@ -28,6 +28,7 @@ interface ProjectDiscussionProps {
   onControlledOpenChange?: (v: boolean) => void
   onCountChange?: (count: number) => void
   onOpen?: () => void
+  unreadCount?: number
 }
 
 export function ProjectDiscussion({
@@ -41,6 +42,7 @@ export function ProjectDiscussion({
   onControlledOpenChange,
   onCountChange,
   onOpen,
+  unreadCount = 0,
 }: ProjectDiscussionProps) {
   const PAGE_SIZE = 50
   const [messages, setMessages] = useState<Message[]>([])
@@ -50,6 +52,7 @@ export function ProjectDiscussion({
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [internalOpen, setInternalOpen] = useState(autoOpen)
+  const [localUnread, setLocalUnread] = useState(unreadCount)
   const open = controlledOpen ?? internalOpen
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -60,6 +63,7 @@ export function ProjectDiscussion({
   const handleToggle = () => {
     const next = !open
     if (next) {
+      setLocalUnread(0)
       onOpen?.()
       setTimeout(() => {
         inputRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
@@ -107,6 +111,9 @@ export function ProjectDiscussion({
           )
           loadedCount.current += 1
           setTotalCount((n) => n + 1)
+          if (incoming.author_role === "prestataire") {
+            setLocalUnread((n) => n + 1)
+          }
         }
       )
       .subscribe((_status, err) => {
@@ -202,7 +209,14 @@ export function ProjectDiscussion({
             )}
           />
           <span className="font-semibold">Discussion chantier</span>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+          <span
+            className={cn(
+              "text-xs px-1.5 py-0.5 rounded-full transition-colors",
+              localUnread > 0
+                ? "bg-destructive text-destructive-foreground font-semibold"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
             {messages.length}
           </span>
         </div>

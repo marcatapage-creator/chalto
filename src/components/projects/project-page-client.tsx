@@ -86,6 +86,9 @@ interface ProjectPageClientProps {
   professionSlug?: string | null
   initialHighlightId?: string | null
   initialValidations?: Record<string, ValidationData>
+  unreadDocs?: number
+  unreadTasks?: number
+  unreadDiscussion?: number
 }
 
 export function ProjectPageClient({
@@ -98,6 +101,9 @@ export function ProjectPageClient({
   professionSlug,
   initialHighlightId,
   initialValidations = {},
+  unreadDocs = 0,
+  unreadTasks = 0,
+  unreadDiscussion = 0,
 }: ProjectPageClientProps) {
   const {
     label: statusLabel,
@@ -109,6 +115,8 @@ export function ProjectPageClient({
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
   const [localDocs, setLocalDocs] = useState(documents)
+  const [localUnreadDocs, setLocalUnreadDocs] = useState(unreadDocs)
+  const [localUnreadTasks, setLocalUnreadTasks] = useState(unreadTasks)
   const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
   const [contributorContactIds, setContributorContactIds] = useState<Set<string>>(new Set())
 
@@ -121,6 +129,18 @@ export function ProjectPageClient({
     const t = setTimeout(() => setHighlightedId(null), 2500)
     return () => clearTimeout(t)
   }, [highlightedId])
+
+  useEffect(() => {
+    supabase
+      .from("pro_views")
+      .upsert(
+        { user_id: userId, project_id: project.id, last_viewed_at: new Date().toISOString() },
+        { onConflict: "user_id,project_id" }
+      )
+      .then(({ error }) => {
+        if (error) console.error("[pro_views upsert]", error)
+      })
+  }, [project.id, userId, supabase])
   const selectedDoc = useMemo(
     () => localDocs.find((d) => d.id === selectedDocId) ?? null,
     [localDocs, selectedDocId]
@@ -239,6 +259,7 @@ export function ProjectPageClient({
           setLocalDocs((prev) =>
             prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
           )
+          setLocalUnreadDocs((n) => n + 1)
         }
       )
       .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
@@ -429,11 +450,15 @@ export function ProjectPageClient({
               isOpen={docsOpen}
               onToggle={() => {
                 if (docsOpen) setSelectedDocId(null)
-                else if (!isDesktop) setDetailsOpen(false)
+                else {
+                  if (!isDesktop) setDetailsOpen(false)
+                  setLocalUnreadDocs(0)
+                }
                 setDocsOpen((v) => !v)
               }}
               readOnly={phase === "cloture"}
               highlightedId={highlightedDocId}
+              unreadCount={localUnreadDocs}
             />
           </div>
 
@@ -465,7 +490,10 @@ export function ProjectPageClient({
                     defaultOpen={!startCollapsed}
                     onOpen={() => {
                       if (!isDesktop) setDetailsOpen(false)
+                      setLocalUnreadTasks(0)
                     }}
+                    unreadCount={localUnreadTasks}
+                    onNewPrestaComment={() => setLocalUnreadTasks((n) => n + 1)}
                   />
                 </ErrorBoundary>
               </div>
@@ -479,6 +507,7 @@ export function ProjectPageClient({
                   onOpen={() => {
                     if (!isDesktop) setDetailsOpen(false)
                   }}
+                  unreadCount={unreadDiscussion}
                 />
               </div>
             </>
