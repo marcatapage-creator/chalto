@@ -14,12 +14,45 @@ export const metadata: Metadata = {
 
 const articles = [
   {
+    slug: "cahier-des-charges-renovation-interieure",
+    title: "Cahier des charges rénovation intérieure : modèle et conseils",
+    description:
+      "Un bon cahier des charges évite les malentendus avec les artisans et protège votre client. Structure type et conseils pour le rédiger efficacement.",
+    category: "Documents",
+    date: "2 mai 2026",
+    readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "coordonner-artisans-renovation",
+    title: "Comment coordonner les artisans sur un chantier de rénovation intérieure",
+    description:
+      "Menuisier, peintre, électricien, carreleur... Voici comment s'organiser pour éviter les retards et les conflits sur un chantier de rénovation.",
+    category: "Gestion de chantier",
+    date: "18 avril 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "architecte-interieur-vs-decorateur",
+    title: "Architecte d'intérieur vs décorateur : quelle différence concrète ?",
+    description:
+      "Maîtrise d'œuvre, plans techniques, suivi de chantier... Qui fait quoi ? Les vraies différences pour bien choisir selon votre projet.",
+    category: "Design d'intérieur",
+    date: "4 avril 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80&auto=format&fit=crop",
+  },
+  {
     slug: "compte-rendu-chantier",
     title: "Comment rédiger un compte rendu de chantier efficace",
     description:
       "20 minutes de rédaction par semaine peuvent vous éviter des mois de litige. Le CR de chantier est l'outil de protection le plus sous-estimé du bâtiment.",
     category: "Gestion de chantier",
-    date: "29 avril 2026",
+    date: "21 mars 2026",
     readTime: "7 min",
     image:
       "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80&auto=format&fit=crop",
@@ -30,7 +63,7 @@ const articles = [
     description:
       "La réception est un acte juridique qui transfère la responsabilité des ouvrages. Tout savoir sur les réserves, le PV et les garanties légales.",
     category: "Documents",
-    date: "29 avril 2026",
+    date: "7 mars 2026",
     readTime: "8 min",
     image:
       "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80&auto=format&fit=crop",
@@ -41,7 +74,7 @@ const articles = [
     description:
       "Factures impayées, délais non respectés — connaissez vos droits légaux et les recours disponibles pour vous faire payer dans les temps.",
     category: "Facturation",
-    date: "29 avril 2026",
+    date: "21 février 2026",
     readTime: "7 min",
     image:
       "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80&auto=format&fit=crop",
@@ -52,7 +85,7 @@ const articles = [
     description:
       "Excel est partout dans le BTP, mais il n'a pas été conçu pour ça. Voici les signaux qui montrent qu'il est temps de passer à autre chose.",
     category: "Outils & logiciels",
-    date: "29 avril 2026",
+    date: "7 février 2026",
     readTime: "6 min",
     image:
       "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80&auto=format&fit=crop",
@@ -63,7 +96,7 @@ const articles = [
     description:
       "La notice descriptive traduit les plans en mots pour votre client. Un document contractuel essentiel pour éviter les malentendus.",
     category: "Documents",
-    date: "29 avril 2026",
+    date: "24 janvier 2026",
     readTime: "6 min",
     image:
       "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80&auto=format&fit=crop",
@@ -74,7 +107,7 @@ const articles = [
     description:
       "Le CCTP est un document clé dans tout projet de construction. Structure type, erreurs à éviter et comment l'IA peut vous faire gagner des heures.",
     category: "Documents",
-    date: "29 avril 2026",
+    date: "10 janvier 2026",
     readTime: "7 min",
     image:
       "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80&auto=format&fit=crop",
@@ -85,7 +118,7 @@ const articles = [
     description:
       "Devis en attente depuis 3 semaines ? Les méthodes concrètes pour accélérer la signature et réduire les abandons clients.",
     category: "Relation client",
-    date: "29 avril 2026",
+    date: "27 décembre 2025",
     readTime: "6 min",
     image:
       "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
@@ -96,7 +129,7 @@ const articles = [
     description:
       "Les allers-retours par email font perdre un temps précieux. Voici comment moderniser votre workflow de validation.",
     category: "Workflow",
-    date: "17 avril 2026",
+    date: "13 décembre 2025",
     readTime: "5 min",
     image:
       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80&auto=format&fit=crop",
@@ -107,7 +140,7 @@ const articles = [
     description:
       "Architectes, plombiers, électriciens — gérer plusieurs intervenants est un défi. Voici les meilleures pratiques.",
     category: "Gestion de chantier",
-    date: "10 avril 2026",
+    date: "29 novembre 2025",
     readTime: "7 min",
     image:
       "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80&auto=format&fit=crop",
@@ -118,7 +151,7 @@ const articles = [
     description:
       "Comparatif des meilleurs outils pour gérer ses projets, ses clients et ses documents en tant qu'architecte solo.",
     category: "Outils",
-    date: "3 avril 2026",
+    date: "15 novembre 2025",
     readTime: "8 min",
     image:
       "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80&auto=format&fit=crop",
