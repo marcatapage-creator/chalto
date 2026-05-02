@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-
 import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import Link from "next/link"
@@ -21,22 +20,9 @@ import {
   type ProjectInfo,
 } from "@/components/projects/project-details-dialog"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
-import { toast } from "sonner"
-
-interface Document {
-  id: string
-  name: string
-  type: string
-  status: string
-  version: number
-  validation_token: string
-  project_id: string
-  file_url?: string
-  file_name?: string
-  file_type?: string
-  file_size?: number
-  created_at: string
-}
+import { useProjectDocuments } from "@/hooks/use-project-documents"
+import type { ProjectDocument } from "@/hooks/use-project-documents"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 interface Contact {
   id: string
@@ -78,7 +64,7 @@ type ValidationData = {
 
 interface ProjectPageClientProps {
   project: Project
-  documents: Document[]
+  documents: ProjectDocument[]
   userId: string
   phase: string
   contacts: Contact[]
@@ -110,16 +96,24 @@ export function ProjectPageClient({
     variant: statusVariant,
     dot: statusDot,
   } = statusMap[project.status] ?? statusMap.draft
+
   const supabase = useMemo(() => createClient(), [])
+  const isDesktop = useMediaQuery("(min-width: 1280px)")
+
+  // ─── UI panels ───────────────────────────────────────────────────────────────
+  const isLatePhase = phase === "reception" || phase === "cloture"
+  const startCollapsed = isLatePhase && !initialHighlightId
+
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
-  const [localDocs, setLocalDocs] = useState(documents)
-  const [localUnreadDocs, setLocalUnreadDocs] = useState(unreadDocs)
-  const [localUnreadTasks, setLocalUnreadTasks] = useState(unreadTasks)
-  const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
-  const [contributorContactIds, setContributorContactIds] = useState<Set<string>>(new Set())
+  const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
+  const [docsOpen, setDocsOpen] = useState(
+    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
+  )
 
+  // ─── Highlight (notification deep-link) ──────────────────────────────────────
+  const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
   const openDiscussion = highlightedId === "discussion"
@@ -130,9 +124,34 @@ export function ProjectPageClient({
     return () => clearTimeout(t)
   }, [highlightedId])
 
+  // ─── Documents (Realtime + CRUD) ─────────────────────────────────────────────
+  const {
+    docs: localDocs,
+    unreadDocs: localUnreadDocs,
+    markDocsRead,
+    handleDocStatusChange,
+    handleDeleteDoc,
+  } = useProjectDocuments({
+    supabase,
+    projectId: project.id,
+    initialDocs: documents,
+    initialUnreadDocs: unreadDocs,
+    onNewDoc: (doc) => {
+      setDocsOpen(true)
+      setHighlightedId(`doc_${doc.id}`)
+    },
+  })
+
+  const selectedDoc = useMemo(
+    () => localDocs.find((d) => d.id === selectedDocId) ?? null,
+    [localDocs, selectedDocId]
+  )
+
+  // ─── Unread tasks ─────────────────────────────────────────────────────────────
+  const [localUnreadTasks, setLocalUnreadTasks] = useState(unreadTasks)
+
+  // ─── Pro view upsert ─────────────────────────────────────────────────────────
   useEffect(() => {
-    // 500 ms debounce : évite le double-fire en React StrictMode (dev) et les
-    // navigations rapides qui créeraient deux upserts dos-à-dos
     let cancelled = false
     const t = setTimeout(() => {
       if (cancelled) return
@@ -151,139 +170,8 @@ export function ProjectPageClient({
       clearTimeout(t)
     }
   }, [project.id, userId, supabase])
-  const selectedDoc = useMemo(
-    () => localDocs.find((d) => d.id === selectedDocId) ?? null,
-    [localDocs, selectedDocId]
-  )
 
-  const handleDocStatusChange = (docId: string, status: string, version?: number) => {
-    setLocalDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, status, ...(version !== undefined && { version }) } : d
-      )
-    )
-  }
-
-  const handleDeleteDoc = (docId: string) => {
-    const doc = localDocs.find((d) => d.id === docId)
-    if (!doc) return
-
-    setLocalDocs((prev) => prev.filter((d) => d.id !== docId))
-    if (selectedDocId === docId) setSelectedDocId(null)
-
-    let cancelled = false
-
-    toast.success("Document supprimé", {
-      action: {
-        label: "Annuler",
-        onClick: () => {
-          cancelled = true
-          setLocalDocs((prev) => {
-            if (prev.some((d) => d.id === docId)) return prev
-            return [...prev, doc].sort(
-              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            )
-          })
-        },
-      },
-      duration: 5000,
-    })
-
-    setTimeout(async () => {
-      if (cancelled) return
-      if (doc.file_url) {
-        const path = doc.file_url.split("/storage/v1/object/public/documents/").at(1)
-        if (path) await supabase.storage.from("documents").remove([path])
-      }
-      const { error } = await supabase.from("documents").delete().eq("id", docId)
-      if (error) {
-        setLocalDocs((prev) => {
-          if (prev.some((d) => d.id === docId)) return prev
-          return [...prev, doc]
-        })
-        toast.error("Erreur lors de la suppression")
-      }
-    }, 5000)
-  }
-
-  useEffect(() => {
-    setLocalDocs(documents)
-  }, [documents])
-
-  const isLatePhase = phase === "reception" || phase === "cloture"
-  const startCollapsed = isLatePhase && !initialHighlightId
-
-  const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
-  const [docsOpen, setDocsOpen] = useState(
-    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
-  )
-
-  // Unique per-mount suffix prevents channel name collision when removeChannel is still in-flight
-  const channelId = useRef(crypto.randomUUID())
-
-  useEffect(() => {
-    // Refresh Realtime auth token in background — non-blocking
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
-    })
-
-    const channel = supabase
-      .channel(`documents:${project.id}:${channelId.current}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "documents",
-          filter: `project_id=eq.${project.id}`,
-        },
-        (payload) => {
-          const newDoc = payload.new as Document
-          setLocalDocs((prev) => (prev.some((d) => d.id === newDoc.id) ? prev : [newDoc, ...prev]))
-          setDocsOpen(true)
-          setHighlightedId(`doc_${newDoc.id}`)
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "documents",
-          filter: `project_id=eq.${project.id}`,
-        },
-        (payload) => {
-          const updated = payload.new as Document
-          setLocalDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "validations",
-        },
-        (payload) => {
-          const v = payload.new as { document_id: string; status: string }
-          setLocalDocs((prev) =>
-            prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
-          )
-          setLocalUnreadDocs((n) => n + 1)
-        }
-      )
-      .on("broadcast", { event: "document_status_updated" }, ({ payload }) => {
-        const { documentId, status } = payload as { documentId: string; status: string }
-        setLocalDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, status } : d)))
-      })
-      .subscribe((_status, err) => {
-        if (err) console.error("[documents] Realtime error:", err)
-      })
-
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [project.id, supabase])
+  // ─── Project details (client info) ───────────────────────────────────────────
   const [projectInfo, setProjectInfo] = useState<ProjectInfo>({
     client_name: project.client_name,
     client_email: project.client_email,
@@ -294,15 +182,9 @@ export function ProjectPageClient({
     deadline: project.deadline,
     constraints: project.constraints,
   })
-  const [isDesktop, setIsDesktop] = useState(false)
 
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1280px)")
-    setIsDesktop(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
+  // ─── Contributors (shared between Contributors + Tasks) ──────────────────────
+  const [contributorContactIds, setContributorContactIds] = useState<Set<string>>(new Set())
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -383,7 +265,7 @@ export function ProjectPageClient({
                 className="overflow-hidden"
               >
                 <div className="border-t flex flex-col sm:flex-row">
-                  {/* Infos client — hug content */}
+                  {/* Infos client */}
                   <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -424,16 +306,14 @@ export function ProjectPageClient({
 
                   <div className="border-l" />
 
-                  {/* Stepper phase — fill */}
+                  {/* Stepper phase */}
                   <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
                     <ProjectStepper
                       projectId={project.id}
                       currentPhase={phase}
                       professionSlug={professionSlug}
                       onPhaseChange={(newPhase) => {
-                        if (isChantierPhase(newPhase)) {
-                          setDocsOpen(false)
-                        }
+                        if (isChantierPhase(newPhase)) setDocsOpen(false)
                       }}
                     />
                   </div>
@@ -459,10 +339,11 @@ export function ProjectPageClient({
               onDeleteDoc={handleDeleteDoc}
               isOpen={docsOpen}
               onToggle={() => {
-                if (docsOpen) setSelectedDocId(null)
-                else {
+                if (docsOpen) {
+                  setSelectedDocId(null)
+                } else {
                   if (!isDesktop) setDetailsOpen(false)
-                  setLocalUnreadDocs(0)
+                  markDocsRead()
                 }
                 setDocsOpen((v) => !v)
               }}
