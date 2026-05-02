@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { FadeIn } from "@/components/ui/motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const SUPPORT_EMAIL = "marc@chalto.fr"
@@ -64,7 +65,20 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
           )}
         />
       </button>
-      {open && <p className="pb-4 text-sm text-muted-foreground leading-relaxed">{answer}</p>}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <p className="pb-4 text-sm text-muted-foreground leading-relaxed">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
