@@ -2,27 +2,30 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64")
   const isDev = process.env.NODE_ENV === "development"
 
-  const csp = [
-    "default-src 'self'",
-    `script-src 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""} https://*.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com`,
-    "worker-src blob: 'self'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://hyukwaquuyoojejkqmvb.supabase.co https://images.unsplash.com",
-    "font-src 'self'",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
-    "frame-src https://hyukwaquuyoojejkqmvb.supabase.co",
-    "frame-ancestors 'none'",
-  ].join("; ")
+  // CSP uniquement en production — en dev, le nonce casse HMR et les scripts Next.js inline
+  const nonce = isDev ? null : Buffer.from(crypto.randomUUID()).toString("base64")
+  const csp = isDev
+    ? null
+    : [
+        "default-src 'self'",
+        `script-src 'nonce-${nonce}' 'strict-dynamic' https://*.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com`,
+        "worker-src blob: 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https://hyukwaquuyoojejkqmvb.supabase.co https://images.unsplash.com",
+        "font-src 'self'",
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
+        "frame-src https://hyukwaquuyoojejkqmvb.supabase.co",
+        "frame-ancestors 'none'",
+      ].join("; ")
 
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set("x-nonce", nonce)
+  if (nonce) requestHeaders.set("x-nonce", nonce)
 
   const makeResponse = () => {
     const res = NextResponse.next({ request: { headers: requestHeaders } })
-    res.headers.set("Content-Security-Policy", csp)
+    if (csp) res.headers.set("Content-Security-Policy", csp)
     return res
   }
 
