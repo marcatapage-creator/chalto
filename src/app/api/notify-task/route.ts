@@ -74,6 +74,10 @@ export async function POST(request: Request) {
       ? `<p style="margin: 6px 0 0; font-size: 13px; color: #555; line-height: 1.6;">${task.description}</p>`
       : ""
 
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ ok: true })
+    }
+
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,

@@ -116,7 +116,9 @@ export async function POST(request: Request) {
         })
       })
 
-    await Promise.all(sends)
+    if (process.env.SKIP_EMAILS !== "true") {
+      await Promise.all(sends)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

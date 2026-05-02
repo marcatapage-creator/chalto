@@ -148,6 +148,10 @@ export async function POST(request: Request) {
       ? `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à collaborer sur le projet <strong>${escapeHtml(project?.name)}</strong> et vous a assigné ${assignedTasks.length > 1 ? `${assignedTasks.length} tâches` : "une tâche"}. Connectez-vous à votre espace pour les consulter et mettre à jour leur avancement.`
       : `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à rejoindre le projet <strong>${escapeHtml(project?.name)}</strong>. Votre espace personnel est accessible en un clic — consultez les documents partagés et suivez les échanges en temps réel.`
 
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ success: true, inviteUrl })
+    }
+
     await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
