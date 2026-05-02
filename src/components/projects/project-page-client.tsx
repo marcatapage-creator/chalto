@@ -131,15 +131,25 @@ export function ProjectPageClient({
   }, [highlightedId])
 
   useEffect(() => {
-    supabase
-      .from("pro_views")
-      .upsert(
-        { user_id: userId, project_id: project.id, last_viewed_at: new Date().toISOString() },
-        { onConflict: "user_id,project_id" }
-      )
-      .then(({ error }) => {
-        if (error) console.error("[pro_views upsert]", error)
-      })
+    // 500 ms debounce : évite le double-fire en React StrictMode (dev) et les
+    // navigations rapides qui créeraient deux upserts dos-à-dos
+    let cancelled = false
+    const t = setTimeout(() => {
+      if (cancelled) return
+      supabase
+        .from("pro_views")
+        .upsert(
+          { user_id: userId, project_id: project.id, last_viewed_at: new Date().toISOString() },
+          { onConflict: "user_id,project_id" }
+        )
+        .then(({ error }) => {
+          if (error) console.error("[pro_views upsert]", error)
+        })
+    }, 500)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
   }, [project.id, userId, supabase])
   const selectedDoc = useMemo(
     () => localDocs.find((d) => d.id === selectedDocId) ?? null,

@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { SettingsForm } from "@/components/settings/settings-form"
 import { FadeIn } from "@/components/ui/motion"
 import { getProfessions } from "@/lib/cached-queries"
 
 export default async function SettingsPage() {
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const [{ data: profile }, professions, { data: userProfessionsRows }] = await Promise.all([
     supabase

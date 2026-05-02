@@ -1,6 +1,7 @@
 import { withSentryConfig } from "@sentry/nextjs"
 import type { NextConfig } from "next"
 
+// CSP géré par src/middleware.ts (nonce per-request, pas de unsafe-inline/unsafe-eval en prod)
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -9,20 +10,6 @@ const securityHeaders = [
   {
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel-scripts.com https://*.sentry.io https://www.googletagmanager.com https://www.google-analytics.com",
-      "worker-src blob: 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://hyukwaquuyoojejkqmvb.supabase.co https://images.unsplash.com",
-      "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
-      "frame-src https://hyukwaquuyoojejkqmvb.supabase.co",
-      "frame-ancestors 'none'",
-    ].join("; "),
   },
 ]
 

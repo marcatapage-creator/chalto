@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -80,10 +81,8 @@ function RecentProjects({ projects }: { projects: ProjectWithCounts[] }) {
 }
 
 export default async function DashboardPage() {
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const [{ data: projects }, { data: profile }] = await Promise.all([
     supabase

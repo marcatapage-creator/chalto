@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -8,10 +9,8 @@ import { ProjectsListClient } from "@/components/projects/projects-list-client"
 import type { ProjectWithCounts } from "@/components/projects/projects-list-client"
 
 export default async function ProjectsPage() {
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const { data } = await supabase
     .from("projects")

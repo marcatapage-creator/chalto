@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { notFound } from "next/navigation"
 import { ProjectPageClient } from "@/components/projects/project-page-client"
 
@@ -10,10 +11,9 @@ export default async function ProjectPage({
   searchParams: Promise<{ highlight?: string }>
 }) {
   const [{ id }, { highlight }] = await Promise.all([params, searchParams])
+  // getAuthUser() est dédupliqué par React cache() — le layout l'a déjà appelé
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const [
     { data: project },
