@@ -292,11 +292,26 @@ export default async function globalSetup(config: FullConfig) {
 
   // ── 3. Sauvegarde pour le teardown et les tests ───────────────────────────
   const seed = {
+    // Clés pour le teardown
     projectId: project.id,
     documentId: docValidation.id,
     validationToken: docValidation.validation_token,
     userId,
     contactIds: [contactWithEmail.id, contactNoEmail.id],
+    // Clés E2E_* lisibles par les workers via readSeed()
+    E2E_PROJECT_ID: project.id,
+    E2E_USER_EMAIL: email,
+    E2E_VALIDATION_TOKEN: docValidation.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_REFUSE: docValidationRefuse.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_REALTIME: docRealtimeApprove.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_REALTIME_REFUSE: docRealtimeRefuse.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_REALTIME_CONSOLE: docRealtimeConsole.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_CLIENT: docClientValidateA.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_CLIENT_2: docClientValidateB.validation_token ?? "",
+    E2E_CONTACT_ID: contactWithEmail.id,
+    E2E_INVITE_TOKEN: contributor.invite_token?.toString() ?? "",
+    E2E_INVITE_TOKEN_VALIDATION: contributor.invite_token?.toString() ?? "",
+    E2E_INVITE_TOKEN_TRANSMISSION: contributor.invite_token?.toString() ?? "",
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))
