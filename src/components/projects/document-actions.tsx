@@ -116,7 +116,7 @@ export function DocumentActions({
 }: DocumentActionsProps) {
   const [open, setOpen] = useState(false)
   const [audience, setAudience] = useState<"client" | "contributor">(
-    status === "approved" ? "contributor" : "client"
+    status === "approved" || status === "commented" ? "contributor" : "client"
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
@@ -264,18 +264,20 @@ export function DocumentActions({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {status === "approved" ? "Partager avec un prestataire" : "Envoyer ce document"}
+              {status === "approved" || status === "commented"
+                ? "Partager avec un prestataire"
+                : "Envoyer ce document"}
             </DialogTitle>
             <DialogDescription>Choisissez le type de requête</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Choix audience — masqué si le doc est approuvé (on force contributor) */}
-            {isChantier && status !== "approved" && (
+            {/* Choix audience — masqué si le doc est approuvé ou lu (on force contributor) */}
+            {isChantier && status !== "approved" && status !== "commented" && (
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => status !== "approved" && setAudience("client")}
-                  disabled={status === "approved"}
+                  onClick={() => setAudience("client")}
+                  disabled={false}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
                     status === "approved"
