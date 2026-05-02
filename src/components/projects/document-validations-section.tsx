@@ -79,7 +79,10 @@ export function ValidationsSection({
           const cfg = statusCfg(cv.status)
           const Icon = cfg.icon
           return (
-            <div key={cv.contributor_id ?? i} className="flex items-center gap-2 text-sm py-0.5">
+            <div
+              key={`${cv.contributor_id ?? "anon"}-${i}`}
+              className="flex items-center gap-2 text-sm py-0.5"
+            >
               <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
               <span className="min-w-0 truncate">{cv.client_name ?? "Prestataire"}</span>
               <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>

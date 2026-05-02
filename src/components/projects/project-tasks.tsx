@@ -43,6 +43,7 @@ import {
   Lightbulb,
   Check,
   X,
+  Link,
 } from "lucide-react"
 import { haptics } from "@/lib/haptics"
 import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
@@ -146,14 +147,23 @@ export function ProjectTasks({
   const channelRef = useRef<RealtimeChannel | null>(null)
   const fetchPendingRef = useRef(false)
   const [invitedContactIds, setInvitedContactIds] = useState<Set<string>>(new Set())
+  const [contributorTokens, setContributorTokens] = useState<Record<string, string>>({})
 
   useEffect(() => {
     supabase
       .from("contributors")
-      .select("contact_id")
+      .select("contact_id, invite_token")
       .eq("project_id", projectId)
       .then(({ data }) => {
-        if (data) setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
+        if (data) {
+          setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
+          const tokens: Record<string, string> = {}
+          for (const c of data) {
+            if (c.contact_id && c.invite_token)
+              tokens[c.contact_id as string] = c.invite_token as string
+          }
+          setContributorTokens(tokens)
+        }
       })
 
     const channel = supabase
@@ -167,8 +177,11 @@ export function ProjectTasks({
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          const added = payload.new as { contact_id: string }
+          const added = payload.new as { contact_id: string; invite_token?: string }
           setInvitedContactIds((prev) => new Set([...prev, added.contact_id]))
+          if (added.invite_token) {
+            setContributorTokens((prev) => ({ ...prev, [added.contact_id]: added.invite_token! }))
+          }
         }
       )
       .on(
@@ -745,6 +758,20 @@ export function ProjectTasks({
                                               Terminé
                                             </DropdownMenuItem>
                                           )}
+                                          {task.assigned_to &&
+                                            contributorTokens[task.assigned_to] && (
+                                              <DropdownMenuItem
+                                                onClick={() => {
+                                                  const token = contributorTokens[task.assigned_to!]
+                                                  const url = `${window.location.origin}/invite/${token}`
+                                                  navigator.clipboard.writeText(url)
+                                                  toast.success("Lien prestataire copié")
+                                                }}
+                                              >
+                                                <Link className="mr-2 h-3.5 w-3.5" />
+                                                Copier le lien prestataire
+                                              </DropdownMenuItem>
+                                            )}
                                           <DropdownMenuItem
                                             onClick={() => handleDelete(task.id)}
                                             className="text-destructive focus:text-destructive"
