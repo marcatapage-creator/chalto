@@ -188,6 +188,7 @@ export default async function globalSetup(config: FullConfig) {
     "Document E2E – contrib validation B",
     "Document E2E – contrib transmission A",
     "Document E2E – contrib transmission B",
+    "Document E2E – contrib transmission C", // réservé pour invitation.spec.ts
   ]
   const contribDocs: Array<{ id: string }> = []
   for (const name of contribDocNames) {
@@ -204,6 +205,7 @@ export default async function globalSetup(config: FullConfig) {
     docContribValidationB,
     docContribTransmissionA,
     docContribTransmissionB,
+    docContribTransmissionC,
   ] = contribDocs
 
   await admin.from("document_contributors").insert([
@@ -224,6 +226,11 @@ export default async function globalSetup(config: FullConfig) {
     },
     {
       document_id: docContribTransmissionB.id,
+      contributor_id: contributor.id,
+      request_type: "transmission",
+    },
+    {
+      document_id: docContribTransmissionC.id,
       contributor_id: contributor.id,
       request_type: "transmission",
     },
