@@ -60,6 +60,16 @@ export default async function globalSetup(config: FullConfig) {
 
   const userId = profile.id
 
+  // S'assure que le profil a une profession (évite la redirection vers /onboarding)
+  const { data: profession } = await admin
+    .from("professions")
+    .select("id")
+    .eq("slug", "architecte")
+    .single()
+  if (profession) {
+    await admin.from("profiles").update({ profession_id: profession.id }).eq("id", userId)
+  }
+
   // Crée un projet de test
   const { data: project } = await admin
     .from("projects")
