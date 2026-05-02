@@ -77,18 +77,14 @@ test("8.2 — modifier le nom d'un contact persiste", async ({ page }) => {
     return
   }
 
-  // Ouvrir l'édition (bouton modifier ou click sur le contact)
-  const editBtn = page.getByRole("button", { name: /modifier|éditer|edit/i }).first()
-  const hasEdit = await editBtn.isVisible({ timeout: 3_000 }).catch(() => false)
+  // Ouvrir le menu "..." de la carte puis cliquer "Modifier"
+  await firstContact.getByRole("button").first().click()
+  const modifierItem = page.getByRole("menuitem", { name: /modifier/i }).first()
+  await expect(modifierItem).toBeVisible({ timeout: 5_000 })
+  await modifierItem.click()
 
-  if (!hasEdit) {
-    // Essayer via click sur la ligne
-    await firstContact.click()
-  } else {
-    await editBtn.click()
-  }
-
-  const nameInput = page.getByRole("textbox", { name: /nom|name/i }).first()
+  // Le dialog d'édition s'ouvre — trouver le premier champ texte (Nom)
+  const nameInput = page.getByRole("textbox").first()
   await expect(nameInput).toBeVisible({ timeout: 8_000 })
   await nameInput.clear()
   await nameInput.fill(`Contact Modifié E2E ${Date.now()}`)

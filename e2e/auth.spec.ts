@@ -56,20 +56,24 @@ test.describe("sans authentification", () => {
   })
 })
 
-// Flux complet — nécessite E2E_USER_EMAIL / E2E_USER_PASSWORD (global-setup)
-test("login — connexion avec un compte de test", async ({ page }) => {
-  const email = process.env.E2E_USER_EMAIL
-  const password = process.env.E2E_USER_PASSWORD
-  if (!email || !password) {
-    test.skip(true, "E2E_USER_EMAIL ou E2E_USER_PASSWORD non défini")
-    return
-  }
-  await page.goto("/login")
-  await page.getByRole("button", { name: /continuer avec email/i }).click()
-  await page.getByRole("textbox", { name: /email/i }).fill(email)
-  await page.getByRole("textbox", { name: /mot de passe|password/i }).fill(password)
-  await page.getByRole("button", { name: /connexion|se connecter/i }).click()
-  await expect(page).toHaveURL(/dashboard/, { timeout: 15_000 })
+// Flux complet — session vide obligatoire pour tester le login
+test.describe("avec credentials de test", () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test("login — connexion avec un compte de test", async ({ page }) => {
+    const email = process.env.E2E_USER_EMAIL
+    const password = process.env.E2E_USER_PASSWORD
+    if (!email || !password) {
+      test.skip(true, "E2E_USER_EMAIL ou E2E_USER_PASSWORD non défini")
+      return
+    }
+    await page.goto("/login")
+    await page.getByRole("button", { name: /continuer avec email/i }).click()
+    await page.getByRole("textbox", { name: /email/i }).fill(email)
+    await page.getByRole("textbox", { name: /mot de passe|password/i }).fill(password)
+    await page.getByRole("button", { name: /connexion|se connecter/i }).click()
+    await expect(page).toHaveURL(/dashboard/, { timeout: 15_000 })
+  })
 })
 
 // ─── 1.2 : Déconnexion / reconnexion ─────────────────────────────────────────
