@@ -23,6 +23,29 @@ export default async function globalSetup(config: FullConfig) {
     return
   }
 
+  // ── 0. Pré-seed profession_id pour éviter redirect /onboarding ───────────
+  if (supabaseUrl && serviceKey) {
+    const adminPre = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+    const { data: profilePre } = await adminPre
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .single()
+    if (profilePre) {
+      const { data: profPre } = await adminPre
+        .from("professions")
+        .select("id")
+        .eq("slug", "architecte")
+        .single()
+      if (profPre) {
+        await adminPre
+          .from("profiles")
+          .update({ profession_id: profPre.id })
+          .eq("id", profilePre.id)
+      }
+    }
+  }
+
   // ── 1. Auth Playwright ────────────────────────────────────────────────────
   const baseURL = config.projects[0].use.baseURL ?? "http://localhost:3000"
   const browser = await chromium.launch()

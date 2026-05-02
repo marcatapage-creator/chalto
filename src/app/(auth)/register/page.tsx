@@ -170,7 +170,7 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25, ease: "easeInOut" }}
-                    className="space-y-4 overflow-hidden"
+                    className="space-y-4"
                   >
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Nom complet</Label>
