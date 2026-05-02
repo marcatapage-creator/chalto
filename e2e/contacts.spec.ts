@@ -68,8 +68,8 @@ test("8.2 — modifier le nom d'un contact persiste", async ({ page }) => {
   await page.goto("/contacts")
   await expect(page).not.toHaveURL(/login/)
 
-  // Chercher le premier contact disponible
-  const firstContact = page.getByRole("listitem").first()
+  // Chercher le premier contact disponible (cards, pas listitem)
+  const firstContact = page.locator('[data-slot="card"]').first()
   const hasContact = await firstContact.isVisible({ timeout: 5_000 }).catch(() => false)
 
   if (!hasContact) {

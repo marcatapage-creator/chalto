@@ -13,7 +13,7 @@ export default async function globalTeardown() {
 
   if (!supabaseUrl || !serviceKey || !fs.existsSync(SEED_FILE)) return
 
-  let seed: { projectId?: string } = {}
+  let seed: { projectId?: string; contactIds?: string[] } = {}
   try {
     seed = JSON.parse(fs.readFileSync(SEED_FILE, "utf-8"))
   } catch {
@@ -33,6 +33,12 @@ export default async function globalTeardown() {
     console.warn("[e2e teardown] Erreur suppression projet de test:", error.message)
   } else {
     console.log(`[e2e teardown] Projet ${seed.projectId} supprimé`)
+  }
+
+  // Supprime les contacts E2E créés par le seed
+  if (seed.contactIds?.length) {
+    await admin.from("contacts").delete().in("id", seed.contactIds)
+    console.log(`[e2e teardown] ${seed.contactIds.length} contact(s) E2E supprimé(s)`)
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify({}))

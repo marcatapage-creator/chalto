@@ -131,7 +131,11 @@ export function BrandingForm({ profile }: BrandingFormProps) {
                   : "Le logo Chalto s'affiche sur les pages client et emails"}
               </CardDescription>
             </div>
-            <Switch checked={brandingEnabled} onCheckedChange={handleBrandingToggle} />
+            <Switch
+              checked={brandingEnabled}
+              onCheckedChange={handleBrandingToggle}
+              aria-label="Branding personnalisé"
+            />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

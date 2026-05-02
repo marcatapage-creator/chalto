@@ -117,23 +117,25 @@ test("2.3 — changer la phase met à jour le badge sans erreur console", async 
     if (msg.type() === "error") errors.push(msg.text())
   })
 
-  await page.goto(`/projects/${projectId}/edit`)
+  // Le stepper de phase est sur la fiche projet, pas sur /edit
+  await page.goto(`/projects/${projectId}`)
   await expect(page).not.toHaveURL(/login/)
 
-  // Chercher un sélecteur de phase
-  const phaseSelect = page.getByRole("combobox", { name: /phase/i }).first()
-  const hasPhaseSelect = await phaseSelect.isVisible({ timeout: 5_000 }).catch(() => false)
+  // Le stepper affiche un bouton "Passer à : <phase suivante>"
+  const advanceBtn = page.getByRole("button", { name: /passer à/i }).first()
+  const hasAdvance = await advanceBtn.isVisible({ timeout: 8_000 }).catch(() => false)
 
-  if (!hasPhaseSelect) {
-    test.skip(true, "Sélecteur de phase non trouvé sur la page d'édition")
+  if (!hasAdvance) {
+    test.skip(true, "Bouton d'avancement de phase non trouvé (projet déjà en phase finale ?)")
     return
   }
 
-  await phaseSelect.selectOption({ index: 1 })
-  await page
-    .getByRole("button", { name: /enregistrer|sauvegarder/i })
-    .first()
-    .click()
+  await advanceBtn.click()
+
+  // Confirmer si une dialog de confirmation apparaît
+  const confirmBtn = page.getByRole("button", { name: /confirmer|passer|oui/i }).last()
+  const hasConfirm = await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)
+  if (hasConfirm) await confirmBtn.click()
 
   await page.waitForTimeout(2_000)
   expect(errors.filter((e) => !e.includes("favicon"))).toHaveLength(0)
