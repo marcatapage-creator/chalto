@@ -55,12 +55,12 @@ function RecentProjects({ projects }: { projects: ProjectWithCounts[] }) {
               )}
               <StaggerList className="space-y-3">
                 {group.items.map((p) => (
-                  <StaggerItem key={p.id}>
+                  <StaggerItem key={p.id} pressable>
                     <ProjectCard project={p} compact />
                   </StaggerItem>
                 ))}
                 {groups.length === 1 && projects.length < 2 && (
-                  <StaggerItem>
+                  <StaggerItem pressable>
                     <Link href="/projects/new">
                       <Card className="cursor-pointer border-dashed hover:border-primary/50 hover:bg-muted/30 transition-colors duration-150">
                         <CardContent className="flex items-center gap-3 p-4 text-muted-foreground">
