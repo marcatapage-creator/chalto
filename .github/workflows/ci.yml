@@ -55,8 +55,8 @@ jobs:
   e2e:
     name: Tests e2e (Playwright)
     runs-on: ubuntu-latest
-    # Tourne uniquement si les secrets E2E sont configurés sur le repo
-    if: ${{ vars.E2E_ENABLED == 'true' }}
+    # Tourne uniquement sur staging et si les secrets E2E sont configurés
+    if: ${{ vars.E2E_ENABLED == 'true' && github.ref == 'refs/heads/staging' }}
     needs: check
 
     steps:
