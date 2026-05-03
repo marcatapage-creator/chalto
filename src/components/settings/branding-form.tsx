@@ -64,7 +64,14 @@ export function BrandingForm({ profile }: BrandingFormProps) {
         .from("logos")
         .upload(path, file, { upsert: true })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error("[branding] uploadError:", uploadError)
+        toast.error("Upload échoué", {
+          description: uploadError.message ?? "Vérifiez votre connexion et réessayez.",
+        })
+        setUploading(false)
+        return
+      }
 
       const { data } = supabase.storage.from("logos").getPublicUrl(path)
 
@@ -74,11 +81,13 @@ export function BrandingForm({ profile }: BrandingFormProps) {
 
       toast.success("Logo uploadé ✅")
     } catch (error) {
-      console.error(error)
-      toast.error("Erreur lors de l'upload")
+      console.error("[branding] unexpected error:", error)
+      toast.error("Erreur lors de l'upload", {
+        description: error instanceof Error ? error.message : undefined,
+      })
+    } finally {
+      setUploading(false)
     }
-
-    setUploading(false)
   }
 
   const handleRemoveLogo = async () => {
