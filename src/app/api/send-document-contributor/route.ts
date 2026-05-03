@@ -53,6 +53,10 @@ export async function POST(request: Request) {
 
     const baseUrl = new URL(request.url).origin
 
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ success: true })
+    }
+
     const sends = contributors
       .filter((c) => c.email && c.invite_token)
       .map((c) => {
@@ -116,8 +120,14 @@ export async function POST(request: Request) {
         })
       })
 
-    if (process.env.SKIP_EMAILS !== "true") {
-      await Promise.all(sends)
+    const results = await Promise.all(sends)
+    const firstError = results.find((r) => r.error)
+    if (firstError?.error) {
+      console.error("Resend error:", firstError.error)
+      return NextResponse.json(
+        { error: "Erreur envoi email", details: String(firstError.error) },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({ success: true })
