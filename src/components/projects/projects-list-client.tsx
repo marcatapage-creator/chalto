@@ -356,7 +356,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
               </h2>
               <StaggerList className="space-y-3">
                 {group.items.map((project) => (
-                  <StaggerItem key={project.id}>
+                  <StaggerItem key={project.id} pressable>
                     <ProjectCard project={project} />
                   </StaggerItem>
                 ))}
@@ -368,7 +368,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
         // Vue plate (mono-profession)
         <StaggerList className="space-y-3">
           {filtered.map((project) => (
-            <StaggerItem key={project.id}>
+            <StaggerItem key={project.id} pressable>
               <ProjectCard project={project} />
             </StaggerItem>
           ))}

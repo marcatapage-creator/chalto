@@ -46,15 +46,18 @@ export const StaggerList = ({
 export const StaggerItem = ({
   children,
   className,
+  pressable = false,
 }: {
   children: React.ReactNode
   className?: string
+  pressable?: boolean
 }) => (
   <motion.div
     variants={{
       hidden: { opacity: 0, y: 12 },
       visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
     }}
+    whileTap={pressable ? { scale: 0.97, opacity: 0.85, transition: { duration: 0.1 } } : undefined}
     className={className}
   >
     {children}
