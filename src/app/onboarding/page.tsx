@@ -74,17 +74,22 @@ export default function OnboardingPage() {
         .eq("slug", selected)
         .single()
 
-      await supabase
+      if (!profession?.id) throw new Error(`Profession slug not found: ${selected}`)
+
+      const { error: updateError } = await supabase
         .from("profiles")
-        .update({ profession_id: profession?.id ?? null })
+        .update({ profession_id: profession.id })
         .eq("id", user.id)
+
+      if (updateError) throw updateError
 
       await createDemoProject(supabase, user.id, selected).catch(() => null)
 
       analytics.onboardingCompleted(selected)
-      router.push("/dashboard")
-    } catch {
-      router.push("/dashboard")
+      window.location.href = "/dashboard"
+    } catch (err) {
+      console.error("[onboarding] handleContinue error:", err)
+      window.location.href = "/dashboard"
     } finally {
       setLoading(false)
     }

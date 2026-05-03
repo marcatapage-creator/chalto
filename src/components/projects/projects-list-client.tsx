@@ -127,11 +127,14 @@ export function ProjectCard({
                 <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
                   {phaseLabel}
                 </span>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {new Date(project.created_at).toLocaleDateString("fr-FR")}
+                </span>
               </div>
             )}
             <div className="flex items-center justify-between gap-3">
-              <p className="font-medium text-sm flex items-center gap-1.5 min-w-0 truncate">
-                {project.name}
+              <p className="font-medium text-sm flex items-center gap-1.5 min-w-0">
+                <span className="truncate">{project.name}</span>
                 {(project.unreadCount ?? 0) > 0 && (
                   <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 shrink-0">
                     {(project.unreadCount ?? 0) > 9 ? "9+" : project.unreadCount}
@@ -139,14 +142,12 @@ export function ProjectCard({
                 )}
               </p>
               {compact && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant={status.variant} className="hidden sm:inline-flex">
-                    {status.label}
-                  </Badge>
-                  <span className="hidden sm:inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
+                  <Badge variant={status.variant}>{status.label}</Badge>
+                  <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
                     {phaseLabel}
                   </span>
-                  <span className="text-xs text-muted-foreground sm:ml-9.5">
+                  <span className="text-xs text-muted-foreground ml-9.5">
                     {new Date(project.created_at).toLocaleDateString("fr-FR")}
                   </span>
                 </div>

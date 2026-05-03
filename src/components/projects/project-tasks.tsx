@@ -462,7 +462,7 @@ export function ProjectTasks({
           <h3 className="font-semibold">Tâches</h3>
           <span
             className={cn(
-              "text-xs px-1.5 py-0.5 rounded-full transition-colors",
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
               unreadCount > 0
                 ? "bg-destructive text-destructive-foreground font-semibold"
                 : "bg-muted text-muted-foreground"
@@ -703,7 +703,7 @@ export function ProjectTasks({
                     <div key={col.id} className="space-y-3">
                       <div className="flex items-center gap-2">
                         <p className={cn("text-sm font-semibold", col.color)}>{col.label}</p>
-                        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                        <span className="inline-flex items-center justify-center text-xs text-muted-foreground bg-muted h-5 min-w-5 rounded-full">
                           {colTasks.length}
                         </span>
                       </div>

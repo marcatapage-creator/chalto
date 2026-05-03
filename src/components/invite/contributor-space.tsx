@@ -396,7 +396,7 @@ export function ContributorSpace({
               Documents
             </span>
             {docs.length > 0 && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center justify-center text-xs text-muted-foreground bg-muted h-5 min-w-5 rounded-full">
                 {docs.length}
               </span>
             )}
@@ -626,7 +626,7 @@ export function ContributorSpace({
               Mes tâches
             </span>
             {tasks.length > 0 && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center justify-center text-xs text-muted-foreground bg-muted h-5 min-w-5 rounded-full">
                 {tasks.length}
               </span>
             )}

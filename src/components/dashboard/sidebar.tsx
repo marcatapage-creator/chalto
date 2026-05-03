@@ -111,7 +111,7 @@ function SidebarContent({
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
               {item.countKey && (
-                <span className="ml-auto text-xs bg-background text-muted-foreground px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto inline-flex items-center justify-center text-xs bg-background text-muted-foreground h-5 min-w-5 rounded-full">
                   {counts[item.countKey]}
                 </span>
               )}

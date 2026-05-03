@@ -200,7 +200,7 @@ export function ProjectDocuments({
           <h2 className="font-semibold">Documents</h2>
           <span
             className={cn(
-              "text-xs px-1.5 py-0.5 rounded-full transition-colors",
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
               unreadCount > 0
                 ? "bg-destructive text-destructive-foreground font-semibold"
                 : "bg-muted text-muted-foreground"
