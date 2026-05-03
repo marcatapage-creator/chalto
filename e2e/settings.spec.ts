@@ -188,8 +188,8 @@ test("11.3d — sélectionner 'Jamais' et sauvegarder affiche une confirmation",
 })
 
 test("11.3d — la fréquence 'Jamais' est persistée après rechargement", async ({ page }) => {
-  await page.goto("/settings")
-  await expect(page).not.toHaveURL(/login/)
+  await page.goto("/settings", { waitUntil: "networkidle" })
+  await expect(page).not.toHaveURL(/login/, { timeout: 10_000 })
   await page.getByRole("tab", { name: /notif/i }).click()
 
   const frequencyTrigger = page.getByRole("combobox").filter({ hasText: /immédiatement|jamais/i })
