@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
           const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
           const emailTimeout = new Promise<void>((resolve) => setTimeout(resolve, 4000))
           await Promise.race([
-            sendWelcomeEmail({ email: user.email!, fullName }).catch(() => null),
+            sendWelcomeEmail({ email: user.email!, fullName }).catch((err) => {
+              console.error("[auth-callback] Welcome email failed:", err)
+            }),
             emailTimeout,
           ])
           return NextResponse.redirect(`${origin}/onboarding`)

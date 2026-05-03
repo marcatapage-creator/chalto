@@ -152,7 +152,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, inviteUrl })
     }
 
-    await resend.emails.send({
+    const { error: emailError } = await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
       subject,
@@ -206,6 +206,14 @@ export async function POST(request: Request) {
         </html>
       `,
     })
+
+    if (emailError) {
+      console.error("[send-invite] Resend error:", emailError)
+      return NextResponse.json(
+        { error: "Erreur envoi email", details: String(emailError) },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({ success: true, inviteUrl })
   } catch (error) {

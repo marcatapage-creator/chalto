@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true })
     }
 
-    await resend.emails.send({
+    const { error: emailError } = await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
       subject: `Rappel de tâche — ${task.title}`,
@@ -125,6 +125,11 @@ export async function POST(request: Request) {
         </html>
       `,
     })
+
+    if (emailError) {
+      console.error("[notify-task] Resend error:", emailError)
+      return NextResponse.json({ error: "Erreur envoi email" }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
