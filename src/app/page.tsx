@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { WaitlistForm } from "@/components/waitlist-form"
+import { useTheme } from "@/components/theme-provider"
 import {
   CheckCircle,
   FileText,
@@ -21,7 +22,12 @@ import {
   Menu,
   X,
   Sparkles,
+  Monitor,
+  Tablet,
+  Smartphone,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 const noop = () => () => {}
 function useIsClient() {
@@ -249,6 +255,271 @@ const plans = [
   },
 ]
 
+const PROFESSION_SHOWCASE = [
+  {
+    slug: "architecte",
+    label: "Architecte",
+    emoji: "🏛️",
+    projectName: "Villa Les Pins — M. Bernard",
+    phases: [
+      { label: "Cadrage", done: true, active: false },
+      { label: "Conception", done: true, active: false },
+      { label: "Validation", done: false, active: true },
+      { label: "Chantier", done: false, active: false },
+      { label: "Réception", done: false, active: false },
+      { label: "Clôturé", done: false, active: false },
+    ],
+    workTypes: ["Rénovation complète", "Extension"],
+    docName: "CCTP Lot Gros Œuvre",
+    docApproved: false,
+  },
+  {
+    slug: "architecte_int",
+    label: "Archi d'intérieur",
+    emoji: "🎨",
+    projectName: "Appt Haussmannien — Mme Leroy",
+    phases: [
+      { label: "Brief", done: true, active: false },
+      { label: "Conception", done: true, active: false },
+      { label: "Validation", done: true, active: false },
+      { label: "Réalisation", done: false, active: true },
+      { label: "Livraison", done: false, active: false },
+      { label: "Clôturé", done: false, active: false },
+    ],
+    workTypes: ["Design d'intérieur", "Home staging"],
+    docName: "Notice descriptive",
+    docApproved: true,
+  },
+  {
+    slug: "plombier",
+    label: "Plombier",
+    emoji: "🔧",
+    projectName: "Salle de bain — M. Dubois",
+    phases: [
+      { label: "Diagnostic", done: true, active: false },
+      { label: "Étude", done: true, active: false },
+      { label: "Devis validé", done: false, active: true },
+      { label: "Chantier", done: false, active: false },
+      { label: "Mise en svce", done: false, active: false },
+      { label: "Clôturé", done: false, active: false },
+    ],
+    workTypes: ["Rénovation salle de bain", "Chauffage"],
+    docName: "Devis sanitaires",
+    docApproved: false,
+  },
+  {
+    slug: "electricien",
+    label: "Électricien",
+    emoji: "⚡",
+    projectName: "Mise aux normes — Mme Garcia",
+    phases: [
+      { label: "Diagnostic", done: true, active: false },
+      { label: "Étude", done: true, active: false },
+      { label: "Devis validé", done: true, active: false },
+      { label: "Chantier", done: false, active: true },
+      { label: "Mise en svce", done: false, active: false },
+      { label: "Clôturé", done: false, active: false },
+    ],
+    workTypes: ["Mise aux normes", "Domotique"],
+    docName: "Rapport électrique",
+    docApproved: false,
+  },
+  {
+    slug: "menuisier",
+    label: "Menuisier",
+    emoji: "🪵",
+    projectName: "Cuisine sur mesure — M. Moreau",
+    phases: [
+      { label: "Cadrage", done: true, active: false },
+      { label: "Plans", done: true, active: false },
+      { label: "Validation", done: true, active: false },
+      { label: "Fabrication", done: false, active: true },
+      { label: "Réception", done: false, active: false },
+      { label: "Clôturé", done: false, active: false },
+    ],
+    workTypes: ["Cuisine sur mesure", "Dressing"],
+    docName: "Plans d'exécution",
+    docApproved: true,
+  },
+]
+
+function ProfessionSection() {
+  const [idx, setIdx] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const sectionRef = useRef(null)
+  const inView = useInView(sectionRef, { once: true, margin: "-80px" })
+
+  useEffect(() => {
+    if (paused || !inView) return
+    const t = setInterval(() => setIdx((i) => (i + 1) % PROFESSION_SHOWCASE.length), 5600)
+    return () => clearInterval(t)
+  }, [paused, inView])
+
+  const prof = PROFESSION_SHOWCASE[idx]
+
+  return (
+    <section ref={sectionRef} className="py-20 px-6 md:px-4">
+      <div className="max-w-3xl mx-auto">
+        <AnimateIn>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold tracking-tight">Un outil qui parle votre langue</h2>
+            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+              Phases, vocabulaire, types de travaux — tout s&apos;adapte automatiquement à votre
+              métier.
+            </p>
+          </div>
+        </AnimateIn>
+
+        {/* Pills */}
+        <AnimateIn delay={0.1}>
+          <div className="flex flex-wrap gap-2 justify-center mb-8">
+            {PROFESSION_SHOWCASE.map((p, i) => (
+              <button
+                key={p.slug}
+                onClick={() => {
+                  setIdx(i)
+                  setPaused(true)
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  idx === i
+                    ? "bg-primary text-primary-foreground shadow-sm scale-[1.03]"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                )}
+              >
+                <span>{p.emoji}</span>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </AnimateIn>
+
+        {/* Card */}
+        <AnimateIn delay={0.15}>
+          <div className="relative">
+            {/* Auto-cycle progress bar */}
+            {!paused && inView && (
+              <motion.div
+                key={`bar-${idx}`}
+                className="absolute -top-px left-0 h-0.5 bg-primary/50 rounded-full z-10"
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 5.6, ease: "linear" }}
+              />
+            )}
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, filter: "blur(10px)", y: 6 }}
+                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                exit={{ opacity: 0, filter: "blur(10px)", y: -6, transition: { duration: 0.4 } }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <Card className="border-border/60 overflow-hidden">
+                  <CardContent className="p-5 md:p-6 space-y-5">
+                    {/* Project header */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">{prof.projectName}</p>
+                        <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                          {prof.workTypes.map((w) => (
+                            <span
+                              key={w}
+                              className="text-[11px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground"
+                            >
+                              {w}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground leading-none shrink-0 mt-0.5">
+                        En cours
+                      </span>
+                    </div>
+
+                    {/* Stepper */}
+                    <div className="grid grid-cols-6 pt-1 pb-4">
+                      {prof.phases.map((phase, i) => (
+                        <div key={phase.label} className="flex flex-col items-center relative">
+                          {/* Left connector */}
+                          {i > 0 && (
+                            <div
+                              className={cn(
+                                "absolute top-2.5 right-1/2 left-0 h-px",
+                                prof.phases[i - 1].done ? "bg-primary/50" : "bg-muted-foreground/25"
+                              )}
+                            />
+                          )}
+                          {/* Right connector */}
+                          {i < prof.phases.length - 1 && (
+                            <div
+                              className={cn(
+                                "absolute top-2.5 left-1/2 right-0 h-px",
+                                phase.done ? "bg-primary/50" : "bg-muted-foreground/25"
+                              )}
+                            />
+                          )}
+                          {/* Dot */}
+                          <div
+                            className={cn(
+                              "relative z-10 w-5 h-5 rounded-full border-2 bg-background flex items-center justify-center transition-all",
+                              phase.active
+                                ? "border-primary bg-primary ring-4 ring-primary/15"
+                                : phase.done
+                                  ? "border-primary/60 bg-primary/60"
+                                  : "border-muted-foreground/30"
+                            )}
+                          >
+                            {phase.done && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
+                            )}
+                          </div>
+                          {/* Label */}
+                          <span
+                            className={cn(
+                              "text-[10px] leading-tight",
+                              phase.active
+                                ? "block text-primary font-semibold whitespace-nowrap absolute top-full mt-1.5 left-1/2 -translate-x-1/2 sm:static sm:translate-x-0 sm:w-full sm:text-center sm:px-0.5"
+                                : phase.done
+                                  ? "hidden sm:block sm:text-foreground/60 sm:w-full sm:text-center sm:mt-1.5 sm:px-0.5"
+                                  : "hidden sm:block sm:text-muted-foreground/40 sm:w-full sm:text-center sm:mt-1.5 sm:px-0.5"
+                            )}
+                          >
+                            {phase.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Document row */}
+                    <div className="border border-border/60 rounded-lg px-4 py-3 flex items-center justify-between bg-muted/20">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-medium truncate">{prof.docName}</span>
+                      </div>
+                      <span
+                        className={cn(
+                          "ml-3 shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium",
+                          prof.docApproved
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        )}
+                      >
+                        {prof.docApproved ? "Approuvé ✓" : "En attente"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </AnimateIn>
+      </div>
+    </section>
+  )
+}
+
 function scrollToSection(id: string) {
   const el = document.getElementById(id)
   if (!el) return
@@ -323,6 +594,210 @@ function AIFeatureCard({
 // Sections temporairement masquées — passer à true pour réafficher
 const SHOW_TESTIMONIALS = false
 const SHOW_PRICING = false
+
+// ─── Responsive showcase (Option C — device morphant) ───────────────────────
+
+type DeviceType = "desktop" | "tablet" | "mobile"
+
+const DEVICES: Record<
+  DeviceType,
+  { label: string; icon: React.ElementType; w: number; h: number; radius: number; border: number }
+> = {
+  desktop: { label: "Desktop", icon: Monitor, w: 560, h: 360, radius: 12, border: 1 },
+  tablet: { label: "Tablette", icon: Tablet, w: 300, h: 420, radius: 24, border: 3 },
+  mobile: { label: "Mobile", icon: Smartphone, w: 190, h: 420, radius: 36, border: 3 },
+}
+
+function ScreenshotContent({ device }: { device: DeviceType }) {
+  const { resolvedTheme } = useTheme()
+  const theme = resolvedTheme === "dark" ? "dark" : "light"
+  if (device === "desktop") {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/screenshots/${device}-${theme}.png`}
+        alt={`Chalto sur ${DEVICES[device].label}`}
+        className="w-full h-full object-cover object-top"
+        draggable={false}
+      />
+    )
+  }
+  return (
+    <div className="w-full h-full p-2 flex items-start overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/screenshots/${device}-${theme}.png`}
+        alt={`Chalto sur ${DEVICES[device].label}`}
+        className="w-full h-auto rounded-sm"
+        draggable={false}
+      />
+    </div>
+  )
+}
+
+function DeviceShowcase() {
+  const [active, setActive] = useState<DeviceType>("desktop")
+  const [auto, setAuto] = useState(true)
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const isMobile = useMediaQuery("(max-width: 767px)")
+  const cycle: DeviceType[] = isMobile ? ["tablet", "mobile"] : ["desktop", "tablet", "mobile"]
+  const isMobileRef = useRef(isMobile)
+  const spring = { type: "spring" as const, stiffness: 280, damping: 28 }
+
+  useEffect(() => {
+    isMobileRef.current = isMobile
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isMobile) setActive((prev) => (prev === "desktop" ? "tablet" : prev))
+  }, [isMobile])
+
+  useEffect(() => {
+    if (!auto) return
+    const t = setInterval(() => {
+      setActive((prev) => {
+        const c: DeviceType[] = isMobileRef.current
+          ? ["tablet", "mobile"]
+          : ["desktop", "tablet", "mobile"]
+        const idx = c.indexOf(prev)
+        return c[(idx === -1 ? 0 : idx + 1) % c.length]
+      })
+    }, 3200)
+    return () => clearInterval(t)
+  }, [auto])
+
+  const d = DEVICES[active]
+
+  return (
+    <section className="py-20 px-6 md:px-4 overflow-hidden">
+      <div className="max-w-6xl mx-auto">
+        <AnimateIn>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold tracking-tight">Pensé pour le terrain</h2>
+            <p className="text-muted-foreground mt-2">
+              Bureau, chantier ou déplacement — l&apos;interface s&apos;adapte à votre écran
+            </p>
+          </div>
+        </AnimateIn>
+
+        {/* Device frame — fixed-height container so tabs never shift */}
+        <motion.div
+          ref={ref}
+          className="flex justify-center items-center"
+          style={{ height: 420 }}
+          initial={{ opacity: 0, y: 48 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 48 }}
+          transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+        >
+          <motion.div
+            animate={{ width: d.w, borderRadius: d.radius }}
+            transition={spring}
+            className="relative overflow-hidden bg-background shadow-2xl"
+            style={{
+              height: d.h,
+              border: `${d.border}px solid hsl(var(--border) / 0.6)`,
+            }}
+          >
+            {/* Top bar */}
+            <AnimatePresence mode="wait">
+              {active === "desktop" ? (
+                <motion.div
+                  key="browser-chrome"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-9 bg-muted border-b border-border/30 flex items-center px-3 gap-2 shrink-0"
+                >
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-400/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
+                  </div>
+                  <div className="flex-1 h-4 bg-background/70 rounded-full mx-2" />
+                </motion.div>
+              ) : active === "tablet" ? (
+                <motion.div
+                  key="tablet-bar"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-7 bg-muted/50 border-b border-border/20 flex items-center justify-center"
+                >
+                  <div className="h-1.5 w-14 rounded-full bg-foreground/15" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="mobile-notch"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-8 bg-background flex items-start justify-center pt-1.5"
+                >
+                  <div className="w-20 h-4 rounded-full bg-border/50" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Content */}
+            <motion.div
+              animate={{
+                height: active === "desktop" ? d.h - 36 : active === "tablet" ? d.h - 28 : d.h - 32,
+              }}
+              transition={spring}
+              className="overflow-hidden"
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, filter: "blur(8px)" }}
+                  transition={{ duration: 0.25 }}
+                  className="h-full"
+                >
+                  <ScreenshotContent device={active} />
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+
+        {/* Tabs */}
+        <motion.div
+          className="flex items-center justify-center gap-2 mt-8"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          {cycle.map((key) => {
+            const Icon = DEVICES[key].icon
+            const isActive = active === key
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  setActive(key)
+                  setAuto(false)
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/70 text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {DEVICES[key].label}
+              </button>
+            )
+          })}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -735,6 +1210,9 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Profession showcase */}
+        <ProfessionSection />
+
         {/* Testimonials */}
         {SHOW_TESTIMONIALS && (
           <section id="testimonials" className="py-20 px-6 md:px-4">
@@ -838,6 +1316,9 @@ export default function LandingPage() {
             </div>
           </section>
         )}
+
+        {/* Responsive showcase */}
+        <DeviceShowcase />
 
         {/* FAQ */}
         <section className="py-20 px-6 md:px-4">
