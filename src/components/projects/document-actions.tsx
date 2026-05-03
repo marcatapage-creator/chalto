@@ -115,7 +115,9 @@ export function DocumentActions({
   onSent,
 }: DocumentActionsProps) {
   const [open, setOpen] = useState(false)
-  const [audience, setAudience] = useState<"client" | "contributor">("client")
+  const [audience, setAudience] = useState<"client" | "contributor">(
+    status === "approved" || status === "commented" ? "contributor" : "client"
+  )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
   const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
@@ -249,10 +251,7 @@ export function DocumentActions({
         <Button
           size="sm"
           variant={status === "approved" ? "outline" : "default"}
-          onClick={() => {
-            if (status === "approved") setAudience("contributor")
-            setOpen(true)
-          }}
+          onClick={() => setOpen(true)}
           disabled={status === "sent"}
           className={cn(className)}
         >
@@ -264,19 +263,21 @@ export function DocumentActions({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Envoyer ce document</DialogTitle>
-            <DialogDescription>
-              Choisissez à qui envoyer &quot;{documentName}&quot;
-            </DialogDescription>
+            <DialogTitle>
+              {status === "approved" || status === "commented"
+                ? "Partager avec un prestataire"
+                : "Envoyer ce document"}
+            </DialogTitle>
+            <DialogDescription>Choisissez le type de requête</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Choix audience — prestataires uniquement en phase chantier */}
-            {isChantier && (
+            {/* Choix audience — masqué si le doc est approuvé ou lu (on force contributor) */}
+            {isChantier && status !== "approved" && status !== "commented" && (
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => status !== "approved" && setAudience("client")}
-                  disabled={status === "approved"}
+                  onClick={() => setAudience("client")}
+                  disabled={false}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
                     status === "approved"
@@ -390,14 +391,14 @@ export function DocumentActions({
               onClick={handleSend}
               disabled={
                 loading ||
-                (audience === "client" && !fileUrl) ||
+                (audience === "client" && requestType === "validation" && !fileUrl) ||
                 (audience === "contributor" && selectedContributors.length === 0)
               }
             >
               <Send className="h-4 w-4 mr-2" />
               {loading
                 ? "Envoi en cours..."
-                : audience === "client" && !fileUrl
+                : audience === "client" && requestType === "validation" && !fileUrl
                   ? "Uploadez un fichier d'abord"
                   : audience === "client"
                     ? "Envoyer au client"

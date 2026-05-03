@@ -101,7 +101,8 @@ export async function POST(request: Request) {
 
     const hasTasks = assignedTasks && assignedTasks.length > 0
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
+    const baseUrl = new URL(request.url).origin
+    const inviteUrl = `${baseUrl}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? proProfile?.email ?? "Votre professionnel"
     const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
     const brandHeader = buildBrandHeader(proProfile)
@@ -147,7 +148,11 @@ export async function POST(request: Request) {
       ? `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à collaborer sur le projet <strong>${escapeHtml(project?.name)}</strong> et vous a assigné ${assignedTasks.length > 1 ? `${assignedTasks.length} tâches` : "une tâche"}. Connectez-vous à votre espace pour les consulter et mettre à jour leur avancement.`
       : `<strong>${escapeHtml(proName)}${escapeHtml(proCompany)}</strong> vous a invité à rejoindre le projet <strong>${escapeHtml(project?.name)}</strong>. Votre espace personnel est accessible en un clic — consultez les documents partagés et suivez les échanges en temps réel.`
 
-    await resend.emails.send({
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ success: true, inviteUrl })
+    }
+
+    const { error: emailError } = await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
       subject,
@@ -201,6 +206,14 @@ export async function POST(request: Request) {
         </html>
       `,
     })
+
+    if (emailError) {
+      console.error("[send-invite] Resend error:", emailError)
+      return NextResponse.json(
+        { error: "Erreur envoi email", details: String(emailError) },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({ success: true, inviteUrl })
   } catch (error) {

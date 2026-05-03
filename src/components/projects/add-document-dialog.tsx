@@ -91,6 +91,7 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
     )
 
     if (insertError || !doc) {
+      console.error("[add-document] insertError:", insertError)
       setError("Erreur lors de la création du document")
       setLoading(false)
       return
@@ -105,7 +106,10 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
         .upload(path, file, { upsert: true })
 
       if (uploadError) {
-        toast.error("Document créé mais erreur lors de l'upload du fichier")
+        console.error("[add-document] uploadError:", uploadError)
+        toast.error("Document créé mais erreur lors de l'upload du fichier", {
+          description: uploadError.message,
+        })
       } else {
         const { data: urlData } = supabase.storage.from("documents").getPublicUrl(path)
         await supabase

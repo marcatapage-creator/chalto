@@ -227,7 +227,7 @@ export function ProjectContributors({
             )}
           />
           <span className="font-semibold">Prestataires</span>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+          <span className="inline-flex items-center justify-center text-xs text-muted-foreground bg-muted h-5 min-w-5 rounded-full">
             {contributors.length}
           </span>
         </div>

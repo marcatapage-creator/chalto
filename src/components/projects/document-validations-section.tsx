@@ -7,20 +7,35 @@ export function ValidationsSection({
   validatorContributors,
   clientName,
   activeVersion,
+  isCurrentVersion = true,
 }: {
   allValidations: ValidationEntry[]
   validatorContributors: ContributorValidator[]
   clientName?: string
   activeVersion?: number
+  isCurrentVersion?: boolean
 }) {
-  // Filtre par version : on garde les validations de la version active,
-  // plus les validations legacy (version=null) uniquement sur la version courante.
+  // Filtrage par version : null traité comme V1 (données antérieures à la migration)
   const visibleValidations =
     activeVersion == null
       ? allValidations
-      : allValidations.filter((v) => v.version === activeVersion || v.version == null)
+      : allValidations.filter((v) => (v.version ?? 1) === activeVersion)
 
-  if (visibleValidations.length === 0 && validatorContributors.length === 0) return null
+  // Validation client (contributor_id === null)
+  const clientValidation = visibleValidations.find((v) => v.contributor_id === null)
+
+  // Validations prestataires pour cette version — le nom vient de client_name stocké à la validation
+  const contributorValidations = visibleValidations.filter((v) => v.contributor_id !== null)
+
+  // Sur la version courante uniquement : prestataires (mode validation) en attente de réponse
+  const validatedIds = new Set(contributorValidations.map((v) => v.contributor_id))
+  const pendingContributors: ContributorValidator[] = isCurrentVersion
+    ? validatorContributors.filter((c) => !validatedIds.has(c.id))
+    : []
+
+  const hasContent =
+    clientValidation || contributorValidations.length > 0 || pendingContributors.length > 0
+  if (!hasContent) return null
 
   const statusCfg = (status?: string | null) => {
     if (status === "approved") return { icon: CheckCircle, cls: "text-primary", label: "Approuvé" }
@@ -29,14 +44,13 @@ export function ValidationsSection({
     return { icon: Clock, cls: "text-muted-foreground", label: "En attente" }
   }
 
-  const clientValidation = visibleValidations.find((v) => v.contributor_id === null)
-
   return (
     <div className="space-y-2 pb-1">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Validations
       </p>
       <div className="space-y-1">
+        {/* Client */}
         {clientValidation &&
           (() => {
             const cfg = statusCfg(clientValidation.status)
@@ -44,7 +58,9 @@ export function ValidationsSection({
             return (
               <div className="flex items-center gap-2 text-sm py-0.5">
                 <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
-                <span className="min-w-0 truncate">{clientName ?? "Client"}</span>
+                <span className="min-w-0 truncate">
+                  {clientValidation.client_name ?? clientName ?? "Client"}
+                </span>
                 <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
                 {clientValidation.approved_at && (
                   <span className="text-xs text-muted-foreground shrink-0">
@@ -58,16 +74,19 @@ export function ValidationsSection({
             )
           })()}
 
-        {validatorContributors.map((c) => {
-          const cv = visibleValidations.find((v) => v.contributor_id === c.id)
-          const cfg = statusCfg(cv?.status)
+        {/* Prestataires ayant agi sur cette version */}
+        {contributorValidations.map((cv, i) => {
+          const cfg = statusCfg(cv.status)
           const Icon = cfg.icon
           return (
-            <div key={c.id} className="flex items-center gap-2 text-sm py-0.5">
+            <div
+              key={`${cv.contributor_id ?? "anon"}-${i}`}
+              className="flex items-center gap-2 text-sm py-0.5"
+            >
               <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
-              <span className="min-w-0 truncate">{c.name}</span>
+              <span className="min-w-0 truncate">{cv.client_name ?? "Prestataire"}</span>
               <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
-              {cv?.approved_at && (
+              {cv.approved_at && (
                 <span className="text-xs text-muted-foreground shrink-0">
                   {new Date(cv.approved_at).toLocaleDateString("fr-FR", {
                     day: "numeric",
@@ -75,6 +94,19 @@ export function ValidationsSection({
                   })}
                 </span>
               )}
+            </div>
+          )
+        })}
+
+        {/* Prestataires en attente (version courante uniquement) */}
+        {pendingContributors.map((c) => {
+          const cfg = statusCfg(null)
+          const Icon = cfg.icon
+          return (
+            <div key={c.id} className="flex items-center gap-2 text-sm py-0.5">
+              <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
+              <span className="min-w-0 truncate">{c.name}</span>
+              <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
             </div>
           )
         })}

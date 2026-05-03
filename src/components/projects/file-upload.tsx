@@ -46,9 +46,9 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
       .upload(path, file, { upsert: true })
 
     if (uploadError) {
+      console.error("[file-upload] uploadError:", uploadError)
       toast.error("Upload échoué", {
-        description:
-          "Vérifiez votre connexion et réessayez. Si le problème persiste, contactez le support.",
+        description: uploadError.message ?? "Vérifiez votre connexion et réessayez.",
       })
       setUploading(false)
       return

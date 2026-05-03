@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,12 +55,12 @@ function RecentProjects({ projects }: { projects: ProjectWithCounts[] }) {
               )}
               <StaggerList className="space-y-3">
                 {group.items.map((p) => (
-                  <StaggerItem key={p.id}>
-                    <ProjectCard project={p} />
+                  <StaggerItem key={p.id} pressable>
+                    <ProjectCard project={p} compact />
                   </StaggerItem>
                 ))}
                 {groups.length === 1 && projects.length < 2 && (
-                  <StaggerItem>
+                  <StaggerItem pressable>
                     <Link href="/projects/new">
                       <Card className="cursor-pointer border-dashed hover:border-primary/50 hover:bg-muted/30 transition-colors duration-150">
                         <CardContent className="flex items-center gap-3 p-4 text-muted-foreground">
@@ -80,10 +81,8 @@ function RecentProjects({ projects }: { projects: ProjectWithCounts[] }) {
 }
 
 export default async function DashboardPage() {
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const [{ data: projects }, { data: profile }] = await Promise.all([
     supabase
@@ -108,18 +107,27 @@ export default async function DashboardPage() {
   })
 
   const projectIds = projects?.map((p) => p.id) ?? []
-  const [{ data: documents }, { count: documentSentCount }] = await Promise.all([
-    projectIds.length > 0
-      ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
-      : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
-    projectIds.length > 0
-      ? supabase
-          .from("documents")
-          .select("*", { count: "exact", head: true })
-          .in("project_id", projectIds)
-          .in("status", ["sent", "approved", "rejected"])
-      : Promise.resolve({ count: 0 }),
-  ])
+  const [{ data: documents }, { count: documentSentCount }, { data: unreadRows }] =
+    await Promise.all([
+      projectIds.length > 0
+        ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
+        : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
+      projectIds.length > 0
+        ? supabase
+            .from("documents")
+            .select("*", { count: "exact", head: true })
+            .in("project_id", projectIds)
+            .in("status", ["sent", "approved", "rejected"])
+        : Promise.resolve({ count: 0 }),
+      supabase.rpc("get_projects_unread_counts"),
+    ])
+
+  const unreadMap = new Map<string, number>(
+    (unreadRows ?? []).map((r: { project_id: string; unread_count: number }) => [
+      r.project_id,
+      r.unread_count,
+    ])
+  )
 
   const projectsWithCounts: ProjectWithCounts[] = (projects ?? []).map((p) => {
     const prof = p.professions as unknown as { slug: string; label: string } | null
@@ -133,6 +141,7 @@ export default async function DashboardPage() {
       created_at: p.created_at,
       professionSlug: prof?.slug ?? null,
       professionLabel: prof?.label ?? null,
+      unreadCount: unreadMap.get(p.id) ?? 0,
       counts: {
         docs: docs.length,
         pending: docs.filter((d) => d.status === DOCUMENT_STATUS.SENT).length,

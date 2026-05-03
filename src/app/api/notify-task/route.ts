@@ -59,7 +59,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Prestataire non invité" }, { status: 400 })
     }
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${contributor.invite_token}`
+    const baseUrl = new URL(request.url).origin
+    const inviteUrl = `${baseUrl}/invite/${contributor.invite_token}`
     const proName = proProfile?.full_name ?? "Votre professionnel"
     const brandHeader = buildBrandHeader(proProfile)
 
@@ -73,7 +74,11 @@ export async function POST(request: Request) {
       ? `<p style="margin: 6px 0 0; font-size: 13px; color: #555; line-height: 1.6;">${task.description}</p>`
       : ""
 
-    await resend.emails.send({
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ ok: true })
+    }
+
+    const { error: emailError } = await resend.emails.send({
       from: "Chalto <noreply@chalto.fr>",
       to: contact.email,
       subject: `Rappel de tâche — ${task.title}`,
@@ -120,6 +125,11 @@ export async function POST(request: Request) {
         </html>
       `,
     })
+
+    if (emailError) {
+      console.error("[notify-task] Resend error:", emailError)
+      return NextResponse.json({ error: "Erreur envoi email" }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

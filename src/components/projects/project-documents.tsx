@@ -51,6 +51,7 @@ interface ProjectDocumentsProps {
   onToggle?: () => void
   readOnly?: boolean
   highlightedId?: string | null
+  unreadCount?: number
 }
 
 function DocItem({
@@ -162,6 +163,7 @@ export function ProjectDocuments({
   onToggle,
   readOnly = false,
   highlightedId,
+  unreadCount = 0,
 }: ProjectDocumentsProps) {
   useEffect(() => {
     if (!highlightedId) return
@@ -196,7 +198,14 @@ export function ProjectDocuments({
             )}
           />
           <h2 className="font-semibold">Documents</h2>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+          <span
+            className={cn(
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
+              unreadCount > 0
+                ? "bg-destructive text-destructive-foreground font-semibold"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
             {documents.length}
           </span>
         </div>

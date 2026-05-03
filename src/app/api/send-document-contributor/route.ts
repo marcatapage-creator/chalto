@@ -51,10 +51,16 @@ export async function POST(request: Request) {
     const projectName = project?.name ?? "le projet"
     const brandHeader = buildBrandHeader(proProfile)
 
+    const baseUrl = new URL(request.url).origin
+
+    if (process.env.SKIP_EMAILS === "true") {
+      return NextResponse.json({ success: true })
+    }
+
     const sends = contributors
       .filter((c) => c.email && c.invite_token)
       .map((c) => {
-        const spaceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${c.invite_token}`
+        const spaceUrl = `${baseUrl}/invite/${c.invite_token}`
         return resend.emails.send({
           from: "Chalto <noreply@chalto.fr>",
           to: c.email,
@@ -114,7 +120,15 @@ export async function POST(request: Request) {
         })
       })
 
-    await Promise.all(sends)
+    const results = await Promise.all(sends)
+    const firstError = results.find((r) => r.error)
+    if (firstError?.error) {
+      console.error("Resend error:", firstError.error)
+      return NextResponse.json(
+        { error: "Erreur envoi email", details: String(firstError.error) },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

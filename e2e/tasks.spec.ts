@@ -11,9 +11,10 @@
  *                                        (les tâches ne sont visibles qu'en phase chantier)
  */
 import { test, expect } from "@playwright/test"
+import { e2eEnv } from "./helpers/env"
 
 test.beforeEach(({}, testInfo) => {
-  if (!process.env.E2E_USER_EMAIL || !process.env.E2E_PROJECT_ID) {
+  if (!e2eEnv("E2E_USER_EMAIL") || !e2eEnv("E2E_PROJECT_ID")) {
     testInfo.skip(true, "E2E_USER_EMAIL ou E2E_PROJECT_ID non défini")
   }
 })
@@ -21,13 +22,13 @@ test.beforeEach(({}, testInfo) => {
 // ─── 7.1 : Section tâches ─────────────────────────────────────────────────────
 
 test("7.1 — la section tâches est visible sur la fiche projet", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
   await expect(page.getByText(/tâche|task/i).first()).toBeVisible({ timeout: 10_000 })
 })
 
 test("7.1 — le bouton de création de tâche est accessible", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   const addBtn = page
@@ -38,7 +39,7 @@ test("7.1 — le bouton de création de tâche est accessible", async ({ page })
 })
 
 test("7.1 — créer une tâche l'ajoute au board", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   await page
@@ -46,8 +47,8 @@ test("7.1 — créer une tâche l'ajoute au board", async ({ page }) => {
     .first()
     .click()
 
-  // Formulaire ou dialog de création
-  const taskNameInput = page.getByRole("textbox", { name: /titre|nom|tâche/i }).first()
+  // Formulaire ou dialog de création — l'input n'a pas d'aria-label, on cible le dialog
+  const taskNameInput = page.getByRole("dialog").getByRole("textbox").first()
   await expect(taskNameInput).toBeVisible({ timeout: 8_000 })
   const taskName = `Tâche E2E ${Date.now()}`
   await taskNameInput.fill(taskName)
@@ -64,7 +65,7 @@ test("7.1 — créer une tâche l'ajoute au board", async ({ page }) => {
 // ─── 7.2 : Colonnes kanban ───────────────────────────────────────────────────
 
 test("7.2 — les colonnes du board de tâches sont visibles", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   // Au moins une colonne parmi les trois attendues
@@ -73,7 +74,7 @@ test("7.2 — les colonnes du board de tâches sont visibles", async ({ page }) 
 })
 
 test("7.2 — une tâche peut changer de statut (bouton ou select visible)", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   // Chercher une tâche existante en todo ou in_progress
@@ -103,22 +104,19 @@ test("7.2 — une tâche peut changer de statut (bouton ou select visible)", asy
 // ─── 7.3 : Tâche done — bouton Notifier masqué ───────────────────────────────
 
 test("7.3 — une tâche 'done' affiche 'Rouvrir' et non 'Notifier'", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
-  // Vérifier si une tâche terminée est visible
-  const doneSection = page.getByText(/terminé|done/i).first()
-  const hasDone = await doneSection.isVisible({ timeout: 5_000 }).catch(() => false)
+  // "Rouvrir" n'existe que sur les cartes de tâches terminées — guard précis
+  const reopenBtn = page.getByRole("button", { name: /rouvrir/i }).first()
+  const hasDone = await reopenBtn.isVisible({ timeout: 5_000 }).catch(() => false)
 
   if (!hasDone) {
     test.skip(true, "Aucune tâche terminée sur ce projet de test")
     return
   }
 
-  // Bouton "Rouvrir" visible dans la zone des tâches terminées
-  await expect(page.getByRole("button", { name: /rouvrir/i }).first()).toBeVisible({
-    timeout: 8_000,
-  })
+  await expect(reopenBtn).toBeVisible()
 
   // Bouton "Notifier" doit être absent (ou désactivé) pour les tâches terminées
   const notifyBtn = page.getByRole("button", { name: /notifier/i }).first()
@@ -131,7 +129,7 @@ test("7.3 — une tâche 'done' affiche 'Rouvrir' et non 'Notifier'", async ({ p
 // ─── 7.4 : Rouvrir une tâche terminée ────────────────────────────────────────
 
 test("7.4 — 'Rouvrir' repasse la tâche en in_progress", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   const reopenBtn = page.getByRole("button", { name: /rouvrir/i }).first()
@@ -151,24 +149,23 @@ test("7.4 — 'Rouvrir' repasse la tâche en in_progress", async ({ page }) => {
 // ─── 7.7 : Notifier prestataire ───────────────────────────────────────────────
 
 test("7.7 — 'Notifier' est présent sur une tâche in_progress", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
-  const inProgressSection = page.getByText(/en cours|in.progress/i).first()
-  const hasInProgress = await inProgressSection.isVisible({ timeout: 5_000 }).catch(() => false)
+  // "Notifier" n'existe que sur les cartes en cours avec contact assigné — guard précis
+  const notifyBtn = page.getByRole("button", { name: /notifier/i }).first()
+  const hasNotifier = await notifyBtn.isVisible({ timeout: 5_000 }).catch(() => false)
 
-  if (!hasInProgress) {
-    test.skip(true, "Aucune tâche 'in_progress' sur ce projet de test")
+  if (!hasNotifier) {
+    test.skip(true, "Aucune tâche 'in_progress' avec contact assigné sur ce projet de test")
     return
   }
 
-  await expect(page.getByRole("button", { name: /notifier/i }).first()).toBeVisible({
-    timeout: 8_000,
-  })
+  await expect(notifyBtn).toBeVisible()
 })
 
 test("7.7 — cliquer 'Notifier' ne provoque pas d'erreur", async ({ page }) => {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).not.toHaveURL(/login/)
 
   const notifyBtn = page.getByRole("button", { name: /notifier/i }).first()

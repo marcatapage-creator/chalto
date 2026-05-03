@@ -27,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
@@ -43,6 +44,7 @@ import {
   Lightbulb,
   Check,
   X,
+  Link,
 } from "lucide-react"
 import { haptics } from "@/lib/haptics"
 import { StaggerList, StaggerItem, FadeIn } from "@/components/ui/motion"
@@ -78,6 +80,8 @@ interface ProjectTasksProps {
   externalInvitedIds?: Set<string>
   defaultOpen?: boolean
   onOpen?: () => void
+  unreadCount?: number
+  onNewPrestaComment?: () => void
 }
 
 const columns = [
@@ -96,6 +100,8 @@ export function ProjectTasks({
   externalInvitedIds,
   defaultOpen = true,
   onOpen,
+  unreadCount = 0,
+  onNewPrestaComment,
 }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [suggestions, setSuggestions] = useState<Task[]>([])
@@ -146,14 +152,23 @@ export function ProjectTasks({
   const channelRef = useRef<RealtimeChannel | null>(null)
   const fetchPendingRef = useRef(false)
   const [invitedContactIds, setInvitedContactIds] = useState<Set<string>>(new Set())
+  const [contributorTokens, setContributorTokens] = useState<Record<string, string>>({})
 
   useEffect(() => {
     supabase
       .from("contributors")
-      .select("contact_id")
+      .select("contact_id, invite_token")
       .eq("project_id", projectId)
       .then(({ data }) => {
-        if (data) setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
+        if (data) {
+          setInvitedContactIds(new Set(data.map((c) => c.contact_id as string)))
+          const tokens: Record<string, string> = {}
+          for (const c of data) {
+            if (c.contact_id && c.invite_token)
+              tokens[c.contact_id as string] = c.invite_token as string
+          }
+          setContributorTokens(tokens)
+        }
       })
 
     const channel = supabase
@@ -167,8 +182,11 @@ export function ProjectTasks({
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          const added = payload.new as { contact_id: string }
+          const added = payload.new as { contact_id: string; invite_token?: string }
           setInvitedContactIds((prev) => new Set([...prev, added.contact_id]))
+          if (added.invite_token) {
+            setContributorTokens((prev) => ({ ...prev, [added.contact_id]: added.invite_token! }))
+          }
         }
       )
       .on(
@@ -442,7 +460,14 @@ export function ProjectTasks({
             )}
           />
           <h3 className="font-semibold">Tâches</h3>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+          <span
+            className={cn(
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
+              unreadCount > 0
+                ? "bg-destructive text-destructive-foreground font-semibold"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
             {tasks.length}
           </span>
         </div>
@@ -678,7 +703,7 @@ export function ProjectTasks({
                     <div key={col.id} className="space-y-3">
                       <div className="flex items-center gap-2">
                         <p className={cn("text-sm font-semibold", col.color)}>{col.label}</p>
-                        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                        <span className="inline-flex items-center justify-center text-xs text-muted-foreground bg-muted h-5 min-w-5 rounded-full">
                           {colTasks.length}
                         </span>
                       </div>
@@ -722,29 +747,41 @@ export function ProjectTasks({
                                           </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                          {col.id !== "todo" && (
+                                          {col.id === "in_progress" && (
                                             <DropdownMenuItem
                                               onClick={() => handleStatusChange(task.id, "todo")}
                                             >
-                                              À faire
+                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                                              Mettre en pause
                                             </DropdownMenuItem>
                                           )}
-                                          {col.id !== "in_progress" && (
+                                          {col.id === "done" && (
                                             <DropdownMenuItem
                                               onClick={() =>
                                                 handleStatusChange(task.id, "in_progress")
                                               }
                                             >
-                                              En cours
+                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                                              Rouvrir
                                             </DropdownMenuItem>
                                           )}
-                                          {col.id !== "done" && (
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(task.id, "done")}
-                                            >
-                                              Terminé
-                                            </DropdownMenuItem>
+                                          {(col.id === "in_progress" || col.id === "done") && (
+                                            <DropdownMenuSeparator />
                                           )}
+                                          {task.assigned_to &&
+                                            contributorTokens[task.assigned_to] && (
+                                              <DropdownMenuItem
+                                                onClick={() => {
+                                                  const token = contributorTokens[task.assigned_to!]
+                                                  const url = `${window.location.origin}/invite/${token}`
+                                                  navigator.clipboard.writeText(url)
+                                                  toast.success("Lien prestataire copié")
+                                                }}
+                                              >
+                                                <Link className="mr-2 h-3.5 w-3.5" />
+                                                Copier le lien prestataire
+                                              </DropdownMenuItem>
+                                            )}
                                           <DropdownMenuItem
                                             onClick={() => handleDelete(task.id)}
                                             className="text-destructive focus:text-destructive"
@@ -805,7 +842,7 @@ export function ProjectTasks({
                                       </div>
                                     )}
 
-                                    {col.id !== "done" ? (
+                                    {col.id !== "done" && (
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -820,22 +857,13 @@ export function ProjectTasks({
                                         {col.id === "todo" ? "Démarrer" : "Terminer"}
                                         <ArrowRight className="ml-1 h-3 w-3" />
                                       </Button>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-                                        onClick={() => handleStatusChange(task.id, "in_progress")}
-                                      >
-                                        <ArrowLeft className="mr-1 h-3 w-3" />
-                                        Rouvrir
-                                      </Button>
                                     )}
                                   </CardContent>
                                   <TaskComments
                                     taskId={task.id}
                                     authorName={authorName}
                                     authorRole="pro"
+                                    onNewPrestaComment={onNewPrestaComment}
                                   />
                                 </Card>
                               </StaggerItem>

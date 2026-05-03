@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -8,10 +9,8 @@ import { ProjectsListClient } from "@/components/projects/projects-list-client"
 import type { ProjectWithCounts } from "@/components/projects/projects-list-client"
 
 export default async function ProjectsPage() {
+  const user = await getAuthUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const { data } = await supabase
     .from("projects")
@@ -22,7 +21,13 @@ export default async function ProjectsPage() {
   const allProjects = data ?? []
   const projectIds = allProjects.map((p) => p.id)
 
-  const [{ data: docRows }, { data: taskRows }, { data: contributorRows }, { data: msgRows }] =
+  const [
+    { data: docRows },
+    { data: taskRows },
+    { data: contributorRows },
+    { data: msgRows },
+    { data: unreadRows },
+  ] =
     projectIds.length > 0
       ? await Promise.all([
           supabase.from("documents").select("project_id, status").in("project_id", projectIds),
@@ -41,8 +46,16 @@ export default async function ProjectsPage() {
             .select("project_id")
             .in("project_id", projectIds)
             .limit(2000),
+          supabase.rpc("get_projects_unread_counts"),
         ])
-      : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
+      : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }]
+
+  const unreadMap = new Map<string, number>(
+    (unreadRows ?? []).map((r: { project_id: string; unread_count: number }) => [
+      r.project_id,
+      r.unread_count,
+    ])
+  )
 
   const projects: ProjectWithCounts[] = allProjects.map((p) => {
     const profession = p.professions as unknown as { slug: string; label: string } | null
@@ -56,6 +69,7 @@ export default async function ProjectsPage() {
       created_at: p.created_at,
       professionSlug: profession?.slug ?? null,
       professionLabel: profession?.label ?? null,
+      unreadCount: unreadMap.get(p.id) ?? 0,
       counts: {
         docs: docRows?.filter((d) => d.project_id === p.id).length ?? 0,
         pending:

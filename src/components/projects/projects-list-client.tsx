@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,7 @@ export interface ProjectWithCounts {
   created_at: string
   professionSlug?: string | null
   professionLabel?: string | null
+  unreadCount?: number
   counts: {
     docs: number
     pending: number
@@ -84,34 +86,78 @@ function Indicator({
   )
 }
 
-export function ProjectCard({ project }: { project: ProjectWithCounts }) {
+export function ProjectCard({
+  project,
+  compact = false,
+}: {
+  project: ProjectWithCounts
+  compact?: boolean
+}) {
+  const router = useRouter()
   const status = statusMap[project.status] ?? statusMap.draft
   const phaseLabel =
     getProfessionConfig(project.professionSlug).phases.find(
       (p) => p.id === (project.phase ?? "cadrage")
     )?.label ?? "Cadrage"
   const c = project.counts
+  const navigate = useCallback(() => router.push(`/projects/${project.id}`), [router, project.id])
 
   return (
-    <Link href={`/projects/${project.id}`}>
-      <Card className="cursor-pointer transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
-        <CardContent className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="hidden sm:block bg-muted p-2 rounded-lg shrink-0">
-              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="min-w-0">
+    <Card
+      className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+      onClick={navigate}
+    >
+      <CardContent className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="hidden sm:block bg-muted p-2 rounded-lg shrink-0">
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="min-w-0 flex-1">
+            {!compact && (
               <div className="xl:hidden mb-2 flex items-center gap-2">
                 <Badge variant={status.variant}>{status.label}</Badge>
                 <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
                   {phaseLabel}
                 </span>
               </div>
-              <p className="font-medium text-sm">{project.name}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {project.client_name || "Pas de client"}
-                {project.address && ` · ${project.address}`}
+            )}
+            {compact && (
+              <div className="flex sm:hidden items-center gap-2 mb-1">
+                <Badge variant={status.variant}>{status.label}</Badge>
+                <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
+                  {phaseLabel}
+                </span>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {new Date(project.created_at).toLocaleDateString("fr-FR")}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-medium text-sm flex items-center gap-1.5 min-w-0">
+                <span className="truncate">{project.name}</span>
+                {(project.unreadCount ?? 0) > 0 && (
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 shrink-0">
+                    {(project.unreadCount ?? 0) > 9 ? "9+" : project.unreadCount}
+                  </span>
+                )}
               </p>
+              {compact && (
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
+                  <Badge variant={status.variant}>{status.label}</Badge>
+                  <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
+                    {phaseLabel}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-9.5">
+                    {new Date(project.created_at).toLocaleDateString("fr-FR")}
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground truncate">
+              {project.client_name || "Pas de client"}
+              {project.address && ` · ${project.address}`}
+            </p>
+            {!compact && (
               <div className="flex xl:hidden items-center gap-3 mt-1.5 flex-wrap">
                 <Indicator icon={FileText} value={c.docs} title="Documents" />
                 {c.pending > 0 && (
@@ -127,42 +173,49 @@ export function ProjectCard({ project }: { project: ProjectWithCounts }) {
                 <Indicator icon={MessageSquare} value={c.messages} title="Messages chantier" />
                 <Indicator icon={Users} value={c.contributors} title="Prestataires" />
               </div>
-            </div>
-          </div>
-          <Badge variant={status.variant} className="hidden xl:inline-flex shrink-0 ml-3">
-            {status.label}
-          </Badge>
-          <div className="hidden xl:flex items-center gap-4 px-6 shrink-0">
-            <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
-              {phaseLabel}
-            </span>
-            <Indicator icon={FileText} value={c.docs} title="Documents" />
-            {c.pending > 0 && (
-              <Indicator
-                icon={Clock}
-                value={c.pending}
-                title="En attente"
-                className="text-amber-500"
-              />
             )}
-            <Indicator icon={CheckCircle} value={c.approved} title="Validés" />
-            <Indicator icon={ListTodo} value={c.tasks} title="Tâches actives" />
-            <Indicator icon={MessageSquare} value={c.messages} title="Messages chantier" />
-            <Indicator icon={Users} value={c.contributors} title="Prestataires" />
           </div>
-          <div className="flex items-center gap-6 shrink-0 pl-6">
-            <p className="text-xs text-muted-foreground hidden xl:block">
-              {new Date(project.created_at).toLocaleDateString("fr-FR")}
-            </p>
-            <DeleteProjectButton
-              projectId={project.id}
-              projectName={project.name}
-              projectStatus={project.status}
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+        </div>
+        {!compact && (
+          <>
+            <Badge variant={status.variant} className="hidden xl:inline-flex shrink-0 ml-3">
+              {status.label}
+            </Badge>
+            <div className="hidden xl:flex items-center gap-4 px-6 shrink-0">
+              <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
+                {phaseLabel}
+              </span>
+              <Indicator icon={FileText} value={c.docs} title="Documents" />
+              {c.pending > 0 && (
+                <Indicator
+                  icon={Clock}
+                  value={c.pending}
+                  title="En attente"
+                  className="text-amber-500"
+                />
+              )}
+              <Indicator icon={CheckCircle} value={c.approved} title="Validés" />
+              <Indicator icon={ListTodo} value={c.tasks} title="Tâches actives" />
+              <Indicator icon={MessageSquare} value={c.messages} title="Messages chantier" />
+              <Indicator icon={Users} value={c.contributors} title="Prestataires" />
+            </div>
+            <div
+              className="flex items-center gap-6 shrink-0 pl-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-xs text-muted-foreground hidden xl:block">
+                {new Date(project.created_at).toLocaleDateString("fr-FR")}
+              </p>
+              <DeleteProjectButton
+                projectId={project.id}
+                projectName={project.name}
+                projectStatus={project.status}
+              />
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -304,7 +357,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
               </h2>
               <StaggerList className="space-y-3">
                 {group.items.map((project) => (
-                  <StaggerItem key={project.id}>
+                  <StaggerItem key={project.id} pressable>
                     <ProjectCard project={project} />
                   </StaggerItem>
                 ))}
@@ -316,7 +369,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
         // Vue plate (mono-profession)
         <StaggerList className="space-y-3">
           {filtered.map((project) => (
-            <StaggerItem key={project.id}>
+            <StaggerItem key={project.id} pressable>
               <ProjectCard project={project} />
             </StaggerItem>
           ))}

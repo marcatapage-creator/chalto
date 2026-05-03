@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 
 const professions = [
   "Architecte",
+  "Architecte d'intérieur",
   "Plombier",
   "Électricien",
   "Menuisier",

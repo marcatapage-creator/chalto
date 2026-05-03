@@ -24,6 +24,7 @@ interface TaskCommentsProps {
   authorRole: "pro" | "prestataire"
   contributorToken?: string
   initialComments?: Comment[]
+  onNewPrestaComment?: () => void
 }
 
 export function TaskComments({
@@ -32,6 +33,7 @@ export function TaskComments({
   authorRole,
   contributorToken,
   initialComments,
+  onNewPrestaComment,
 }: TaskCommentsProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments ?? [])
   const [content, setContent] = useState("")
@@ -71,6 +73,9 @@ export function TaskComments({
           setComments((prev) =>
             prev.some((c) => c.id === incoming.id) ? prev : [...prev, incoming]
           )
+          if (incoming.author_role === "prestataire") {
+            onNewPrestaComment?.()
+          }
         }
       )
       .subscribe((_status, err) => {

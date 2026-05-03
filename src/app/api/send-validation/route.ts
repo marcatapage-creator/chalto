@@ -53,7 +53,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pas d'email client" }, { status: 400 })
     }
 
-    const validationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/validate/${document.validation_token}`
+    const baseUrl = new URL(request.url).origin
+    const validationUrl = `${baseUrl}/validate/${document.validation_token}`
 
     const { error: emailError } = await sendValidationEmail({
       clientEmail: document.projects.client_email,

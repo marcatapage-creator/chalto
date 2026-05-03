@@ -1,15 +1,13 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/supabase/queries"
 import { Sidebar } from "@/components/dashboard/sidebar"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const user = await getAuthUser()
   if (!user) redirect("/login")
 
+  const supabase = await createClient()
   const [{ data: profile }, { count: projectsCount }, { count: contactsCount }] = await Promise.all(
     [
       supabase.from("profiles").select("full_name, email").eq("id", user.id).single(),
