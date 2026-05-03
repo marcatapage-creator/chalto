@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
         "img-src 'self' data: blob: https://hyukwaquuyoojejkqmvb.supabase.co https://images.unsplash.com",
         "font-src 'self'",
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
-        "frame-src https://hyukwaquuyoojejkqmvb.supabase.co https://vercel.live",
+        "frame-src https://hyukwaquuyoojejkqmvb.supabase.co",
         "frame-ancestors 'none'",
       ].join("; ")
 
