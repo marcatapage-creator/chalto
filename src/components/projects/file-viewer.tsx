@@ -14,9 +14,6 @@ interface FileViewerProps {
 export function FileViewer({ fileUrl, fileName, fileType, onRemove }: FileViewerProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const [iframeError, setIframeError] = useState(false)
-  const [isMobile] = useState(
-    () => typeof window !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  )
 
   const isPdf = fileType === "application/pdf"
   const isImage = fileType.startsWith("image/")
@@ -59,7 +56,7 @@ export function FileViewer({ fileUrl, fileName, fileType, onRemove }: FileViewer
       {/* Contenu */}
       <div className="pt-10 h-full">
         {isPdf &&
-          (isMobile || iframeError ? (
+          (iframeError ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">{fileName}</p>
