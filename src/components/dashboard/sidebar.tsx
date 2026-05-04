@@ -27,7 +27,7 @@ type Counts = { projects: number; contacts: number }
 type NotifProps = ReturnType<typeof useNotifications>
 
 const navigation = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, countKey: null },
+  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, countKey: null },
   { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
   { label: "Annuaire", href: "/contacts", icon: Users, countKey: "contacts" as const },
   { label: "Paramètres", href: "/settings", icon: Settings, countKey: null },
