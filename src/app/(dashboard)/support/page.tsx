@@ -119,31 +119,31 @@ export default function SupportPage() {
 
         {/* FAQ */}
         <FadeIn>
-          <div className="space-y-1">
-            <h2 className="text-base font-semibold">Questions fréquentes</h2>
-            <p className="text-sm text-muted-foreground">
-              Les réponses aux situations les plus courantes.
-            </p>
-          </div>
-          <Separator className="mt-3" />
-          <div className="divide-y-0">
-            {FAQ.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
-            ))}
-          </div>
-        </FadeIn>
-
-        {/* Footer */}
-        <FadeIn>
-          <p className="text-sm text-muted-foreground text-center border-t pt-6">
-            Vous ne trouvez pas la réponse ?{" "}
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-primary underline-offset-4 hover:underline font-medium"
-            >
-              Écrivez-nous directement
-            </a>
-          </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-1 mb-4">
+                <h2 className="text-base font-semibold">Questions fréquentes</h2>
+                <p className="text-sm text-muted-foreground">
+                  Les réponses aux situations les plus courantes.
+                </p>
+              </div>
+              <div>
+                {FAQ.map((item) => (
+                  <FaqItem key={item.question} question={item.question} answer={item.answer} />
+                ))}
+              </div>
+              <Separator className="mt-2 mb-4" />
+              <p className="text-sm text-muted-foreground text-center">
+                Vous ne trouvez pas la réponse ?{" "}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="text-primary underline-offset-4 hover:underline font-medium"
+                >
+                  Écrivez-nous directement
+                </a>
+              </p>
+            </CardContent>
+          </Card>
         </FadeIn>
       </div>
     </div>

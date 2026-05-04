@@ -246,7 +246,7 @@ export function ProjectStepper({
         </div>
 
         {/* Stepper horizontal */}
-        <div className="flex items-start overflow-x-auto pb-1">
+        <div className="flex items-start overflow-x-auto py-3 -my-3 pb-1">
           {phases.map((p, index) => {
             const Icon = p.icon
             const isCompleted = index < currentIndex
@@ -263,21 +263,26 @@ export function ProjectStepper({
                   )}
                   onClick={() => isCompleted && handlePhaseClick(p.id, index)}
                 >
-                  <div
-                    className={cn(
-                      "h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
-                      isCompleted
-                        ? "bg-primary text-primary-foreground hover:bg-primary-hover"
-                        : isActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted text-muted-foreground"
+                  <div className="relative">
+                    {isActive && (
+                      <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25" />
                     )}
-                  >
-                    {isCompleted ? (
-                      <Check className="h-3.5 w-3.5" />
-                    ) : (
-                      <Icon className="h-3.5 w-3.5" />
-                    )}
+                    <div
+                      className={cn(
+                        "relative h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200",
+                        isCompleted
+                          ? "bg-primary text-primary-foreground hover:bg-primary-hover"
+                          : isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {isCompleted ? (
+                        <Check className="h-3.5 w-3.5" />
+                      ) : (
+                        <Icon className="h-3.5 w-3.5" />
+                      )}
+                    </div>
                   </div>
                   <p
                     className={cn(
