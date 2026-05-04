@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
-import { notFound } from "next/navigation"
+import { getCachedProfile } from "@/lib/cached-queries"
+import { notFound, redirect } from "next/navigation"
 import { ProjectPageClient } from "@/components/projects/project-page-client"
 
 export default async function ProjectPage({
@@ -11,37 +12,32 @@ export default async function ProjectPage({
   searchParams: Promise<{ highlight?: string }>
 }) {
   const [{ id }, { highlight }] = await Promise.all([params, searchParams])
-  // getAuthUser() est dédupliqué par React cache() — le layout l'a déjà appelé
   const user = await getAuthUser()
+  if (!user) redirect("/login")
   const supabase = await createClient()
 
-  const [
-    { data: project },
-    { data: documents },
-    { data: contacts },
-    { data: profile },
-    { data: proView },
-  ] = await Promise.all([
-    supabase
-      .from("projects")
-      .select("*, professions(slug)")
-      .eq("id", id)
-      .eq("user_id", user!.id)
-      .single(),
-    supabase
-      .from("documents")
-      .select("*")
-      .eq("project_id", id)
-      .order("created_at", { ascending: false })
-      .limit(200),
-    supabase
-      .from("contacts")
-      .select("id, name, professions(label)")
-      .eq("user_id", user!.id)
-      .order("name", { ascending: true }),
-    supabase.from("profiles").select("full_name, email").eq("id", user!.id).single(),
-    supabase.from("pro_views").select("last_viewed_at").eq("project_id", id).maybeSingle(),
-  ])
+  const [{ data: project }, { data: documents }, { data: contacts }, profile, { data: proView }] =
+    await Promise.all([
+      supabase
+        .from("projects")
+        .select("*, professions(slug)")
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .single(),
+      supabase
+        .from("documents")
+        .select("*")
+        .eq("project_id", id)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("contacts")
+        .select("id, name, professions(label)")
+        .eq("user_id", user.id)
+        .order("name", { ascending: true }),
+      getCachedProfile(user.id),
+      supabase.from("pro_views").select("last_viewed_at").eq("project_id", id).maybeSingle(),
+    ])
 
   const docIds = (documents ?? []).map((d) => d.id)
   const { data: validationRows } = docIds.length
@@ -113,7 +109,7 @@ export default async function ProjectPage({
       project={project}
       documents={documents ?? []}
       contacts={contacts ?? []}
-      userId={user!.id}
+      userId={user.id}
       phase={project.phase ?? "cadrage"}
       authorName={authorName}
       professionSlug={professionSlug}

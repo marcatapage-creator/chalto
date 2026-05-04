@@ -21,29 +21,8 @@ import {
 } from "@/components/projects/project-details-dialog"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useProjectDocuments } from "@/hooks/use-project-documents"
-import type { ProjectDocument } from "@/hooks/use-project-documents"
 import { useMediaQuery } from "@/hooks/use-media-query"
-
-interface Contact {
-  id: string
-  name: string
-  professions?: { label: string }[]
-}
-
-interface Project {
-  id: string
-  name: string
-  status: string
-  created_at: string
-  client_name?: string
-  client_email?: string
-  address?: string
-  description?: string
-  work_type?: string
-  budget_range?: string
-  deadline?: string
-  constraints?: string
-}
+import type { ProjectDocument, Contact, Project, ValidationData } from "@/types/domain"
 
 const statusMap: Record<
   string,
@@ -53,13 +32,6 @@ const statusMap: Record<
   active: { label: "En cours", variant: "default", dot: "bg-primary" },
   completed: { label: "Terminé", variant: "secondary", dot: "bg-muted-foreground" },
   archived: { label: "Archivé", variant: "outline", dot: "bg-muted-foreground/40" },
-}
-
-type ValidationData = {
-  status: string
-  comment?: string | null
-  approved_at?: string
-  client_name?: string
 }
 
 interface ProjectPageClientProps {

@@ -35,20 +35,7 @@ import {
 import { cn, initials } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { AnimatePresence, motion } from "framer-motion"
-
-interface Contact {
-  id: string
-  name: string
-  professions?: { label: string }[]
-}
-
-interface Contributor {
-  id: string
-  name: string
-  invite_token: string
-  contact_id: string
-  professions?: { label: string } | null
-}
+import type { Contact, Contributor } from "@/types/domain"
 
 interface ProjectContributorsProps {
   projectId: string

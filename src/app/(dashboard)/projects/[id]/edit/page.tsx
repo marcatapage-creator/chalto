@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
-import { notFound } from "next/navigation"
+import { getCachedProfile } from "@/lib/cached-queries"
+import { notFound, redirect } from "next/navigation"
 import { EditProjectForm } from "@/components/projects/edit-project-form"
 
 export default async function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -8,10 +9,11 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
   const supabase = await createClient()
 
   const user = await getAuthUser()
+  if (!user) redirect("/login")
 
-  const [{ data: project }, { data: profile }] = await Promise.all([
-    supabase.from("projects").select("*").eq("id", id).eq("user_id", user!.id).single(),
-    supabase.from("profiles").select("professions!profession_id(slug)").eq("id", user!.id).single(),
+  const [{ data: project }, profile] = await Promise.all([
+    supabase.from("projects").select("*").eq("id", id).eq("user_id", user.id).single(),
+    getCachedProfile(user.id),
   ])
 
   if (!project) notFound()

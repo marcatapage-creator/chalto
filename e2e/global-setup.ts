@@ -87,6 +87,10 @@ export default async function globalSetup(config: FullConfig) {
 
   const userId = profile.id
 
+  // Nettoie les données E2E laissées par des runs précédents (runs crashés sans teardown)
+  await admin.from("projects").delete().eq("user_id", userId).like("name", "[E2E]%")
+  await admin.from("contacts").delete().eq("user_id", userId).like("name", "[E2E]%")
+
   // S'assure que le profil a une profession (évite la redirection vers /onboarding)
   const { data: profession } = await admin
     .from("professions")
@@ -114,9 +118,6 @@ export default async function globalSetup(config: FullConfig) {
   if (!project) throw new Error("[e2e seed] Impossible de créer le projet de test")
 
   // ── 2b. Contacts de test ─────────────────────────────────────────────────
-  // Nettoie les contacts E2E laissés par des runs précédents
-  await admin.from("contacts").delete().eq("user_id", userId).like("name", "[E2E]%")
-
   const { data: contactWithEmail } = await admin
     .from("contacts")
     .insert({ user_id: userId, name: "[E2E] Prestataire Test", email: "prestataire-e2e@chalto.fr" })

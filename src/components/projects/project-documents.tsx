@@ -21,31 +21,17 @@ import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentD
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { docStatusMap } from "@/lib/doc-status"
-
-interface Document {
-  id: string
-  name: string
-  type: string
-  status: string
-  version: number
-  validation_token: string
-  project_id: string
-  file_url?: string
-  file_name?: string
-  file_type?: string
-  file_size?: number
-  created_at: string
-}
+import type { ProjectDocument } from "@/types/domain"
 
 interface ProjectDocumentsProps {
-  documents: Document[]
+  documents: ProjectDocument[]
   projectId: string
   projectName: string
   workType?: string
   clientName?: string
   professionSlug?: string | null
   selectedDocId: string | null
-  onSelectDoc: (doc: Document) => void
+  onSelectDoc: (doc: ProjectDocument) => void
   onDeleteDoc?: (docId: string) => void
   isOpen?: boolean
   onToggle?: () => void
@@ -61,10 +47,10 @@ function DocItem({
   onSelectDoc,
   onDeleteDoc,
 }: {
-  doc: Document
+  doc: ProjectDocument
   isSelected: boolean
   highlightedId?: string | null
-  onSelectDoc: (doc: Document) => void
+  onSelectDoc: (doc: ProjectDocument) => void
   onDeleteDoc?: (docId: string) => void
 }) {
   const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft

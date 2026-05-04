@@ -52,23 +52,7 @@ import { InviteButton } from "@/components/projects/invite-button"
 import { TaskComments } from "@/components/projects/task-comments"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-
-interface Contact {
-  id: string
-  name: string
-  professions?: { label: string }[]
-}
-
-interface Task {
-  id: string
-  title: string
-  description?: string
-  status: string
-  assigned_to?: string
-  suggested_by?: string
-  due_date?: string
-  contacts?: Contact
-}
+import type { Contact, Task } from "@/types/domain"
 
 interface ProjectTasksProps {
   projectId: string

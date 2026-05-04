@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
@@ -10,12 +11,13 @@ import type { ProjectWithCounts } from "@/components/projects/projects-list-clie
 
 export default async function ProjectsPage() {
   const user = await getAuthUser()
+  if (!user) redirect("/login")
   const supabase = await createClient()
 
   const { data } = await supabase
     .from("projects")
     .select("*, professions(slug, label)")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
   const allProjects = data ?? []
