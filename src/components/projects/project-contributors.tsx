@@ -237,8 +237,9 @@ export function ProjectContributors({
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1.5 h-8">
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span>Inviter</span>
+                  <Plus className="h-3.5 w-3.5 sm:hidden" />
+                  <UserPlus className="h-3.5 w-3.5 hidden sm:block" />
+                  <span className="hidden sm:inline">Inviter</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
