@@ -236,9 +236,10 @@ export function ProjectContributors({
           <div className="pl-3" onClick={(e) => e.stopPropagation()}>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 h-8">
-                  <UserPlus className="h-3.5 w-3.5" />
-                  Inviter
+                <Button size="sm" className="gap-1.5 h-8">
+                  <Plus className="h-3.5 w-3.5 xl:hidden" />
+                  <UserPlus className="h-3.5 w-3.5 hidden xl:block" />
+                  <span className="hidden xl:inline">Inviter</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -398,7 +399,7 @@ export function ProjectContributors({
                       key={contributor.id}
                       data-contributor-id={contributor.id}
                       className={cn(
-                        "flex items-center justify-between gap-3 p-3 rounded-lg border transition-all duration-300",
+                        "flex items-center justify-between gap-3 p-3 rounded-lg border bg-white dark:bg-card transition-all duration-300",
                         highlightedContributorId === contributor.id &&
                           "border-ring ring-3 ring-ring/50"
                       )}

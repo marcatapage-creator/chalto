@@ -237,7 +237,7 @@ export function ProjectDiscussion({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="border rounded-xl overflow-hidden">
+            <div className="border rounded-xl overflow-hidden bg-white dark:bg-card">
               <div className="p-4 space-y-4">
                 <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
                   {hasMore && (

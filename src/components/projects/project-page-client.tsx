@@ -415,7 +415,7 @@ export function ProjectPageClient({
             animate={{ width: "26.25rem" }}
             exit={{ width: 0 }}
             transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-            className="shrink-0 border-l flex flex-col overflow-hidden"
+            className="shrink-0 border-l flex flex-col overflow-hidden bg-white dark:bg-background"
           >
             <motion.div
               initial={{ x: "100%" }}
