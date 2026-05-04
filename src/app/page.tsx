@@ -615,6 +615,7 @@ function ScreenshotContent({ device }: { device: DeviceType }) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
+        suppressHydrationWarning
         src={`/screenshots/${device}-${theme}.png`}
         alt={`Chalto sur ${DEVICES[device].label}`}
         className="w-full h-full object-cover object-top"
@@ -626,6 +627,7 @@ function ScreenshotContent({ device }: { device: DeviceType }) {
     <div className="w-full h-full p-2 flex items-start overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        suppressHydrationWarning
         src={`/screenshots/${device}-${theme}.png`}
         alt={`Chalto sur ${DEVICES[device].label}`}
         className="w-full h-auto rounded-sm"
