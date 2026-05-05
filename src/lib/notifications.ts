@@ -2,7 +2,13 @@ import { createAdminClient } from "@/lib/supabase/admin"
 
 interface CreateNotificationParams {
   userId: string
-  type: "document_approved" | "document_rejected" | "message_received" | "task_assigned"
+  type:
+    | "document_approved"
+    | "document_rejected"
+    | "message_received"
+    | "task_assigned"
+    | "situation_submitted"
+    | "situation_reviewed"
   title: string
   body?: string
   link?: string
