@@ -378,6 +378,7 @@ export function ProjectPageClient({
               </div>
               <div className="px-6 md:px-8 py-6 md:py-8">
                 <ProjectSituations
+                  projectId={project.id}
                   initialSituations={initialSituations}
                   readOnly={phase === "cloture"}
                   defaultOpen={initialSituations.some(

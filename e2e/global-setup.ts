@@ -291,6 +291,21 @@ export default async function globalSetup(config: FullConfig) {
     })
   }
 
+  // ── 2h. Situation de test (en_attente, pour tests architecte) ────────────
+  const { data: seedSituation } = await admin
+    .from("situations")
+    .insert({
+      project_id: project.id,
+      contributor_id: contributor.id,
+      lot_label: "[E2E] Gros œuvre",
+      percentage: 45,
+      amount_ht: 12000,
+      comment: "Situation soumise automatiquement par le seed E2E",
+      status: "en_attente",
+    })
+    .select("id")
+    .single()
+
   // ── 3. Sauvegarde pour le teardown et les tests ───────────────────────────
   const seed = {
     // Clés pour le teardown
@@ -310,9 +325,11 @@ export default async function globalSetup(config: FullConfig) {
     E2E_VALIDATION_TOKEN_CLIENT: docClientValidateA.validation_token ?? "",
     E2E_VALIDATION_TOKEN_CLIENT_2: docClientValidateB.validation_token ?? "",
     E2E_CONTACT_ID: contactWithEmail.id,
+    E2E_CONTRIBUTOR_ID: contributor.id,
     E2E_INVITE_TOKEN: contributor.invite_token?.toString() ?? "",
     E2E_INVITE_TOKEN_VALIDATION: contributor.invite_token?.toString() ?? "",
     E2E_INVITE_TOKEN_TRANSMISSION: contributor.invite_token?.toString() ?? "",
+    E2E_SITUATION_ID: seedSituation?.id ?? "",
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))

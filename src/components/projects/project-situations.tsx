@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Paperclip,
   Loader2,
+  FileDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -52,6 +53,7 @@ const STATUS_ICON: Record<SituationStatus, React.ReactNode> = {
 }
 
 interface ProjectSituationsProps {
+  projectId: string
   initialSituations: Situation[]
   readOnly?: boolean
   defaultOpen?: boolean
@@ -65,6 +67,7 @@ interface ReviewState {
 }
 
 export function ProjectSituations({
+  projectId,
   initialSituations,
   readOnly = false,
   defaultOpen = true,
@@ -141,31 +144,45 @@ export function ProjectSituations({
 
   return (
     <div className="space-y-3">
-      <div
-        className="flex items-center gap-1.5 group cursor-pointer px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
-        onClick={() => {
-          if (!isOpen) onOpen?.()
-          setIsOpen((v) => !v)
-        }}
-      >
-        <ChevronDown
-          className={cn(
-            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-            !isOpen && "-rotate-90"
-          )}
-        />
-        <span className="font-semibold group-hover:text-foreground transition-colors">
-          Situations de travaux
-        </span>
-        {situations.length > 0 && (
-          <span
+      <div className="flex items-center justify-between">
+        <div
+          className="flex items-center gap-1.5 group cursor-pointer px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
+          onClick={() => {
+            if (!isOpen) onOpen?.()
+            setIsOpen((v) => !v)
+          }}
+        >
+          <ChevronDown
             className={cn(
-              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
-              pendingCount > 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+              "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+              !isOpen && "-rotate-90"
             )}
-          >
-            {situations.length}
+          />
+          <span className="font-semibold group-hover:text-foreground transition-colors">
+            Situations de travaux
           </span>
+          {situations.length > 0 && (
+            <span
+              className={cn(
+                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
+                pendingCount > 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {situations.length}
+            </span>
+          )}
+        </div>
+        {situations.length > 0 && (
+          <a
+            href={`/projects/${projectId}/situations/print`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            title="Récapitulatif PDF"
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Récap PDF</span>
+          </a>
         )}
       </div>
 
