@@ -92,6 +92,7 @@ export const createSituationSchema = z.object({
   percentage: z.number().int().min(0).max(100),
   amountHt: z.number().positive().optional(),
   comment: z.string().max(1000).optional(),
+  parentSituationId: uuid.optional(),
 })
 
 // PATCH /api/situations/[id]/review — validation ou refus par l'architecte

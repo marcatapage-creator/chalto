@@ -78,37 +78,48 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     .limit(200)
     .then(({ data }) => data?.map((t) => t.id) ?? [])
 
-  const [{ data: tasks }, { data: proProfile }, { data: docContributors }, { data: taskComments }] =
-    await Promise.all([
-      admin
-        .from("tasks")
-        .select("*")
-        .eq("project_id", contributor.project_id)
-        .eq("assigned_to", contributor.contact_id)
-        .neq("status", "rejected")
-        .order("created_at", { ascending: true })
-        .limit(200),
-      admin
-        .from("profiles")
-        .select("full_name, company_name, logo_url, branding_enabled")
-        .eq("id", contributor.projects?.user_id)
-        .single(),
-      admin
-        .from("document_contributors")
-        .select(
-          "document_id, request_type, pro_message, documents(id, name, type, status, version, file_url, file_name, file_type, created_at)"
-        )
-        .eq("contributor_id", contributor.id)
-        .order("created_at", { ascending: false })
-        .limit(100),
-      taskIds.length > 0
-        ? admin
-            .from("task_comments")
-            .select("*")
-            .in("task_id", taskIds)
-            .order("created_at", { ascending: true })
-        : Promise.resolve({ data: [] }),
-    ])
+  const [
+    { data: tasks },
+    { data: proProfile },
+    { data: docContributors },
+    { data: taskComments },
+    { data: situations },
+  ] = await Promise.all([
+    admin
+      .from("tasks")
+      .select("*")
+      .eq("project_id", contributor.project_id)
+      .eq("assigned_to", contributor.contact_id)
+      .neq("status", "rejected")
+      .order("created_at", { ascending: true })
+      .limit(200),
+    admin
+      .from("profiles")
+      .select("full_name, company_name, logo_url, branding_enabled")
+      .eq("id", contributor.projects?.user_id)
+      .single(),
+    admin
+      .from("document_contributors")
+      .select(
+        "document_id, request_type, pro_message, documents(id, name, type, status, version, file_url, file_name, file_type, created_at)"
+      )
+      .eq("contributor_id", contributor.id)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    taskIds.length > 0
+      ? admin
+          .from("task_comments")
+          .select("*")
+          .in("task_id", taskIds)
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [] }),
+    admin
+      .from("situations")
+      .select("*, attachments:situation_attachments(*)")
+      .eq("contributor_id", contributor.id)
+      .order("submitted_at", { ascending: false })
+      .limit(100),
+  ])
 
   const commentsByTaskId = (taskComments ?? []).reduce<Record<string, typeof taskComments>>(
     (acc, c) => {
@@ -129,6 +140,10 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       tasks={tasks ?? []}
       initialDocs={
         (docContributors ?? []) as unknown as Parameters<typeof ContributorSpace>[0]["initialDocs"]
+      }
+      initialSituations={
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (situations ?? []) as any
       }
       logoUrl={proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null}
       companyName={proProfile?.company_name ?? null}

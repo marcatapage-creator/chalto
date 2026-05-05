@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       percentage: Number(formData.get("percentage")),
       amountHt: formData.get("amountHt") ? Number(formData.get("amountHt")) : undefined,
       comment: formData.get("comment") || undefined,
+      parentSituationId: formData.get("parentSituationId") || undefined,
     })
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
         amount_ht: data.amountHt ?? null,
         comment: data.comment ?? null,
         status: "en_attente",
+        parent_situation_id: data.parentSituationId ?? null,
       })
       .select()
       .single()

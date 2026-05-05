@@ -26,6 +26,8 @@ import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { ContributorHeader } from "./contributor-header"
 import { ContributorCTA } from "./contributor-cta"
 import { ContributorTaskCard } from "./contributor-task-card"
+import { ContributorSituations } from "./contributor-situations"
+import type { Situation } from "@/types/domain"
 
 interface Task {
   id: string
@@ -52,6 +54,7 @@ interface ContributorSpaceProps {
   proName: string
   tasks: Task[]
   initialDocs?: DocRow[]
+  initialSituations?: Situation[]
   logoUrl?: string | null
   companyName?: string | null
   initialTaskComments?: Record<
@@ -87,6 +90,7 @@ export function ContributorSpace({
   proName,
   tasks: initialTasks,
   initialDocs = [],
+  initialSituations = [],
   logoUrl,
   companyName,
   initialTaskComments = {},
@@ -185,6 +189,7 @@ export function ContributorSpace({
   const docsRef = useRef<HTMLDivElement>(null)
   const tasksRef = useRef<HTMLDivElement>(null)
   const discussionRef = useRef<HTMLDivElement>(null)
+  const situationsRef = useRef<HTMLDivElement>(null)
 
   const scrollToSection = (
     ref: React.RefObject<HTMLDivElement | null>,
@@ -332,6 +337,7 @@ export function ContributorSpace({
         docsCount={docs.length}
         tasksCount={tasks.length}
         discussionCount={discussionCount}
+        situationsCount={initialSituations.length}
         docsRead={docsRead}
         tasksRead={tasksRead}
         discussionRead={discussionRead}
@@ -346,6 +352,9 @@ export function ContributorSpace({
         onDiscussionClick={() => {
           markDiscussionRead()
           scrollToSection(discussionRef, setDiscussionOpen)
+        }}
+        onSituationsClick={() => {
+          situationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
         }}
       />
 
@@ -747,6 +756,16 @@ export function ContributorSpace({
             onCountChange={setDiscussionCount}
           />
         </section>
+
+        {/* Section Situations de travaux */}
+        <div ref={situationsRef} className="scroll-mt-28">
+          <ContributorSituations
+            contributorToken={contributor.invite_token}
+            projectId={contributor.project_id}
+            contributorName={contributor.name}
+            initialSituations={initialSituations}
+          />
+        </div>
 
         <Separator />
 
