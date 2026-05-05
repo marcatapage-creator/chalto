@@ -23,7 +23,14 @@ import {
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useProjectDocuments } from "@/hooks/use-project-documents"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import type { ProjectDocument, Contact, Project, ValidationData, Situation } from "@/types/domain"
+import type {
+  ProjectDocument,
+  Contact,
+  Project,
+  ValidationData,
+  Situation,
+  CloudLink,
+} from "@/types/domain"
 
 const statusMap: Record<
   string,
@@ -49,6 +56,8 @@ interface ProjectPageClientProps {
   unreadDocs?: number
   unreadTasks?: number
   unreadDiscussion?: number
+  cloudLinks?: CloudLink[]
+  hasDropboxConnected?: boolean
 }
 
 export function ProjectPageClient({
@@ -65,6 +74,8 @@ export function ProjectPageClient({
   unreadDocs = 0,
   unreadTasks = 0,
   unreadDiscussion = 0,
+  cloudLinks = [],
+  hasDropboxConnected = false,
 }: ProjectPageClientProps) {
   const {
     label: statusLabel,
@@ -325,6 +336,8 @@ export function ProjectPageClient({
               readOnly={phase === "cloture"}
               highlightedId={highlightedDocId}
               unreadCount={localUnreadDocs}
+              cloudLinks={cloudLinks}
+              hasDropboxConnected={hasDropboxConnected}
             />
           </div>
 

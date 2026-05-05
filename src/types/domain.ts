@@ -11,6 +11,16 @@ export interface ProjectDocument {
   file_type?: string
   file_size?: number
   created_at: string
+  source?: string
+  cloud_file_id?: string | null
+}
+
+export interface CloudLink {
+  id: string
+  provider: string
+  remote_path: string
+  last_synced_at: string | null
+  sync_enabled: boolean
 }
 
 export interface Contact {

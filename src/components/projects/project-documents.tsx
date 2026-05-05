@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,13 +16,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { FileText, ChevronRight, ChevronDown, Trash2 } from "lucide-react"
+import { FileText, ChevronRight, ChevronDown, Trash2, RefreshCw, Upload, Plus } from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
+import { DropboxFolderPicker } from "@/components/projects/dropbox-folder-picker"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { docStatusMap } from "@/lib/doc-status"
-import type { ProjectDocument } from "@/types/domain"
+import type { ProjectDocument, CloudLink } from "@/types/domain"
+import { toast } from "sonner"
 
 interface ProjectDocumentsProps {
   documents: ProjectDocument[]
@@ -38,6 +48,16 @@ interface ProjectDocumentsProps {
   readOnly?: boolean
   highlightedId?: string | null
   unreadCount?: number
+  cloudLinks?: CloudLink[]
+  hasDropboxConnected?: boolean
+}
+
+function DropboxIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="#0061FF" className={className} aria-hidden="true">
+      <path d="M6 2L0 6l6 4 6-4L6 2zM18 2l-6 4 6 4 6-4-6-4zM0 14l6 4 6-4-6-4-6 4zM18 10l-6 4 6 4 6-4-6-4zM6 19.5L12 23l6-3.5-6-4-6 4z" />
+    </svg>
+  )
 }
 
 function DocItem({
@@ -54,6 +74,7 @@ function DocItem({
   onDeleteDoc?: (docId: string) => void
 }) {
   const docStatus = docStatusMap[doc.status] ?? docStatusMap.draft
+  const isDropbox = doc.source === "dropbox"
 
   return (
     <div data-doc-id={doc.id}>
@@ -68,7 +89,11 @@ function DocItem({
         <CardContent className="flex items-center gap-3 p-4">
           <div className={cn("h-2 w-2 rounded-full shrink-0", docStatus.dot)} />
           <div className="hidden sm:block bg-muted p-2 rounded-lg shrink-0">
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            {isDropbox ? (
+              <DropboxIcon className="h-4 w-4" />
+            ) : (
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="sm:hidden mb-2">
@@ -80,6 +105,7 @@ function DocItem({
             <p className="text-sm font-medium truncate">{doc.name}</p>
             <p className="text-xs text-muted-foreground truncate">
               {doc.type} · {new Date(doc.created_at).toLocaleDateString("fr-FR")}
+              {isDropbox && " · Dropbox"}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -150,7 +176,13 @@ export function ProjectDocuments({
   readOnly = false,
   highlightedId,
   unreadCount = 0,
+  cloudLinks = [],
+  hasDropboxConnected = false,
 }: ProjectDocumentsProps) {
+  const router = useRouter()
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [addDocOpen, setAddDocOpen] = useState(false)
+
   useEffect(() => {
     if (!highlightedId) return
     const t = setTimeout(() => {
@@ -196,7 +228,7 @@ export function ProjectDocuments({
           </span>
         </div>
         {!readOnly && (
-          <div className="flex items-center gap-3 pl-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2 pl-3" onClick={(e) => e.stopPropagation()}>
             <GenerateDocumentDialog
               projectId={projectId}
               projectName={projectName}
@@ -204,10 +236,48 @@ export function ProjectDocuments({
               clientName={clientName}
               professionSlug={professionSlug}
             />
-            <AddDocumentDialog projectId={projectId} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Ajouter</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setAddDocOpen(true)}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload un fichier
+                </DropdownMenuItem>
+                {hasDropboxConnected && (
+                  <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                    <DropboxIcon className="h-4 w-4 mr-2" />
+                    Lier Dropbox
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AddDocumentDialog
+              projectId={projectId}
+              open={addDocOpen}
+              onOpenChange={setAddDocOpen}
+            />
           </div>
         )}
       </div>
+
+      <DropboxFolderPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        projectId={projectId}
+        onLinked={(count) => {
+          toast.success(
+            count > 0
+              ? `${count} fichier${count > 1 ? "s" : ""} synchronisé${count > 1 ? "s" : ""} depuis Dropbox`
+              : "Dossier lié — les prochains fichiers ajoutés seront synchronisés automatiquement"
+          )
+          router.refresh()
+        }}
+      />
 
       {/* Liste collapsible */}
       <AnimatePresence initial={false}>
@@ -220,6 +290,34 @@ export function ProjectDocuments({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
+            {/* Banner dossiers Dropbox liés — visible uniquement quand la section est ouverte */}
+            {cloudLinks.length > 0 && (
+              <div className="mb-3 space-y-1.5 px-1">
+                {cloudLinks.map((link) => (
+                  <div
+                    key={link.id}
+                    className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2"
+                  >
+                    <DropboxIcon className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+                    <span className="truncate font-mono flex-1">{link.remote_path}</span>
+                    {link.last_synced_at ? (
+                      <span className="shrink-0 flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        {new Date(link.last_synced_at).toLocaleString("fr-FR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    ) : (
+                      <span className="shrink-0">En attente</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="p-1">
               {documents.length > 0 ? (
                 <StaggerList className="space-y-2">

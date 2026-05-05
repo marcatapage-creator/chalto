@@ -9,6 +9,8 @@ interface CreateNotificationParams {
     | "task_assigned"
     | "situation_submitted"
     | "situation_reviewed"
+    | "cloud_file_synced"
+    | "cloud_token_expired"
   title: string
   body?: string
   link?: string

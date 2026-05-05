@@ -112,3 +112,21 @@ export const renewContributorSchema = z.object({
   contributorId: uuid,
   projectId: uuid,
 })
+
+// ─── Intégrations cloud ───────────────────────────────────────────────────────
+
+const cloudProvider = z.enum(["dropbox", "gdrive"])
+
+// POST /api/cloud/link — lier un dossier cloud à un projet
+export const linkCloudFolderSchema = z.object({
+  projectId: uuid,
+  provider: cloudProvider,
+  remotePath: z.string().min(1, "Le chemin du dossier est requis"),
+  remoteId: z.string().optional(),
+})
+
+// DELETE /api/cloud/link/[id] — délier un dossier
+export const unlinkCloudFolderSchema = z.object({
+  linkId: uuid,
+  projectId: uuid,
+})
