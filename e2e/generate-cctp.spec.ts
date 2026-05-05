@@ -76,7 +76,7 @@ test("6.1 — cliquer sur CCTP affiche le formulaire de lots", async ({ page }) 
   await page.getByText("CCTP").click()
 
   await expect(page.getByText("Lots concernés")).toBeVisible({ timeout: 5_000 })
-  await expect(page.getByText("Gros œuvre")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Gros œuvre" })).toBeVisible()
   await expect(page.getByRole("button", { name: "Générer" })).toBeDisabled()
 })
 

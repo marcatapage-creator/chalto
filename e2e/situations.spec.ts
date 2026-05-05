@@ -177,9 +177,9 @@ test("8.5 — le bouton 'Réviser cette situation' ouvre un dialog", async ({ pa
 
   // Le dialog de révision s'ouvre
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5_000 })
-  await expect(
-    page.getByRole("button", { name: /valider/i }).or(page.getByText(/réviser la situation/i))
-  ).toBeVisible({ timeout: 5_000 })
+  await expect(page.getByRole("heading", { name: /réviser la situation/i })).toBeVisible({
+    timeout: 5_000,
+  })
 })
 
 test("8.5 — le dialog expose les boutons Valider et Refuser", async ({ page }) => {
@@ -204,8 +204,12 @@ test("8.5 — le dialog expose les boutons Valider et Refuser", async ({ page })
 
   // Toggle Valider (dans le dialog)
   const dialog = page.getByRole("dialog")
-  await expect(dialog.getByRole("button", { name: /^valider$/i })).toBeVisible({ timeout: 5_000 })
-  await expect(dialog.getByRole("button", { name: /^refuser$/i })).toBeVisible({ timeout: 5_000 })
+  await expect(dialog.getByRole("button", { name: /^valider$/i }).first()).toBeVisible({
+    timeout: 5_000,
+  })
+  await expect(dialog.getByRole("button", { name: /^refuser$/i }).first()).toBeVisible({
+    timeout: 5_000,
+  })
 })
 
 // ─── 8.6 : Validation d'une situation ────────────────────────────────────────
