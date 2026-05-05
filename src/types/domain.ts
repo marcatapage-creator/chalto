@@ -59,3 +59,40 @@ export type ValidationData = {
   approved_at?: string
   client_name?: string | null
 }
+
+// ─── Situations de travaux ────────────────────────────────────────────────────
+
+export type SituationStatus = "en_attente" | "validee" | "refusee" | "corrigee"
+
+export interface SituationAttachment {
+  id: string
+  situation_id: string
+  type: "photo" | "document"
+  url: string
+  file_name?: string | null
+  file_size?: number | null
+  file_type?: string | null
+  created_at: string
+}
+
+export interface Situation {
+  id: string
+  project_id: string
+  contributor_id: string
+  lot_label: string
+  percentage: number
+  amount_ht?: number | null
+  comment?: string | null
+  status: SituationStatus
+  refusal_reason?: string | null
+  reviewer_comment?: string | null
+  parent_situation_id?: string | null
+  reviewed_by?: string | null
+  submitted_at: string
+  reviewed_at?: string | null
+  created_at: string
+  updated_at: string
+  // Relations jointes
+  attachments?: SituationAttachment[]
+  contributor?: { name: string; contact_id: string }
+}

@@ -81,3 +81,33 @@ export const waitlistSchema = z.object({
   name: z.string().optional(),
   profession: z.string().optional(),
 })
+
+// ─── Situations de travaux ────────────────────────────────────────────────────
+
+// POST /api/situations — soumission par le prestataire (via token)
+export const createSituationSchema = z.object({
+  contributorToken: token,
+  projectId: uuid,
+  lotLabel: z.string().min(1, "Le lot est obligatoire").max(100),
+  percentage: z.number().int().min(0).max(100),
+  amountHt: z.number().positive().optional(),
+  comment: z.string().max(1000).optional(),
+})
+
+// PATCH /api/situations/[id]/review — validation ou refus par l'architecte
+export const reviewSituationSchema = z
+  .object({
+    action: z.enum(["validate", "refuse"]),
+    reviewerComment: z.string().max(1000).optional(),
+    refusalReason: z.string().min(1, "Le motif de refus est obligatoire").max(500).optional(),
+  })
+  .refine((data) => data.action !== "refuse" || !!data.refusalReason, {
+    message: "Le motif est obligatoire en cas de refus",
+    path: ["refusalReason"],
+  })
+
+// POST /api/contributors/[id]/renew — renouvellement du token par l'architecte
+export const renewContributorSchema = z.object({
+  contributorId: uuid,
+  projectId: uuid,
+})
