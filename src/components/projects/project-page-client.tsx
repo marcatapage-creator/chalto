@@ -15,6 +15,7 @@ import { ProjectStepper } from "@/components/projects/project-stepper"
 import { ProjectTasks } from "@/components/projects/project-tasks"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { ProjectContributors } from "@/components/projects/project-contributors"
+import { ProjectSituations } from "@/components/projects/project-situations"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -22,7 +23,7 @@ import {
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useProjectDocuments } from "@/hooks/use-project-documents"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import type { ProjectDocument, Contact, Project, ValidationData } from "@/types/domain"
+import type { ProjectDocument, Contact, Project, ValidationData, Situation } from "@/types/domain"
 
 const statusMap: Record<
   string,
@@ -44,6 +45,7 @@ interface ProjectPageClientProps {
   professionSlug?: string | null
   initialHighlightId?: string | null
   initialValidations?: Record<string, ValidationData>
+  initialSituations?: Situation[]
   unreadDocs?: number
   unreadTasks?: number
   unreadDiscussion?: number
@@ -59,6 +61,7 @@ export function ProjectPageClient({
   professionSlug,
   initialHighlightId,
   initialValidations = {},
+  initialSituations = [],
   unreadDocs = 0,
   unreadTasks = 0,
   unreadDiscussion = 0,
@@ -371,6 +374,18 @@ export function ProjectPageClient({
                     if (!isDesktop) setDetailsOpen(false)
                   }}
                   unreadCount={unreadDiscussion}
+                />
+              </div>
+              <div className="px-6 md:px-8 py-6 md:py-8">
+                <ProjectSituations
+                  initialSituations={initialSituations}
+                  readOnly={phase === "cloture"}
+                  defaultOpen={initialSituations.some(
+                    (s) => s.status === "en_attente" || s.status === "corrigee"
+                  )}
+                  onOpen={() => {
+                    if (!isDesktop) setDetailsOpen(false)
+                  }}
                 />
               </div>
             </>

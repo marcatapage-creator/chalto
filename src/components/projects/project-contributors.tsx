@@ -31,6 +31,7 @@ import {
   MoreHorizontal,
   Trash2,
   Plus,
+  RefreshCw,
 } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
@@ -174,6 +175,27 @@ export function ProjectContributors({
       router.refresh()
     }
     setAddingContact(false)
+  }
+
+  const handleRenew = async (contributor: Contributor) => {
+    setLoading(contributor.id)
+    const res = await fetchWithTimeout(`/api/contributors/${contributor.id}/renew`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contributorId: contributor.id, projectId }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setContributors((prev) =>
+        prev.map((c) =>
+          c.id === contributor.id ? { ...c, invite_token: data.contributor.invite_token } : c
+        )
+      )
+      toast.success("Lien renouvelé pour 1 an ✅")
+    } else {
+      toast.error("Erreur lors du renouvellement")
+    }
+    setLoading(null)
   }
 
   const handleDelete = async (contributorId: string) => {
@@ -420,6 +442,13 @@ export function ProjectContributors({
                               <Copy className="h-4 w-4 mr-2" />
                             )}
                             {copied === contributor.id ? "Copié !" : "Copier le lien"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={loading === contributor.id}
+                            onClick={() => void handleRenew(contributor)}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Renouveler le lien
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem

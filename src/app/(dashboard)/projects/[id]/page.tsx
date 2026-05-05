@@ -16,28 +16,40 @@ export default async function ProjectPage({
   if (!user) redirect("/login")
   const supabase = await createClient()
 
-  const [{ data: project }, { data: documents }, { data: contacts }, profile, { data: proView }] =
-    await Promise.all([
-      supabase
-        .from("projects")
-        .select("*, professions(slug)")
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .single(),
-      supabase
-        .from("documents")
-        .select("*")
-        .eq("project_id", id)
-        .order("created_at", { ascending: false })
-        .limit(200),
-      supabase
-        .from("contacts")
-        .select("id, name, professions(label)")
-        .eq("user_id", user.id)
-        .order("name", { ascending: true }),
-      getCachedProfile(user.id),
-      supabase.from("pro_views").select("last_viewed_at").eq("project_id", id).maybeSingle(),
-    ])
+  const [
+    { data: project },
+    { data: documents },
+    { data: contacts },
+    profile,
+    { data: proView },
+    { data: situations },
+  ] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("*, professions(slug)")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single(),
+    supabase
+      .from("documents")
+      .select("*")
+      .eq("project_id", id)
+      .order("created_at", { ascending: false })
+      .limit(200),
+    supabase
+      .from("contacts")
+      .select("id, name, professions(label)")
+      .eq("user_id", user.id)
+      .order("name", { ascending: true }),
+    getCachedProfile(user.id),
+    supabase.from("pro_views").select("last_viewed_at").eq("project_id", id).maybeSingle(),
+    supabase
+      .from("situations")
+      .select("*, contributor:contributors(name, contact_id), attachments:situation_attachments(*)")
+      .eq("project_id", id)
+      .order("submitted_at", { ascending: false })
+      .limit(200),
+  ])
 
   const docIds = (documents ?? []).map((d) => d.id)
   const { data: validationRows } = docIds.length
@@ -115,6 +127,8 @@ export default async function ProjectPage({
       professionSlug={professionSlug}
       initialHighlightId={highlight ?? null}
       initialValidations={initialValidations}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      initialSituations={(situations ?? []) as any}
       unreadDocs={unreadDocs}
       unreadTasks={unreadTasks}
       unreadDiscussion={unreadDiscussion}
