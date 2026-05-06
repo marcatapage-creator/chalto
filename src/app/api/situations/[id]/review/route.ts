@@ -104,7 +104,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         type: "situation_reviewed",
         title: action === "validate" ? "Situation validée" : "Situation refusée",
         body: `${situation.lot_label} — ${situation.percentage}%`,
-        link: `/projects/${situation.project_id}?tab=situations`,
+        link: `/projects/${situation.project_id}?highlight=sit_${situation.id}`,
       })
     }
 

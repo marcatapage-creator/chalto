@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   ChevronDown,
   HardHat,
@@ -12,6 +13,7 @@ import {
   Paperclip,
   Loader2,
   FileDown,
+  FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -57,6 +59,7 @@ interface ProjectSituationsProps {
   initialSituations: Situation[]
   readOnly?: boolean
   defaultOpen?: boolean
+  highlightedSituationId?: string | null
   onOpen?: () => void
 }
 
@@ -71,6 +74,7 @@ export function ProjectSituations({
   initialSituations,
   readOnly = false,
   defaultOpen = true,
+  highlightedSituationId,
   onOpen,
 }: ProjectSituationsProps) {
   const [situations, setSituations] = useState<Situation[]>(initialSituations)
@@ -80,6 +84,11 @@ export function ProjectSituations({
   const [reviewerComment, setReviewerComment] = useState("")
   const [refusalReason, setRefusalReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!highlightedSituationId) return
+    setIsOpen(true)
+  }, [highlightedSituationId])
 
   const pendingCount = situations.filter(
     (s) => s.status === "en_attente" || s.status === "corrigee"
@@ -144,14 +153,14 @@ export function ProjectSituations({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div
-          className="flex items-center gap-1.5 group cursor-pointer px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors"
-          onClick={() => {
-            if (!isOpen) onOpen?.()
-            setIsOpen((v) => !v)
-          }}
-        >
+      <div
+        className="flex items-center justify-between group cursor-pointer"
+        onClick={() => {
+          if (!isOpen) onOpen?.()
+          setIsOpen((v) => !v)
+        }}
+      >
+        <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
@@ -177,8 +186,9 @@ export function ProjectSituations({
             href={`/projects/${projectId}/situations/print`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
             title="Récapitulatif PDF"
+            onClick={(e) => e.stopPropagation()}
           >
             <FileDown className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Récap PDF</span>
@@ -186,48 +196,64 @@ export function ProjectSituations({
         )}
       </div>
 
-      {isOpen && (
-        <>
-          {situations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <HardHat className="h-8 w-8 text-muted-foreground mb-3" />
-              <p className="font-medium text-sm">Aucune situation soumise</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Les prestataires soumettront leurs situations depuis leur espace
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {pending.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
-                    À réviser — {pending.length}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="situations-list"
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pt-1">
+              {situations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <HardHat className="h-8 w-8 text-muted-foreground mb-3" />
+                  <p className="font-medium text-sm">Aucune situation soumise</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Les prestataires soumettront leurs situations depuis leur espace
                   </p>
-                  {pending.map((s) => (
-                    <SituationCard
-                      key={s.id}
-                      situation={s}
-                      onReview={!readOnly ? openReview : undefined}
-                    />
-                  ))}
                 </div>
-              )}
+              ) : (
+                <div className="space-y-4">
+                  {pending.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
+                        À réviser — {pending.length}
+                      </p>
+                      {pending.map((s) => (
+                        <SituationCard
+                          key={s.id}
+                          situation={s}
+                          highlighted={highlightedSituationId === s.id}
+                          onReview={!readOnly ? openReview : undefined}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-              {reviewed.length > 0 && (
-                <div className="space-y-2">
-                  {pending.length > 0 && <Separator />}
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
-                    Révisées — {reviewed.length}
-                  </p>
-                  {reviewed.map((s) => (
-                    <SituationCard key={s.id} situation={s} />
-                  ))}
+                  {reviewed.length > 0 && (
+                    <div className="space-y-2">
+                      {pending.length > 0 && <Separator />}
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
+                        Révisées — {reviewed.length}
+                      </p>
+                      {reviewed.map((s) => (
+                        <SituationCard
+                          key={s.id}
+                          situation={s}
+                          highlighted={highlightedSituationId === s.id}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Dialog révision */}
       <Dialog open={!!reviewing} onOpenChange={(o) => !o && closeReview()}>
@@ -330,16 +356,34 @@ export function ProjectSituations({
 
 function SituationCard({
   situation: s,
+  highlighted = false,
   onReview,
 }: {
   situation: Situation
+  highlighted?: boolean
   onReview?: (s: Situation) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const hasDetails = s.refusal_reason || s.reviewer_comment || (s.attachments?.length ?? 0) > 0
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!highlighted) return
+    const t = setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [highlighted])
 
   return (
-    <Card>
+    <Card
+      ref={cardRef}
+      data-situation-id={s.id}
+      className={cn(
+        "transition-all duration-300",
+        highlighted && "border-ring ring-3 ring-ring/50"
+      )}
+    >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -374,7 +418,26 @@ function SituationCard({
           <p className="text-xs text-muted-foreground italic border-l-2 pl-2">{s.comment}</p>
         )}
 
-        {hasDetails && (
+        {/* Pièces jointes toujours visibles sur les situations validées */}
+        {s.status === "validee" && (s.attachments?.length ?? 0) > 0 && (
+          <div className="space-y-1">
+            {s.attachments!.map((a) => (
+              <a
+                key={a.id}
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+              >
+                <FileText className="h-3 w-3 shrink-0" />
+                {a.file_name ?? "Fichier"}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* Détails masquables pour les autres statuts */}
+        {hasDetails && s.status !== "validee" && (
           <>
             <button
               onClick={() => setExpanded(!expanded)}

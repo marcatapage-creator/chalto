@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       type: "situation_submitted",
       title: "Nouvelle situation de travaux",
       body: `${contributor.name} a soumis une situation pour le lot « ${data.lotLabel} » (${data.percentage}%)`,
-      link: `/projects/${data.projectId}?tab=situations`,
+      link: `/projects/${data.projectId}?highlight=sit_${situation.id}`,
     })
 
     return NextResponse.json({ situation: { ...situation, attachments } }, { status: 201 })

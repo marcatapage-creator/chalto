@@ -9,9 +9,9 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ highlight?: string }>
+  searchParams: Promise<{ highlight?: string; tab?: string }>
 }) {
-  const [{ id }, { highlight }] = await Promise.all([params, searchParams])
+  const [{ id }, { highlight, tab }] = await Promise.all([params, searchParams])
   const user = await getAuthUser()
   if (!user) redirect("/login")
   const supabase = await createClient()
@@ -139,7 +139,7 @@ export default async function ProjectPage({
       phase={project.phase ?? "cadrage"}
       authorName={authorName}
       professionSlug={professionSlug}
-      initialHighlightId={highlight ?? null}
+      initialHighlightId={highlight ?? (tab === "situations" ? "tab_situations" : null)}
       initialValidations={initialValidations}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       initialSituations={(situations ?? []) as any}

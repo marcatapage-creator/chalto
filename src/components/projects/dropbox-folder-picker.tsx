@@ -94,7 +94,7 @@ export function DropboxFolderPicker({
         </div>
 
         {/* Contenu du dossier */}
-        <div className="border rounded-md overflow-hidden min-h-[240px] max-h-[320px] overflow-y-auto">
+        <div className="border rounded-md overflow-hidden min-h-60 max-h-80 overflow-y-auto">
           {loading ? (
             <div className="p-3 space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (

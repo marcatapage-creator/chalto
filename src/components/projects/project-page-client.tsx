@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -99,16 +99,30 @@ export function ProjectPageClient({
   )
 
   // ─── Highlight (notification deep-link) ──────────────────────────────────────
-  const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
+  // "tab_situations" is a legacy sentinel from old ?tab=situations notifications — not a real highlight
+  const isLegacySituationsTab = initialHighlightId === "tab_situations"
+  const [highlightedId, setHighlightedId] = useState<string | null>(
+    isLegacySituationsTab ? null : (initialHighlightId ?? null)
+  )
+
+  const applyHighlight = useCallback((id: string | null) => {
+    if (!id) return
+    setHighlightedId(id)
+    if (id.startsWith("doc_")) setDocsOpen(true)
+    setTimeout(() => setHighlightedId(null), 2500)
+  }, [])
+
+  // Écoute les events dispatched par NotificationBell lors des clics sur notifications
+  useEffect(() => {
+    const handler = (e: Event) => applyHighlight((e as CustomEvent<string>).detail)
+    window.addEventListener("chalto:highlight", handler)
+    return () => window.removeEventListener("chalto:highlight", handler)
+  }, [applyHighlight])
+
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
+  const highlightedSituationId = highlightedId?.startsWith("sit_") ? highlightedId.slice(4) : null
   const openDiscussion = highlightedId === "discussion"
-
-  useEffect(() => {
-    if (!highlightedId) return
-    const t = setTimeout(() => setHighlightedId(null), 2500)
-    return () => clearTimeout(t)
-  }, [highlightedId])
 
   // ─── Documents (Realtime + CRUD) ─────────────────────────────────────────────
   const {
@@ -394,9 +408,14 @@ export function ProjectPageClient({
                   projectId={project.id}
                   initialSituations={initialSituations}
                   readOnly={phase === "cloture"}
-                  defaultOpen={initialSituations.some(
-                    (s) => s.status === "en_attente" || s.status === "corrigee"
-                  )}
+                  defaultOpen={
+                    !!highlightedSituationId ||
+                    isLegacySituationsTab ||
+                    initialSituations.some(
+                      (s) => s.status === "en_attente" || s.status === "corrigee"
+                    )
+                  }
+                  highlightedSituationId={highlightedSituationId}
                   onOpen={() => {
                     if (!isDesktop) setDetailsOpen(false)
                   }}
