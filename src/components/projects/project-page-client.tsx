@@ -308,7 +308,7 @@ export function ProjectPageClient({
                   <div className="border-l" />
 
                   {/* Stepper phase */}
-                  <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
+                  <div className="flex-1 min-w-0 px-6 md:px-8 py-4 flex flex-col justify-center">
                     <ProjectStepper
                       projectId={project.id}
                       currentPhase={phase}
