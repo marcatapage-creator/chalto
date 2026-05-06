@@ -13,6 +13,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
@@ -342,71 +351,72 @@ export function ProjectAdminDossiers({
 
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Type de dossier</label>
-              <select
+              <Label>Type de dossier</Label>
+              <Select
                 value={form.type}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, type: e.target.value as AdminDossierType }))
-                }
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                onValueChange={(v) => setForm((f) => ({ ...f, type: v as AdminDossierType }))}
               >
-                {(Object.keys(TYPE_LABEL) as AdminDossierType[]).map((t) => (
-                  <option key={t} value={t}>
-                    {TYPE_LABEL[t]}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(TYPE_LABEL) as AdminDossierType[]).map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TYPE_LABEL[t]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {form.type === "autre" && (
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Préciser</label>
-                <input
-                  type="text"
+                <Label>Préciser</Label>
+                <Input
                   maxLength={100}
                   value={form.label}
                   onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="Ex: Autorisation d'enseigne"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Statut</label>
-                <select
+                <Label>Statut</Label>
+                <Select
                   value={form.status}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, status: e.target.value as AdminDossierStatus }))
-                  }
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  onValueChange={(v) => setForm((f) => ({ ...f, status: v as AdminDossierStatus }))}
                 >
-                  {(Object.keys(STATUS_LABEL) as AdminDossierStatus[]).map((s) => (
-                    <option key={s} value={s}>
-                      {STATUS_LABEL[s]}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(STATUS_LABEL) as AdminDossierStatus[]).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {STATUS_LABEL[s]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">
+                <Label>
                   Échéance <span className="font-normal text-muted-foreground">(optionnel)</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="date"
                   value={form.deadline}
                   onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">
+              <Label>
                 Notes <span className="font-normal text-muted-foreground">(optionnel)</span>
-              </label>
+              </Label>
               <Textarea
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
