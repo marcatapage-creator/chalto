@@ -271,7 +271,7 @@ export function ProjectsListClient({ projects }: { projects: ProjectWithCounts[]
   return (
     <div className="space-y-6">
       {/* Filtres */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="sticky top-24 z-10 bg-neutral-50 dark:bg-background pb-4 flex items-center gap-2 flex-wrap">
         {STATUS_FILTERS.map(({ label, value }) => {
           const count = value ? (statusCounts[value] ?? 0) : projects.length
           const isActive = statusFilter === value

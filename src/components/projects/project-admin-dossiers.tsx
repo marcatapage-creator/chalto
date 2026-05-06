@@ -248,22 +248,19 @@ export function ProjectAdminDossiers({
           <span className="font-semibold group-hover:text-foreground transition-colors">
             Dossiers administratifs
           </span>
-          {dossiers.length > 0 && (
-            <span
-              className={cn(
-                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
-                urgentCount > 0 ? "bg-red-500 text-white" : "bg-muted text-muted-foreground"
-              )}
-            >
-              {dossiers.length}
-            </span>
-          )}
+          <span
+            className={cn(
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
+              urgentCount > 0 ? "bg-red-500 text-white" : "bg-muted text-muted-foreground"
+            )}
+          >
+            {dossiers.length}
+          </span>
         </div>
         {!readOnly && (
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0"
+            size="sm"
+            className="gap-1.5 shrink-0"
             onClick={(e) => {
               e.stopPropagation()
               if (!isOpen) {
@@ -273,7 +270,8 @@ export function ProjectAdminDossiers({
               openAdd()
             }}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Ajouter</span>
           </Button>
         )}
       </div>
@@ -290,15 +288,20 @@ export function ProjectAdminDossiers({
           >
             <div className="pt-1 pb-1 px-px space-y-4">
               {dossiers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <FolderOpen className="h-8 w-8 text-muted-foreground mb-3" />
-                  <p className="font-medium text-sm">Aucun dossier administratif</p>
-                  {!readOnly && (
-                    <button onClick={openAdd} className="text-xs text-primary hover:underline mt-1">
-                      Ajouter le premier dossier
-                    </button>
-                  )}
-                </div>
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <FolderOpen className="h-8 w-8 text-muted-foreground mb-3" />
+                    <p className="font-medium text-sm">Aucun dossier administratif</p>
+                    {!readOnly && (
+                      <button
+                        onClick={openAdd}
+                        className="text-xs text-primary hover:underline mt-1"
+                      >
+                        Ajouter le premier dossier
+                      </button>
+                    )}
+                  </CardContent>
+                </Card>
               ) : (
                 <>
                   {active.length > 0 && (

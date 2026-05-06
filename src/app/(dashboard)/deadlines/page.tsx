@@ -3,8 +3,9 @@ import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { differenceInDays, parseISO } from "date-fns"
 import Link from "next/link"
-import { CalendarDays, CalendarCheck, ArrowRight } from "lucide-react"
+import { CalendarCheck, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { FadeIn } from "@/components/ui/motion"
 import type { AdminDossierType, AdminDossierStatus } from "@/types/domain"
 
 export const metadata = { title: "Échéances" }
@@ -102,7 +103,7 @@ function DossierRow({ d }: { d: DossierRow }) {
         </div>
         <span
           className={cn(
-            "inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium hidden md:inline-flex",
+            "hidden md:inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium",
             STATUS_CLASS[d.status]
           )}
         >
@@ -126,7 +127,7 @@ function Section({ title, rows, accent }: { title: string; rows: DossierRow[]; a
       >
         {title} — {rows.length}
       </p>
-      <div className="divide-y divide-border border rounded-lg overflow-hidden">
+      <div className="divide-y divide-border border rounded-lg overflow-hidden bg-card">
         {rows.map((d) => (
           <DossierRow key={d.id} d={d} />
         ))}
@@ -169,48 +170,53 @@ export default async function DeadlinesPage() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="max-w-2xl mx-auto px-6 md:px-8 py-8 space-y-8">
+      <div className="p-6 md:p-8 max-w-2xl space-y-8">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-6 w-6 text-muted-foreground shrink-0" />
-          <div>
-            <h1 className="text-xl font-bold">Échéances</h1>
-            <p className="text-sm text-muted-foreground">
-              {rows.length === 0
-                ? "Aucune échéance à surveiller"
-                : totalUrgent > 0
-                  ? `${totalUrgent} échéance${totalUrgent > 1 ? "s" : ""} urgente${totalUrgent > 1 ? "s" : ""}`
-                  : `${rows.length} échéance${rows.length > 1 ? "s" : ""} à venir`}
-            </p>
-          </div>
-        </div>
+        <FadeIn>
+          <h1 className="text-2xl font-bold tracking-tight">Échéances</h1>
+          <p className="text-muted-foreground">
+            {rows.length === 0
+              ? "Aucune échéance à surveiller"
+              : totalUrgent > 0
+                ? `${totalUrgent} échéance${totalUrgent > 1 ? "s" : ""} urgente${totalUrgent > 1 ? "s" : ""}`
+                : `${rows.length} échéance${rows.length > 1 ? "s" : ""} à venir`}
+          </p>
+        </FadeIn>
 
         {/* Empty state */}
         {rows.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <CalendarCheck className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="font-medium">Aucune échéance enregistrée</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Ajoutez des dossiers administratifs avec une date limite depuis vos projets.
-            </p>
-          </div>
+          <FadeIn delay={0.1}>
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <CalendarCheck className="h-10 w-10 text-muted-foreground mb-4" />
+              <p className="font-medium">Aucune échéance enregistrée</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Ajoutez des dossiers administratifs avec une date limite depuis vos projets.
+              </p>
+            </div>
+          </FadeIn>
         )}
 
         {/* Groupes */}
-        <div className="space-y-6">
-          <Section title="Expirés" rows={expired} accent="text-gray-700 dark:text-gray-300" />
-          <Section
-            title="Urgents — ≤ 7 jours"
-            rows={urgent}
-            accent="text-red-600 dark:text-red-400"
-          />
-          <Section
-            title="Attention — 7 à 30 jours"
-            rows={attention}
-            accent="text-amber-600 dark:text-amber-400"
-          />
-          <Section title="OK — > 30 jours" rows={ok} accent="text-green-600 dark:text-green-500" />
-        </div>
+        <FadeIn delay={0.1}>
+          <div className="space-y-6">
+            <Section title="Expirés" rows={expired} accent="text-gray-700 dark:text-gray-300" />
+            <Section
+              title="Urgents — ≤ 7 jours"
+              rows={urgent}
+              accent="text-red-600 dark:text-red-400"
+            />
+            <Section
+              title="Attention — 7 à 30 jours"
+              rows={attention}
+              accent="text-amber-600 dark:text-amber-400"
+            />
+            <Section
+              title="OK — > 30 jours"
+              rows={ok}
+              accent="text-green-600 dark:text-green-500"
+            />
+          </div>
+        </FadeIn>
       </div>
     </div>
   )

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function SettingsLoading() {
   return (
     <div className="flex-1 overflow-auto">
-      <div className="p-6 md:p-8 space-y-6">
+      <div className="p-6 md:p-8 max-w-2xl space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-8 w-36" />
           <Skeleton className="h-4 w-56" />

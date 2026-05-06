@@ -2,11 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import Link from "next/link"
-import { FadeIn } from "@/components/ui/motion"
-import { ProjectsListClient } from "@/components/projects/projects-list-client"
+import { ProjectsPageClient } from "@/components/projects/projects-page-client"
 import type { ProjectWithCounts } from "@/components/projects/projects-list-client"
 
 export default async function ProjectsPage() {
@@ -96,24 +92,5 @@ export default async function ProjectsPage() {
     return aIsArchi - bIsArchi
   })
 
-  return (
-    <div className="flex-1 overflow-auto">
-      <div className="p-6 md:p-8 space-y-6">
-        <FadeIn className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Projets</h1>
-            <p className="text-muted-foreground">Gérez vos projets et vos clients</p>
-          </div>
-          <Button asChild>
-            <Link href="/projects/new">
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Nouveau projet</span>
-            </Link>
-          </Button>
-        </FadeIn>
-
-        <ProjectsListClient projects={projects} />
-      </div>
-    </div>
-  )
+  return <ProjectsPageClient projects={projects} />
 }

@@ -143,25 +143,7 @@ input[type="date"]::-webkit-date-and-time-value {
   border-radius: var(--radius);
 }
 
-/* Nav hover + active states */
-.nav-item {
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
 
-.nav-item:hover {
-  background-color: hsl(var(--muted-foreground) / 0.12);
-  color: hsl(var(--foreground));
-}
-
-.nav-item.active {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.dark .nav-item.active {
-  background-color: hsl(0 0% 98%);
-  color: hsl(0 0% 9%);
-}
 
 /* Hover générique sur éléments cliquables */
 .clickable:hover {

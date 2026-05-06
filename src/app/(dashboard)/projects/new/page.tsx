@@ -12,6 +12,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
 import { getProfessionConfig } from "@/lib/profession-config"
+import { motion, AnimatePresence } from "framer-motion"
 
 type ProfessionOption = { id: string; slug: string; label: string }
 
@@ -22,6 +23,7 @@ const steps = [
 
 export default function NewProjectPage() {
   const [step, setStep] = useState(1)
+  const [direction, setDirection] = useState(1)
   const [professionSlug, setProfessionSlug] = useState<string | null>(null)
   const [professionId, setProfessionId] = useState<string | null>(null)
   const [availableProfessions, setAvailableProfessions] = useState<ProfessionOption[]>([])
@@ -91,6 +93,7 @@ export default function NewProjectPage() {
       return
     }
     setError(null)
+    setDirection(1)
     setStep(2)
   }
 
@@ -133,8 +136,19 @@ export default function NewProjectPage() {
     router.push(`/projects/${data.id}`)
   }
 
+  const variants = {
+    enter: (d: number) => ({ opacity: 0, x: d > 0 ? 32 : -32 }),
+    center: { opacity: 1, x: 0 },
+    exit: (d: number) => ({ opacity: 0, x: d > 0 ? -32 : 32 }),
+  }
+
   return (
-    <div className="flex-1 overflow-auto">
+    <motion.div
+      className="flex-1 overflow-auto"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
       <div className="p-6 md:p-8 max-w-2xl space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -189,199 +203,223 @@ export default function NewProjectPage() {
           ))}
         </div>
 
-        {/* Étape 1 — Infos projet */}
-        {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations du projet</CardTitle>
-              <CardDescription>Les informations de base visibles par votre client</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Sélecteur de profession — visible uniquement en multi-profession */}
-              {availableProfessions.length > 1 && (
-                <div className="space-y-2 pb-2 border-b">
-                  <Label>Type de projet</Label>
-                  {/* Mobile : select natif */}
-                  <div className="sm:hidden relative">
-                    <select
-                      className="w-full appearance-none px-3 py-2 rounded-lg text-sm border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-8"
-                      value={professionId ?? ""}
-                      onChange={(e) => {
-                        const prof = availableProfessions.find((p) => p.id === e.target.value)
-                        if (prof) handleProfessionSwitch(prof)
-                      }}
-                    >
-                      {availableProfessions.map((prof) => (
-                        <option key={prof.id} value={prof.id}>
-                          {prof.label}
-                        </option>
+        {/* Étapes */}
+        <AnimatePresence mode="wait" custom={direction}>
+          {step === 1 && (
+            <motion.div
+              key="step-1"
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.28, ease: "easeInOut" }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informations du projet</CardTitle>
+                  <CardDescription>
+                    Les informations de base visibles par votre client
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Sélecteur de profession — visible uniquement en multi-profession */}
+                  {availableProfessions.length > 1 && (
+                    <div className="space-y-2 pb-2 border-b">
+                      <Label>Type de projet</Label>
+                      {/* Mobile : select natif */}
+                      <div className="sm:hidden relative">
+                        <select
+                          className="w-full appearance-none px-3 py-2 rounded-lg text-sm border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+                          value={professionId ?? ""}
+                          onChange={(e) => {
+                            const prof = availableProfessions.find((p) => p.id === e.target.value)
+                            if (prof) handleProfessionSwitch(prof)
+                          }}
+                        >
+                          {availableProfessions.map((prof) => (
+                            <option key={prof.id} value={prof.id}>
+                              {prof.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                      {/* Desktop : boutons toggle */}
+                      <div className="hidden sm:flex gap-2">
+                        {availableProfessions.map((prof) => (
+                          <button
+                            key={prof.id}
+                            type="button"
+                            onClick={() => handleProfessionSwitch(prof)}
+                            className={cn(
+                              "flex-1 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150",
+                              professionId === prof.id
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border hover:border-primary/50 hover:bg-muted"
+                            )}
+                          >
+                            {prof.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nom du projet *</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Ex: Rénovation appartement Paris 11e"
+                      value={form.name}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="client_name">Nom du client</Label>
+                      <Input
+                        id="client_name"
+                        name="client_name"
+                        placeholder="Jean Dupont"
+                        value={form.client_name}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="client_email">Email du client</Label>
+                      <Input
+                        id="client_email"
+                        name="client_email"
+                        type="email"
+                        placeholder="jean@exemple.fr"
+                        value={form.client_email}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Adresse du chantier</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      placeholder="12 rue de la Paix, 75001 Paris"
+                      value={form.address}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      name="description"
+                      placeholder="Décrivez brièvement le projet..."
+                      value={form.description}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step-2"
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.28, ease: "easeInOut" }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cadrage du projet</CardTitle>
+                  <CardDescription>
+                    Ces informations vous aident à qualifier et structurer le projet
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="space-y-2">
+                    <Label>Type de travaux</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {workTypes.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setForm({ ...form, work_type: type })}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-sm border transition-all duration-150",
+                            form.work_type === type
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border hover:border-primary/50 hover:bg-muted"
+                          )}
+                        >
+                          {type}
+                        </button>
                       ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
                   </div>
-                  {/* Desktop : boutons toggle */}
-                  <div className="hidden sm:flex gap-2">
-                    {availableProfessions.map((prof) => (
-                      <button
-                        key={prof.id}
-                        type="button"
-                        onClick={() => handleProfessionSwitch(prof)}
-                        className={cn(
-                          "flex-1 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150",
-                          professionId === prof.id
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover:border-primary/50 hover:bg-muted"
-                        )}
-                      >
-                        {prof.label}
-                      </button>
-                    ))}
+
+                  <div className="space-y-2">
+                    <Label>Budget estimé</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {budgetRanges.map((range) => (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => setForm({ ...form, budget_range: range })}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-sm border transition-all duration-150",
+                            form.budget_range === range
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border hover:border-primary/50 hover:bg-muted"
+                          )}
+                        >
+                          {range}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom du projet *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Ex: Rénovation appartement Paris 11e"
-                  value={form.name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="client_name">Nom du client</Label>
-                  <Input
-                    id="client_name"
-                    name="client_name"
-                    placeholder="Jean Dupont"
-                    value={form.client_name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client_email">Email du client</Label>
-                  <Input
-                    id="client_email"
-                    name="client_email"
-                    type="email"
-                    placeholder="jean@exemple.fr"
-                    value={form.client_email}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Adresse du chantier</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  placeholder="12 rue de la Paix, 75001 Paris"
-                  value={form.address}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  name="description"
-                  placeholder="Décrivez brièvement le projet..."
-                  value={form.description}
-                  onChange={handleChange}
-                />
-              </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
-            </CardContent>
-          </Card>
-        )}
+                  <div className="space-y-2">
+                    <Label htmlFor="deadline">Délai souhaité</Label>
+                    <Input
+                      id="deadline"
+                      name="deadline"
+                      placeholder="Ex: Fin du T2 2026, Dans 3 mois..."
+                      value={form.deadline}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-        {/* Étape 2 — Cadrage */}
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cadrage du projet</CardTitle>
-              <CardDescription>
-                Ces informations vous aident à qualifier et structurer le projet
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <Label>Type de travaux</Label>
-                <div className="flex flex-wrap gap-2">
-                  {workTypes.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setForm({ ...form, work_type: type })}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-sm border transition-all duration-150",
-                        form.work_type === type
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border hover:border-primary/50 hover:bg-muted"
-                      )}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="constraints">
+                      Contraintes particulières
+                      <span className="text-muted-foreground font-normal ml-1">(optionnel)</span>
+                    </Label>
+                    <Input
+                      id="constraints"
+                      name="constraints"
+                      placeholder="Ex: Bâtiment classé, copropriété, accès difficile..."
+                      value={form.constraints}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Budget estimé</Label>
-                <div className="flex flex-wrap gap-2">
-                  {budgetRanges.map((range) => (
-                    <button
-                      key={range}
-                      type="button"
-                      onClick={() => setForm({ ...form, budget_range: range })}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-sm border transition-all duration-150",
-                        form.budget_range === range
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border hover:border-primary/50 hover:bg-muted"
-                      )}
-                    >
-                      {range}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Délai souhaité</Label>
-                <Input
-                  id="deadline"
-                  name="deadline"
-                  placeholder="Ex: Fin du T2 2026, Dans 3 mois..."
-                  value={form.deadline}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="constraints">
-                  Contraintes particulières
-                  <span className="text-muted-foreground font-normal ml-1">(optionnel)</span>
-                </Label>
-                <Input
-                  id="constraints"
-                  name="constraints"
-                  placeholder="Ex: Bâtiment classé, copropriété, accès difficile..."
-                  value={form.constraints}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {error && <p className="text-sm text-destructive">{error}</p>}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3">
+        {/* Actions — sticky mobile, inline desktop */}
+        <div className="sm:hidden h-20" />
+        <div className="fixed bottom-0 left-0 right-0 z-30 flex gap-3 px-4 py-3 bg-background/95 backdrop-blur-sm border-t sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0">
           {step === 1 ? (
             <>
               <Button variant="outline" className="flex-1" asChild>
@@ -394,7 +432,14 @@ export default function NewProjectPage() {
             </>
           ) : (
             <>
-              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setDirection(-1)
+                  setStep(1)
+                }}
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
@@ -406,6 +451,6 @@ export default function NewProjectPage() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
