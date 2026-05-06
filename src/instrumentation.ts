@@ -13,6 +13,8 @@ const EnvSchema = z.object({
   // Dropbox OAuth — requis à partir du Sprint 2 (intégrations cloud)
   DROPBOX_APP_KEY: z.string().min(1).optional(),
   DROPBOX_APP_SECRET: z.string().min(1).optional(),
+  // Vercel Cron — requis en production pour protéger /api/cron/*
+  CRON_SECRET: z.string().min(16).optional(),
 })
 
 export async function register() {

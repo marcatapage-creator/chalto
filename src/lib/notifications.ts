@@ -11,6 +11,7 @@ interface CreateNotificationParams {
     | "situation_reviewed"
     | "cloud_file_synced"
     | "cloud_token_expired"
+    | "deadline_alert"
   title: string
   body?: string
   link?: string

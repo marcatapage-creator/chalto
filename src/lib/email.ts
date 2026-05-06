@@ -539,3 +539,95 @@ export async function sendSituationReviewedEmail({
     `,
   })
 }
+
+export async function sendDeadlineAlertEmail({
+  userEmail,
+  userName,
+  projectName,
+  projectId,
+  dossierType,
+  deadline,
+  daysRemaining,
+  threshold,
+  baseUrl,
+}: {
+  userEmail: string
+  userName: string
+  projectName: string
+  projectId: string
+  dossierType: string
+  deadline: string
+  daysRemaining: number
+  threshold: number
+  baseUrl: string
+}) {
+  const formattedDeadline = new Date(deadline + "T00:00:00").toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+
+  const isExpired = daysRemaining < 0
+  const urgencyColor = daysRemaining <= 7 ? "#ef4444" : daysRemaining <= 30 ? "#f59e0b" : "#22c55e"
+  const urgencyLabel = isExpired
+    ? "Échéance dépassée"
+    : daysRemaining === 0
+      ? "Échéance aujourd'hui"
+      : `J-${daysRemaining}`
+
+  const subject = isExpired
+    ? `⚫ Échéance dépassée — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+    : daysRemaining <= 7
+      ? `🔴 ${urgencyLabel} — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+      : `🟠 ${urgencyLabel} — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+
+  return getResend().emails.send({
+    from: FROM,
+    to: userEmail,
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          </div>
+
+          <div style="display: inline-block; background: ${urgencyColor}; color: #fff; font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;">
+            ${escapeHtml(urgencyLabel)}
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            ${isExpired ? "Échéance dépassée" : "Rappel d'échéance"}
+          </h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">Bonjour ${escapeHtml(userName)},</p>
+
+          <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Projet</p>
+            <p style="margin: 0 0 16px; font-weight: 600; font-size: 16px;">${escapeHtml(projectName)}</p>
+
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Dossier</p>
+            <p style="margin: 0 0 16px; font-weight: 600; font-size: 16px;">${escapeHtml(dossierType)}</p>
+
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Échéance</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px; color: ${urgencyColor};">${escapeHtml(formattedDeadline)}</p>
+          </div>
+
+          <a href="${baseUrl}/projects/${projectId}"
+             style="display: inline-block; background: #111; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; margin-bottom: 32px;">
+            Voir le projet →
+          </a>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Notification automatique Chalto · Alerte J-${threshold}
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
