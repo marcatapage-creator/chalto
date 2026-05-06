@@ -91,16 +91,13 @@ export function ProjectPageClient({
   const isDesktop = useMediaQuery("(min-width: 1280px)")
 
   // ─── UI panels ───────────────────────────────────────────────────────────────
-  const isLatePhase = phase === "reception" || phase === "cloture"
-  const startCollapsed = isLatePhase && !initialHighlightId
+  const startCollapsed = !initialHighlightId
 
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
   const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
-  const [docsOpen, setDocsOpen] = useState(
-    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
-  )
+  const [docsOpen, setDocsOpen] = useState(initialHighlightId?.startsWith("doc_") ?? false)
 
   // ─── Highlight (notification deep-link) ──────────────────────────────────────
   // "tab_situations" is a legacy sentinel from old ?tab=situations notifications — not a real highlight
@@ -270,7 +267,7 @@ export function ProjectPageClient({
               >
                 <div className="border-t flex flex-col sm:flex-row">
                   {/* Infos client */}
-                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
+                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
