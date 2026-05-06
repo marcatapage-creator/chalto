@@ -22,6 +22,11 @@ export async function checkRateLimit(request: Request): Promise<boolean> {
     request.headers.get("x-real-ip") ??
     "anonymous"
 
-  const { success } = await ratelimit.limit(ip)
-  return success
+  try {
+    const { success } = await ratelimit.limit(ip)
+    return success
+  } catch {
+    // Fail-open: if Redis is unreachable, don't block the request
+    return true
+  }
 }
