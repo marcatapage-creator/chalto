@@ -99,18 +99,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Connecté → vérifier onboarding
+  // Connecté → vérifier onboarding (cookie 1h pour éviter la query à chaque requête)
   if (user && !isPublic && pathname !== "/onboarding" && !pathname.startsWith("/api/")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("profession_id")
-      .eq("id", user.id)
-      .single()
+    const onboardingDone = request.cookies.get("onboarding_done")?.value
+    if (!onboardingDone) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("profession_id")
+        .eq("id", user.id)
+        .single()
 
-    if (profile && !profile.profession_id) {
-      const url = request.nextUrl.clone()
-      url.pathname = "/onboarding"
-      return NextResponse.redirect(url)
+      if (profile && !profile.profession_id) {
+        const url = request.nextUrl.clone()
+        url.pathname = "/onboarding"
+        return NextResponse.redirect(url)
+      }
+      if (profile?.profession_id) {
+        supabaseResponse.cookies.set("onboarding_done", "1", {
+          httpOnly: true,
+          sameSite: "lax",
+          maxAge: 60 * 60,
+          path: "/",
+        })
+      }
     }
   }
 

@@ -5,10 +5,9 @@ import { getCachedProfile } from "@/lib/cached-queries"
 import { Sidebar } from "@/components/dashboard/sidebar"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getAuthUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
   if (!user) redirect("/login")
 
-  const supabase = await createClient()
   const [profile, { count: projectsCount }, { count: contactsCount }] = await Promise.all([
     getCachedProfile(user.id),
     supabase.from("projects").select("*", { count: "exact", head: true }).eq("user_id", user.id),

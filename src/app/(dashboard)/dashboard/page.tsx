@@ -109,20 +109,15 @@ export default async function DashboardPage() {
   })
 
   const projectIds = projects?.map((p) => p.id) ?? []
-  const [{ data: documents }, { count: documentSentCount }, { data: unreadRows }] =
-    await Promise.all([
-      projectIds.length > 0
-        ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
-        : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
-      projectIds.length > 0
-        ? supabase
-            .from("documents")
-            .select("*", { count: "exact", head: true })
-            .in("project_id", projectIds)
-            .in("status", ["sent", "approved", "rejected"])
-        : Promise.resolve({ count: 0 }),
-      supabase.rpc("get_projects_unread_counts"),
-    ])
+  const [{ data: documents }, { data: unreadRows }] = await Promise.all([
+    projectIds.length > 0
+      ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
+      : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
+    supabase.rpc("get_projects_unread_counts"),
+  ])
+  const documentSentCount = (documents ?? []).filter((d) =>
+    ["sent", "approved", "rejected"].includes(d.status)
+  ).length
 
   const unreadMap = new Map<string, number>(
     (unreadRows ?? []).map((r: { project_id: string; unread_count: number }) => [
