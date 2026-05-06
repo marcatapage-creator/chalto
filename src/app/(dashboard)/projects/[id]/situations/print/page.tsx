@@ -1,3 +1,4 @@
+import React from "react"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { redirect, notFound } from "next/navigation"
@@ -92,8 +93,8 @@ export default async function SituationsPrintPage({ params }: { params: Promise<
                   </thead>
                   <tbody>
                     {(rows ?? []).map((s) => (
-                      <>
-                        <tr key={s!.id} className="border-b border-gray-100 align-top">
+                      <React.Fragment key={s!.id}>
+                        <tr className="border-b border-gray-100 align-top">
                           <td className="py-2 pr-4 font-medium">{s!.lot_label}</td>
                           <td className="py-2 pr-4 text-right">{s!.percentage}%</td>
                           <td className="py-2 pr-4 text-right">
@@ -121,7 +122,7 @@ export default async function SituationsPrintPage({ params }: { params: Promise<
                           </td>
                         </tr>
                         {(s!.comment || s!.refusal_reason || s!.reviewer_comment) && (
-                          <tr key={`${s!.id}-detail`} className="border-b border-gray-100">
+                          <tr className="border-b border-gray-100">
                             <td colSpan={5} className="pb-3 pt-0 pl-2">
                               {s!.comment && (
                                 <p className="text-xs text-gray-500 italic">
@@ -141,7 +142,7 @@ export default async function SituationsPrintPage({ params }: { params: Promise<
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
