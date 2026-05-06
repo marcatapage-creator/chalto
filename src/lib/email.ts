@@ -206,7 +206,7 @@ export async function sendWaitlistConfirmationEmail({
           </h1>
 
           <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
-            Bonjour ${escapeHtml(name)}
+            Bonjour${name ? ` ${escapeHtml(name)}` : ""} !
           </p>
 
           <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">

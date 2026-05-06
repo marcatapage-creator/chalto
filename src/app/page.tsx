@@ -1,159 +1,26 @@
-"use client"
-
-import { useRef, useState, useEffect, useSyncExternalStore } from "react"
-import { motion, useInView, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { AnimatedLogo } from "@/components/ui/animated-logo"
-import { WaitlistForm } from "@/components/waitlist-form"
-import { useTheme } from "@/components/theme-provider"
 import {
+  ArrowRight,
   CheckCircle,
   FileText,
   Users,
   Shield,
-  Star,
-  ArrowRight,
   FolderOpen,
-  Menu,
-  X,
   Sparkles,
-  Monitor,
-  Tablet,
-  Smartphone,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useMediaQuery } from "@/hooks/use-media-query"
+import { WaitlistForm } from "@/components/waitlist-form"
+import { AnimatedLogo } from "@/components/ui/animated-logo"
+import { LandingNav } from "@/components/landing/landing-nav"
+import { LandingAnimatedWord } from "@/components/landing/landing-animated-word"
+import { LandingProfessionSection } from "@/components/landing/landing-profession-section"
+import { LandingDeviceShowcase } from "@/components/landing/landing-device-showcase"
 
-const noop = () => () => {}
-function useIsClient() {
-  return useSyncExternalStore(
-    noop,
-    () => true,
-    () => false
-  )
-}
-
-function AnimatedWord({ words }: { words: string[] }) {
-  const [index, setIndex] = useState(0)
-  const isClient = useIsClient()
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % words.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [words])
-
-  if (!isClient) {
-    return <span className="text-primary inline-block text-4xl md:text-6xl">{words[0]}</span>
-  }
-
-  return (
-    <span className="text-primary inline-block text-4xl md:text-6xl relative">
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={words[index]}
-          initial={{ opacity: 0, filter: "blur(16px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, filter: "blur(16px)", transition: { duration: 0.6, ease: "easeIn" } }}
-          transition={{ duration: 1.1, ease: "easeOut" }}
-          className="inline-block"
-          style={{ willChange: "opacity, filter" }}
-        >
-          {words[index]}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  )
-}
-
-// Composant animation réutilisable
-function AnimateIn({
-  children,
-  delay = 0,
-  direction = "up",
-}: {
-  children: React.ReactNode
-  delay?: number
-  direction?: "up" | "left" | "right"
-}) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-80px" })
-
-  const variants = {
-    hidden: {
-      opacity: 0,
-      y: direction === "up" ? 30 : 0,
-      x: direction === "left" ? -30 : direction === "right" ? 30 : 0,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      transition: {
-        duration: 0.6,
-        delay,
-        ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
-      },
-    },
-  }
-
-  return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={variants}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-// Composant stagger pour les grilles
-function StaggerGrid({ children, className }: { children: React.ReactNode[]; className?: string }) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-60px" })
-
-  return (
-    <motion.div
-      ref={ref}
-      className={className}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: { staggerChildren: 0.08 },
-        },
-      }}
-    >
-      {children.map((child, i) => (
-        <motion.div
-          key={i}
-          variants={{
-            hidden: { opacity: 0, y: 24 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: {
-                duration: 0.5,
-                ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
-              },
-            },
-          }}
-        >
-          {child}
-        </motion.div>
-      ))}
-    </motion.div>
-  )
-}
+const SHOW_TESTIMONIALS = false
+const SHOW_PRICING = false
 
 const features = [
   {
@@ -255,293 +122,6 @@ const plans = [
   },
 ]
 
-const PROFESSION_SHOWCASE = [
-  {
-    slug: "architecte",
-    label: "Architecte",
-    emoji: "🏛️",
-    projectName: "Villa Les Pins — M. Bernard",
-    phases: [
-      { label: "Cadrage", done: true, active: false },
-      { label: "Conception", done: true, active: false },
-      { label: "Validation", done: false, active: true },
-      { label: "Chantier", done: false, active: false },
-      { label: "Réception", done: false, active: false },
-      { label: "Clôturé", done: false, active: false },
-    ],
-    workTypes: ["Rénovation complète", "Extension"],
-    docName: "CCTP Lot Gros Œuvre",
-    docApproved: false,
-  },
-  {
-    slug: "architecte_int",
-    label: "Archi d'intérieur",
-    emoji: "🎨",
-    projectName: "Appt Haussmannien — Mme Leroy",
-    phases: [
-      { label: "Brief", done: true, active: false },
-      { label: "Conception", done: true, active: false },
-      { label: "Validation", done: true, active: false },
-      { label: "Réalisation", done: false, active: true },
-      { label: "Livraison", done: false, active: false },
-      { label: "Clôturé", done: false, active: false },
-    ],
-    workTypes: ["Design d'intérieur", "Home staging"],
-    docName: "Notice descriptive",
-    docApproved: true,
-  },
-  {
-    slug: "plombier",
-    label: "Plombier",
-    emoji: "🔧",
-    projectName: "Salle de bain — M. Dubois",
-    phases: [
-      { label: "Diagnostic", done: true, active: false },
-      { label: "Étude", done: true, active: false },
-      { label: "Devis validé", done: false, active: true },
-      { label: "Chantier", done: false, active: false },
-      { label: "Mise en svce", done: false, active: false },
-      { label: "Clôturé", done: false, active: false },
-    ],
-    workTypes: ["Rénovation salle de bain", "Chauffage"],
-    docName: "Devis sanitaires",
-    docApproved: false,
-  },
-  {
-    slug: "electricien",
-    label: "Électricien",
-    emoji: "⚡",
-    projectName: "Mise aux normes — Mme Garcia",
-    phases: [
-      { label: "Diagnostic", done: true, active: false },
-      { label: "Étude", done: true, active: false },
-      { label: "Devis validé", done: true, active: false },
-      { label: "Chantier", done: false, active: true },
-      { label: "Mise en svce", done: false, active: false },
-      { label: "Clôturé", done: false, active: false },
-    ],
-    workTypes: ["Mise aux normes", "Domotique"],
-    docName: "Rapport électrique",
-    docApproved: false,
-  },
-  {
-    slug: "menuisier",
-    label: "Menuisier",
-    emoji: "🪵",
-    projectName: "Cuisine sur mesure — M. Moreau",
-    phases: [
-      { label: "Cadrage", done: true, active: false },
-      { label: "Plans", done: true, active: false },
-      { label: "Validation", done: true, active: false },
-      { label: "Fabrication", done: false, active: true },
-      { label: "Réception", done: false, active: false },
-      { label: "Clôturé", done: false, active: false },
-    ],
-    workTypes: ["Cuisine sur mesure", "Dressing"],
-    docName: "Plans d'exécution",
-    docApproved: true,
-  },
-]
-
-function ProfessionSection() {
-  const [idx, setIdx] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const sectionRef = useRef(null)
-  const inView = useInView(sectionRef, { once: true, margin: "-80px" })
-
-  useEffect(() => {
-    if (paused || !inView) return
-    const t = setInterval(() => setIdx((i) => (i + 1) % PROFESSION_SHOWCASE.length), 5600)
-    return () => clearInterval(t)
-  }, [paused, inView])
-
-  const prof = PROFESSION_SHOWCASE[idx]
-
-  return (
-    <section ref={sectionRef} className="py-20 px-6 md:px-4">
-      <div className="max-w-3xl mx-auto">
-        <AnimateIn>
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold tracking-tight">Un outil qui parle votre langue</h2>
-            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-              Phases, vocabulaire, types de travaux — tout s&apos;adapte automatiquement à votre
-              métier.
-            </p>
-          </div>
-        </AnimateIn>
-
-        {/* Pills */}
-        <AnimateIn delay={0.1}>
-          <div className="flex flex-wrap gap-2 justify-center mb-8">
-            {PROFESSION_SHOWCASE.map((p, i) => (
-              <button
-                key={p.slug}
-                onClick={() => {
-                  setIdx(i)
-                  setPaused(true)
-                }}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                  idx === i
-                    ? "bg-primary text-primary-foreground shadow-sm scale-[1.03]"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                )}
-              >
-                <span>{p.emoji}</span>
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </AnimateIn>
-
-        {/* Card */}
-        <AnimateIn delay={0.15}>
-          <div className="relative">
-            {/* Auto-cycle progress bar */}
-            {!paused && inView && (
-              <motion.div
-                key={`bar-${idx}`}
-                className="absolute -top-px left-0 h-0.5 bg-primary/50 rounded-full z-10"
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 5.6, ease: "linear" }}
-              />
-            )}
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, filter: "blur(10px)", y: 6 }}
-                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                exit={{ opacity: 0, filter: "blur(10px)", y: -6, transition: { duration: 0.4 } }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              >
-                <Card className="border-border/60 overflow-hidden">
-                  <CardContent className="p-5 md:p-6 space-y-5">
-                    {/* Project header */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">{prof.projectName}</p>
-                        <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                          {prof.workTypes.map((w) => (
-                            <span
-                              key={w}
-                              className="text-[11px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground"
-                            >
-                              {w}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground leading-none shrink-0 mt-0.5">
-                        En cours
-                      </span>
-                    </div>
-
-                    {/* Stepper */}
-                    <div className="grid grid-cols-6 pt-1 pb-4">
-                      {prof.phases.map((phase, i) => (
-                        <div key={phase.label} className="flex flex-col items-center relative">
-                          {/* Left connector */}
-                          {i > 0 && (
-                            <div
-                              className={cn(
-                                "absolute top-2.5 right-1/2 left-0 h-px",
-                                prof.phases[i - 1].done ? "bg-primary/50" : "bg-muted-foreground/25"
-                              )}
-                            />
-                          )}
-                          {/* Right connector */}
-                          {i < prof.phases.length - 1 && (
-                            <div
-                              className={cn(
-                                "absolute top-2.5 left-1/2 right-0 h-px",
-                                phase.done ? "bg-primary/50" : "bg-muted-foreground/25"
-                              )}
-                            />
-                          )}
-                          {/* Dot */}
-                          <div
-                            className={cn(
-                              "relative z-10 w-5 h-5 rounded-full border-2 bg-background flex items-center justify-center transition-all",
-                              phase.active
-                                ? "border-primary bg-primary ring-4 ring-primary/15"
-                                : phase.done
-                                  ? "border-primary/60 bg-primary/60"
-                                  : "border-muted-foreground/30"
-                            )}
-                          >
-                            {phase.done && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
-                            )}
-                          </div>
-                          {/* Label */}
-                          <span
-                            className={cn(
-                              "text-[10px] leading-tight",
-                              phase.active
-                                ? "block text-primary font-semibold whitespace-nowrap absolute top-full mt-1.5 left-1/2 -translate-x-1/2 sm:static sm:translate-x-0 sm:w-full sm:text-center sm:px-0.5"
-                                : phase.done
-                                  ? "hidden sm:block sm:text-foreground/60 sm:w-full sm:text-center sm:mt-1.5 sm:px-0.5"
-                                  : "hidden sm:block sm:text-muted-foreground/40 sm:w-full sm:text-center sm:mt-1.5 sm:px-0.5"
-                            )}
-                          >
-                            {phase.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Document row */}
-                    <div className="border border-border/60 rounded-lg px-4 py-3 flex items-center justify-between bg-muted/20">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{prof.docName}</span>
-                      </div>
-                      <span
-                        className={cn(
-                          "ml-3 shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium",
-                          prof.docApproved
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                        )}
-                      >
-                        {prof.docApproved ? "Approuvé ✓" : "En attente"}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </AnimateIn>
-      </div>
-    </section>
-  )
-}
-
-function scrollToSection(id: string) {
-  const el = document.getElementById(id)
-  if (!el) return
-
-  const start = window.scrollY
-  const target = el.getBoundingClientRect().top + window.scrollY - 64
-  const distance = target - start
-  const duration = 900
-  let startTime: number | null = null
-
-  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
-
-  function step(timestamp: number) {
-    if (!startTime) startTime = timestamp
-    const progress = Math.min((timestamp - startTime) / duration, 1)
-    window.scrollTo(0, start + distance * ease(progress))
-    if (progress < 1) requestAnimationFrame(step)
-  }
-
-  requestAnimationFrame(step)
-}
-
 function AIFeatureCard({
   title,
   description,
@@ -591,219 +171,7 @@ function AIFeatureCard({
   )
 }
 
-// Sections temporairement masquées — passer à true pour réafficher
-const SHOW_TESTIMONIALS = false
-const SHOW_PRICING = false
-
-// ─── Responsive showcase (Option C — device morphant) ───────────────────────
-
-type DeviceType = "desktop" | "tablet" | "mobile"
-
-const DEVICES: Record<
-  DeviceType,
-  { label: string; icon: React.ElementType; w: number; h: number; radius: number; border: number }
-> = {
-  desktop: { label: "Desktop", icon: Monitor, w: 560, h: 360, radius: 12, border: 1 },
-  tablet: { label: "Tablette", icon: Tablet, w: 300, h: 420, radius: 24, border: 3 },
-  mobile: { label: "Mobile", icon: Smartphone, w: 190, h: 420, radius: 36, border: 3 },
-}
-
-function ScreenshotContent({ device }: { device: DeviceType }) {
-  const { resolvedTheme } = useTheme()
-  const theme = resolvedTheme === "dark" ? "dark" : "light"
-  if (device === "desktop") {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        suppressHydrationWarning
-        src={`/screenshots/${device}-${theme}.png`}
-        alt={`Chalto sur ${DEVICES[device].label}`}
-        className="w-full h-full object-cover object-top"
-        draggable={false}
-      />
-    )
-  }
-  return (
-    <div className="w-full h-full p-2 flex items-start overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        suppressHydrationWarning
-        src={`/screenshots/${device}-${theme}.png`}
-        alt={`Chalto sur ${DEVICES[device].label}`}
-        className="w-full h-auto rounded-sm"
-        draggable={false}
-      />
-    </div>
-  )
-}
-
-function DeviceShowcase() {
-  const [active, setActive] = useState<DeviceType>("desktop")
-  const [auto, setAuto] = useState(true)
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const isMobile = useMediaQuery("(max-width: 767px)")
-  const cycle: DeviceType[] = isMobile ? ["tablet", "mobile"] : ["desktop", "tablet", "mobile"]
-  const isMobileRef = useRef(isMobile)
-  const spring = { type: "spring" as const, stiffness: 280, damping: 28 }
-
-  useEffect(() => {
-    isMobileRef.current = isMobile
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (isMobile) setActive((prev) => (prev === "desktop" ? "tablet" : prev))
-  }, [isMobile])
-
-  useEffect(() => {
-    if (!auto) return
-    const t = setInterval(() => {
-      setActive((prev) => {
-        const c: DeviceType[] = isMobileRef.current
-          ? ["tablet", "mobile"]
-          : ["desktop", "tablet", "mobile"]
-        const idx = c.indexOf(prev)
-        return c[(idx === -1 ? 0 : idx + 1) % c.length]
-      })
-    }, 3200)
-    return () => clearInterval(t)
-  }, [auto])
-
-  const d = DEVICES[active]
-
-  return (
-    <section className="py-20 px-6 md:px-4 overflow-hidden">
-      <div className="max-w-6xl mx-auto">
-        <AnimateIn>
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold tracking-tight">Pensé pour le terrain</h2>
-            <p className="text-muted-foreground mt-2">
-              Bureau, chantier ou déplacement — l&apos;interface s&apos;adapte à votre écran
-            </p>
-          </div>
-        </AnimateIn>
-
-        {/* Device frame — fixed-height container so tabs never shift */}
-        <motion.div
-          ref={ref}
-          className="flex justify-center items-center"
-          style={{ height: 420 }}
-          initial={{ opacity: 0, y: 48 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 48 }}
-          transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
-        >
-          <motion.div
-            animate={{ width: d.w, borderRadius: d.radius }}
-            transition={spring}
-            className="relative overflow-hidden bg-background shadow-2xl"
-            style={{
-              height: d.h,
-              border: `${d.border}px solid hsl(var(--border) / 0.6)`,
-            }}
-          >
-            {/* Top bar */}
-            <AnimatePresence mode="wait">
-              {active === "desktop" ? (
-                <motion.div
-                  key="browser-chrome"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-9 bg-muted border-b border-border/30 flex items-center px-3 gap-2 shrink-0"
-                >
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose-400/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
-                  </div>
-                  <div className="flex-1 h-4 bg-background/70 rounded-full mx-2" />
-                </motion.div>
-              ) : active === "tablet" ? (
-                <motion.div
-                  key="tablet-bar"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-7 bg-muted/50 border-b border-border/20 flex items-center justify-center"
-                >
-                  <div className="h-1.5 w-14 rounded-full bg-foreground/15" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="mobile-notch"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-8 bg-background flex items-start justify-center pt-1.5"
-                >
-                  <div className="w-20 h-4 rounded-full bg-border/50" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Content */}
-            <motion.div
-              animate={{
-                height: active === "desktop" ? d.h - 36 : active === "tablet" ? d.h - 28 : d.h - 32,
-              }}
-              transition={spring}
-              className="overflow-hidden"
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active}
-                  initial={{ opacity: 0, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, filter: "blur(8px)" }}
-                  transition={{ duration: 0.25 }}
-                  className="h-full"
-                >
-                  <ScreenshotContent device={active} />
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-        {/* Tabs */}
-        <motion.div
-          className="flex items-center justify-center gap-2 mt-8"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-        >
-          {cycle.map((key) => {
-            const Icon = DEVICES[key].icon
-            const isActive = active === key
-            return (
-              <button
-                key={key}
-                onClick={() => {
-                  setActive(key)
-                  setAuto(false)
-                }}
-                className={cn(
-                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/70 text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {DEVICES[key].label}
-              </button>
-            )
-          })}
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
 export default function LandingPage() {
-  const [menuOpen, setMenuOpen] = useState(false)
-
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -878,273 +246,89 @@ export default function LandingPage() {
       />
 
       <div className="min-h-screen bg-background overflow-x-hidden">
-        {/* Navbar */}
-        <motion.header
-          className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm"
-          initial={{ y: -60, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <div className="max-w-6xl mx-auto px-6 md:px-4 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AnimatedLogo width={24} height={24} />
-              <span className="font-bold">Chalto</span>
+        <LandingNav showPricing={SHOW_PRICING} showTestimonials={SHOW_TESTIMONIALS} />
+
+        <main>
+          {/* Hero — statique, pas de motion.h1, texte visible immédiatement */}
+          <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden">
+            {/* Fond décoratif desktop uniquement (blur-3xl coûteux sur mobile) */}
+            <div className="absolute inset-0 pointer-events-none hidden md:block">
+              <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+              <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
             </div>
-            <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#features" className="hover:text-foreground transition-colors">
-                Fonctionnalités
-              </a>
-              {SHOW_PRICING && (
-                <a href="#pricing" className="hover:text-foreground transition-colors">
-                  Tarifs
-                </a>
-              )}
-              {SHOW_TESTIMONIALS && (
-                <a href="#testimonials" className="hover:text-foreground transition-colors">
-                  Témoignages
-                </a>
-              )}
-              <Link href="/blog" className="hover:text-foreground transition-colors">
-                Blog
-              </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
-                <Link href="/login">Connexion</Link>
-              </Button>
-              <Button size="sm" asChild className="hidden md:inline-flex">
-                <a href="#waitlist">Rejoindre la bêta</a>
-              </Button>
-              <button
-                className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Menu"
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {menuOpen ? (
-                    <motion.span
-                      key="close"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.18 }}
-                      className="block"
-                    >
-                      <X className="h-5 w-5" />
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="open"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.18 }}
-                      className="block"
-                    >
-                      <Menu className="h-5 w-5" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile menu */}
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
-                className="md:hidden border-t bg-background/95 backdrop-blur-sm"
-              >
-                <nav className="flex flex-col px-6 py-4 gap-1">
-                  {[
-                    { label: "Fonctionnalités", id: "features" },
-                    { label: "Tarifs", id: "pricing" },
-                    { label: "Témoignages", id: "testimonials" },
-                    { label: "Rejoindre la bêta", id: "waitlist" },
-                  ]
-                    .filter((item) => {
-                      if (item.id === "pricing" && !SHOW_PRICING) return false
-                      if (item.id === "testimonials" && !SHOW_TESTIMONIALS) return false
-                      return true
-                    })
-                    .map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          scrollToSection(item.id)
-                          setMenuOpen(false)
-                        }}
-                        className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  <Link
-                    href="/blog"
-                    onClick={() => setMenuOpen(false)}
-                    className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
-                  >
-                    Blog
-                  </Link>
-                  <div className="flex gap-2 pt-3">
-                    <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <Link href="/login" onClick={() => setMenuOpen(false)}>
-                        Connexion
-                      </Link>
-                    </Button>
-                    <Button size="sm" className="flex-1" asChild>
-                      <a href="#waitlist" onClick={() => setMenuOpen(false)}>
-                        Rejoindre la bêta
-                      </a>
-                    </Button>
-                  </div>
-                </nav>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.header>
-
-        {/* Hero */}
-        <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden">
-          {/* Fond décoratif — desktop uniquement (blur-3xl coûteux sur mobile) */}
-          <div className="absolute inset-0 pointer-events-none hidden md:block">
-            <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
-          </div>
-
-          <div className="max-w-4xl mx-auto text-center space-y-6 relative">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.05 }}
-              className="flex justify-center mb-6"
-            >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.75 }}
-              >
+            <div className="max-w-4xl mx-auto text-center space-y-6 relative">
+              {/* Logo flottant — client island, pas LCP */}
+              <div className="flex justify-center mb-6">
                 <AnimatedLogo width={88} height={88} className="md:hidden" />
                 <AnimatedLogo width={112} height={112} className="hidden md:block" />
-              </motion.div>
-            </motion.div>
+              </div>
+              <div>
+                <Badge variant="outline" className="mb-4 hidden md:inline-flex">
+                  Pour tous les pros du bâtiment
+                </Badge>
+              </div>
+              {/* H1 — SERVER RENDERED, texte visible au premier paint = LCP element */}
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight uppercase">
+                <LandingAnimatedWord words={["Piloter", "Organiser", "Maîtriser"]} />
+                <br />
+                {/* Mobile + tablette : 2 lignes */}
+                <span className="xl:hidden">
+                  <span className="block text-foreground text-4xl md:text-5xl">
+                    votre activité,
+                  </span>
+                  <span className="block text-foreground text-4xl md:text-5xl">simplement</span>
+                </span>
+                {/* Desktop : 1 ligne */}
+                <span className="hidden xl:inline text-foreground whitespace-nowrap">
+                  votre activité, simplement
+                </span>
+              </h1>
+              {/* Subtitle — SERVER RENDERED */}
+              <p
+                className="text-lg md:text-xl text-muted-foreground mx-auto"
+                style={{ maxWidth: "512px" }}
+              >
+                Ne perdez plus de temps avec les emails, les WhatsApp et les appels de relance.
+                <br />
+                Chalto centralise tous vos projets, documents et validations client en un seul
+                endroit.
+              </p>
+              {/* CTA buttons — liens statiques, pas de motion */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <Button size="lg" asChild>
+                  <a href="#waitlist">
+                    Rejoindre la bêta <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/demo">Voir la démo</Link>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Accès bêta sur invitation · Gratuit · Sans engagement
+              </p>
+            </div>
+          </section>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <Badge variant="outline" className="mb-4 hidden md:inline-flex">
-                Pour tous les pros du bâtiment
-              </Badge>
-            </motion.div>
-
-            <motion.h1
-              className="text-5xl md:text-6xl font-bold tracking-tight leading-tight uppercase"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              <AnimatedWord words={["Piloter", "Organiser", "Maîtriser"]} />
-              <br />
-              {/* Mobile + tablette : 2 lignes */}
-              <span className="xl:hidden">
-                <span className="block text-foreground text-4xl md:text-5xl">votre activité,</span>
-                <span className="block text-foreground text-4xl md:text-5xl">simplement</span>
-              </span>
-              {/* Desktop : 1 ligne */}
-              <span className="hidden xl:inline text-foreground whitespace-nowrap">
-                votre activité, simplement
-              </span>
-            </motion.h1>
-
-            <motion.p
-              className="text-lg md:text-xl text-muted-foreground mx-auto"
-              style={{ maxWidth: "512px" }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35 }}
-            >
-              Ne perdez plus de temps avec les emails, les WhatsApp et les appels de relance.
-              <br />
-              Chalto centralise tous vos projets, documents et validations client en un seul
-              endroit.
-            </motion.p>
-
-            <motion.div
-              className="flex flex-col items-center sm:flex-row gap-3 justify-center mt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <Button size="lg" asChild>
-                <motion.a href="#waitlist" whileHover="hovered">
-                  Rejoindre la bêta
-                  {/* Mobile — boucle infinie */}
-                  <motion.span
-                    className="md:hidden ml-2 inline-flex"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.span>
-                  {/* Desktop — boucle au hover */}
-                  <motion.span
-                    className="hidden md:inline-flex ml-2"
-                    variants={{
-                      hovered: {
-                        x: [0, 4, 0],
-                        transition: { repeat: Infinity, duration: 1.2, ease: "easeInOut" },
-                      },
-                    }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.span>
-                </motion.a>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/demo">Voir la démo</Link>
-              </Button>
-            </motion.div>
-
-            <motion.p
-              className="text-xs text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-            >
-              Accès bêta sur invitation · Gratuit · Sans engagement
-            </motion.p>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section id="features" className="py-20 px-6 md:px-4 bg-muted/30">
-          <div className="max-w-6xl mx-auto">
-            <AnimateIn>
+          {/* Features — statique */}
+          <section id="features" className="py-20 px-6 md:px-4 bg-muted/30">
+            <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tight">Tout ce dont vous avez besoin</h2>
                 <p className="text-muted-foreground mt-2">
                   Un outil pensé pour les réalités du terrain
                 </p>
               </div>
-            </AnimateIn>
 
-            {/* Hero feature — Validation client */}
-            <AnimateIn>
+              {/* Hero feature — Validation client */}
               <style>{`
-                @keyframes hero-border-spin {
-                  to { --hero-angle: 360deg; }
-                }
                 @property --hero-angle {
                   syntax: '<angle>';
                   initial-value: 0deg;
                   inherits: false;
+                }
+                @keyframes hero-border-spin {
+                  to { --hero-angle: 360deg; }
                 }
                 .hero-card-border {
                   background: conic-gradient(from var(--hero-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, hsl(224 79% 65% / 0.45), transparent 75%);
@@ -1174,89 +358,90 @@ export default function LandingPage() {
                   </CardContent>
                 </Card>
               </div>
-            </AnimateIn>
 
-            {/* Grille 5 features */}
-            <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature) => {
-                const Icon = feature.icon
-                if (feature.title === "Génération IA") {
+              {/* Grid features */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {features.map((feature) => {
+                  const Icon = feature.icon
+                  if (feature.title === "Génération IA") {
+                    return (
+                      <AIFeatureCard
+                        key={feature.title}
+                        title={feature.title}
+                        description={feature.description}
+                        icon={Icon}
+                      />
+                    )
+                  }
                   return (
-                    <AIFeatureCard
+                    <Card
                       key={feature.title}
-                      title={feature.title}
-                      description={feature.description}
-                      icon={Icon}
-                    />
+                      className="h-full hover:border-primary/50 transition-colors duration-200"
+                    >
+                      <CardContent className="p-6 space-y-3">
+                        <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold">{feature.title}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {feature.description}
+                        </p>
+                      </CardContent>
+                    </Card>
                   )
-                }
+                })}
+              </div>
+            </div>
+          </section>
 
-                return (
-                  <Card
-                    key={feature.title}
-                    className="h-full hover:border-primary/50 transition-colors duration-200"
-                  >
-                    <CardContent className="p-6 space-y-3">
-                      <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <h3 className="font-semibold">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </StaggerGrid>
-          </div>
-        </section>
+          {/* Profession showcase — client island */}
+          <LandingProfessionSection />
 
-        {/* Profession showcase */}
-        <ProfessionSection />
-
-        {/* Testimonials */}
-        {SHOW_TESTIMONIALS && (
-          <section id="testimonials" className="py-20 px-6 md:px-4">
-            <div className="max-w-6xl mx-auto">
-              <AnimateIn>
+          {/* Testimonials */}
+          {SHOW_TESTIMONIALS && (
+            <section id="testimonials" className="py-20 px-6 md:px-4">
+              <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl font-bold tracking-tight">Ils utilisent Chalto</h2>
                   <p className="text-muted-foreground mt-2">
                     Des professionnels qui ont simplifié leur quotidien
                   </p>
                 </div>
-              </AnimateIn>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {testimonials.map((t) => (
+                    <Card key={t.name} className="h-full">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex gap-1">
+                          {Array.from({ length: t.rating }).map((_, i) => (
+                            <svg
+                              key={i}
+                              className="h-4 w-4 fill-primary text-primary"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {`"${t.content}"`}
+                        </p>
+                        <div>
+                          <p className="font-medium text-sm">{t.name}</p>
+                          <p className="text-xs text-muted-foreground">{t.role}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
-              <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {testimonials.map((t) => (
-                  <Card key={t.name} className="h-full">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex gap-1">
-                        {Array.from({ length: t.rating }).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                        ))}
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {`"${t.content}"`}
-                      </p>
-                      <div>
-                        <p className="font-medium text-sm">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.role}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </StaggerGrid>
-            </div>
-          </section>
-        )}
-
-        {/* Pricing */}
-        {SHOW_PRICING && (
-          <section id="pricing" className="py-20 px-6 md:px-4 bg-muted/30">
-            <div className="max-w-5xl mx-auto">
-              <AnimateIn>
+          {/* Pricing */}
+          {SHOW_PRICING && (
+            <section id="pricing" className="py-20 px-6 md:px-4 bg-muted/30">
+              <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl font-bold tracking-tight">
                     Tarifs simples et transparents
@@ -1265,72 +450,67 @@ export default function LandingPage() {
                     Commencez gratuitement, évoluez selon vos besoins
                   </p>
                 </div>
-              </AnimateIn>
-
-              <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                {plans.map((plan) => (
-                  <div key={plan.name} className="relative flex flex-col pt-3">
-                    {plan.highlighted && (
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-                        <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
-                      </div>
-                    )}
-                    <div
-                      className={
-                        plan.highlighted ? "hero-card-border rounded-xl p-px h-full" : "h-full"
-                      }
-                    >
-                      <Card
-                        className={`h-full ${plan.highlighted ? "rounded-[11px] border-0" : ""}`}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                  {plans.map((plan) => (
+                    <div key={plan.name} className="relative flex flex-col pt-3">
+                      {plan.highlighted && (
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                          <Badge className="bg-primary text-primary-foreground">Populaire</Badge>
+                        </div>
+                      )}
+                      <div
+                        className={
+                          plan.highlighted ? "hero-card-border rounded-xl p-px h-full" : "h-full"
+                        }
                       >
-                        <CardContent className="p-6 space-y-6">
-                          <div>
-                            <h3 className="font-bold text-lg">{plan.name}</h3>
-                            <p className="text-muted-foreground text-sm">{plan.description}</p>
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-bold">{plan.price}</span>
-                            {plan.period && (
-                              <span className="text-muted-foreground text-sm">{plan.period}</span>
-                            )}
-                          </div>
-                          <ul className="space-y-2">
-                            {plan.features.map((f) => (
-                              <li key={f} className="flex items-center gap-2 text-sm">
-                                <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                                {f}
-                              </li>
-                            ))}
-                          </ul>
-                          <Button
-                            className="w-full"
-                            variant={plan.highlighted ? "default" : "outline"}
-                            asChild
-                          >
-                            <a href="#waitlist">{plan.cta}</a>
-                          </Button>
-                        </CardContent>
-                      </Card>
+                        <Card
+                          className={`h-full ${plan.highlighted ? "rounded-[11px] border-0" : ""}`}
+                        >
+                          <CardContent className="p-6 space-y-6">
+                            <div>
+                              <h3 className="font-bold text-lg">{plan.name}</h3>
+                              <p className="text-muted-foreground text-sm">{plan.description}</p>
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-3xl font-bold">{plan.price}</span>
+                              {plan.period && (
+                                <span className="text-muted-foreground text-sm">{plan.period}</span>
+                              )}
+                            </div>
+                            <ul className="space-y-2">
+                              {plan.features.map((f) => (
+                                <li key={f} className="flex items-center gap-2 text-sm">
+                                  <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                                  {f}
+                                </li>
+                              ))}
+                            </ul>
+                            <Button
+                              className="w-full"
+                              variant={plan.highlighted ? "default" : "outline"}
+                              asChild
+                            >
+                              <a href="#waitlist">{plan.cta}</a>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </StaggerGrid>
-            </div>
-          </section>
-        )}
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
-        {/* Responsive showcase */}
-        <DeviceShowcase />
+          {/* Device showcase — client island */}
+          <LandingDeviceShowcase />
 
-        {/* FAQ */}
-        <section className="py-20 px-6 md:px-4">
-          <div className="max-w-2xl mx-auto">
-            <AnimateIn>
+          {/* FAQ — statique */}
+          <section className="py-20 px-6 md:px-4">
+            <div className="max-w-2xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tight">Questions fréquentes</h2>
               </div>
-            </AnimateIn>
-            <AnimateIn delay={0.1}>
               <div className="space-y-4">
                 {[
                   {
@@ -1364,13 +544,11 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </AnimateIn>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        {/* CTA Final */}
-        <section className="py-20 px-6 md:px-4">
-          <AnimateIn>
+          {/* CTA Final — statique */}
+          <section className="py-20 px-6 md:px-4">
             <div className="max-w-2xl mx-auto text-center space-y-6">
               <h2 className="text-3xl font-bold tracking-tight">
                 Prêt à simplifier votre activité ?
@@ -1385,13 +563,11 @@ export default function LandingPage() {
                 </a>
               </Button>
             </div>
-          </AnimateIn>
-        </section>
+          </section>
 
-        {/* Waitlist */}
-        <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
-          <div className="max-w-md mx-auto">
-            <AnimateIn>
+          {/* Waitlist — statique wrapper + client form */}
+          <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
+            <div className="max-w-md mx-auto">
               <div className="text-center space-y-4 mb-8">
                 <Badge variant="outline">🚀 Accès bêta</Badge>
                 <h2 className="text-3xl font-bold tracking-tight">Rejoignez les premiers</h2>
@@ -1400,11 +576,11 @@ export default function LandingPage() {
                 </p>
               </div>
               <WaitlistForm />
-            </AnimateIn>
-          </div>
-        </section>
+            </div>
+          </section>
+        </main>
 
-        {/* Footer */}
+        {/* Footer — statique */}
         <footer className="border-t py-8 px-6 md:px-4">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">

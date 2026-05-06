@@ -214,13 +214,15 @@ export function ProjectSituations({
           >
             <div className="pt-1 pb-1 px-px">
               {situations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <HardHat className="h-8 w-8 text-muted-foreground mb-3" />
-                  <p className="font-medium text-sm">Aucune situation soumise</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Les prestataires soumettront leurs situations depuis leur espace
-                  </p>
-                </div>
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <HardHat className="h-8 w-8 text-muted-foreground mb-3" />
+                    <p className="font-medium text-sm">Aucune situation soumise</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Les prestataires soumettront leurs situations depuis leur espace
+                    </p>
+                  </CardContent>
+                </Card>
               ) : (
                 <div className="space-y-4">
                   {pending.length > 0 && (

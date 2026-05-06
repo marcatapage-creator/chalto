@@ -38,6 +38,16 @@ const FAQ: { question: string; answer: string }[] = [
       "Sur la fiche projet, le stepper de phase est visible en haut. Cliquez sur « Passer à : [phase suivante] » pour faire avancer le projet. Chaque phase débloque des fonctionnalités spécifiques (ex. : partage prestataire disponible dès la phase Chantier).",
   },
   {
+    question: "Chalto est-il adapté aux architectes d'intérieur ?",
+    answer:
+      "Oui — Chalto est conçu pour les architectes d'intérieur autant que pour les architectes DPLG. Lors de l'inscription, sélectionnez le profil « Architecte d'intérieur » pour obtenir des types de travaux adaptés (aménagement, rénovation intérieure, design…) et un CCTP pré-configuré pour vos projets. Vous pouvez aussi combiner plusieurs profils si vous intervenez sur les deux domaines.",
+  },
+  {
+    question: "Comment générer un CCTP pour un projet d'aménagement intérieur ?",
+    answer:
+      "Depuis la section « Documents » d'un projet, cliquez sur « Générer IA ». Renseignez le type de travaux (ex. : Rénovation intérieure, Aménagement), la surface, les matériaux envisagés et toute contrainte particulière. Le CCTP généré prend en compte les spécificités de l'aménagement intérieur : cloisonnement, revêtements, fluides, mobilier sur mesure, etc.",
+  },
+  {
     question: "Comment modifier ou supprimer mon compte ?",
     answer:
       "Vos informations personnelles (nom, email, logo) sont modifiables depuis « Paramètres ». Pour supprimer votre compte, contactez-nous directement à " +
