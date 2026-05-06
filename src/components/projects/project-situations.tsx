@@ -206,7 +206,7 @@ export function ProjectSituations({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1">
+            <div className="pt-1 pb-1 px-px">
               {situations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <HardHat className="h-8 w-8 text-muted-foreground mb-3" />

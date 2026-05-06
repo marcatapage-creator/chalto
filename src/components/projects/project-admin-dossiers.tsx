@@ -288,7 +288,7 @@ export function ProjectAdminDossiers({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1 space-y-4">
+            <div className="pt-1 pb-1 px-px space-y-4">
               {dossiers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <FolderOpen className="h-8 w-8 text-muted-foreground mb-3" />
