@@ -182,17 +182,23 @@ export function ProjectSituations({
           )}
         </div>
         {situations.length > 0 && (
-          <a
-            href={`/projects/${projectId}/situations/print`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            title="Récapitulatif PDF"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 shrink-0"
+            asChild
             onClick={(e) => e.stopPropagation()}
           >
-            <FileDown className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Récap PDF</span>
-          </a>
+            <a
+              href={`/projects/${projectId}/situations/print`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Récapitulatif PDF"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Récap PDF</span>
+            </a>
+          </Button>
         )}
       </div>
 

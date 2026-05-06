@@ -245,7 +245,7 @@ export function ProjectContributors({
           <div className="pl-3" onClick={(e) => e.stopPropagation()}>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1.5 h-8">
+                <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5 sm:hidden" />
                   <UserPlus className="h-3.5 w-3.5 hidden sm:block" />
                   <span className="hidden sm:inline">Inviter</span>
