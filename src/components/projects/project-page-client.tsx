@@ -96,7 +96,7 @@ export function ProjectPageClient({
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
-  const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
+  const [detailsOpen, setDetailsOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(initialHighlightId?.startsWith("doc_") ?? false)
 
   // ─── Highlight (notification deep-link) ──────────────────────────────────────
