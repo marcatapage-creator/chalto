@@ -436,7 +436,6 @@ export function ProjectAdminDossiers({
               Annuler
             </Button>
             <Button onClick={handleSubmit} disabled={submitting} loading={submitting}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {editing ? "Enregistrer" : "Ajouter"}
             </Button>
           </DialogFooter>

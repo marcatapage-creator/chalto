@@ -106,6 +106,14 @@ export function ProjectPageClient({
     isLegacySituationsTab ? null : (initialHighlightId ?? null)
   )
 
+  // Efface le highlight initial (deep-link depuis notif) après 2,5 s
+  useEffect(() => {
+    if (!highlightedId) return
+    const t = setTimeout(() => setHighlightedId(null), 2500)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const applyHighlight = useCallback((id: string | null) => {
     if (!id) return
     setHighlightedId(id)

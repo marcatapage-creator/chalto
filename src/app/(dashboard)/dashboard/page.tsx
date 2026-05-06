@@ -158,7 +158,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="relative flex-1 overflow-auto">
       <div className="p-6 md:p-8 space-y-8">
         <FadeIn className="flex items-center justify-between">
           <div>
@@ -188,6 +188,7 @@ export default async function DashboardPage() {
 
         <RecentProjects projects={projectsWithCounts} />
       </div>
+      <div className="pointer-events-none sticky bottom-0 h-87.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
     </div>
   )
 }
