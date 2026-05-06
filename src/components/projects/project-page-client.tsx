@@ -265,7 +265,7 @@ export function ProjectPageClient({
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
                 className="overflow-hidden"
               >
-                <div className="border-t flex flex-col sm:flex-row">
+                <div className="border-t flex flex-col sm:flex-row sm:items-start">
                   {/* Infos client */}
                   <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -305,7 +305,7 @@ export function ProjectPageClient({
                       )}
                   </div>
 
-                  <div className="border-l" />
+                  <div className="border-l sm:self-stretch" />
 
                   {/* Stepper phase */}
                   <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
