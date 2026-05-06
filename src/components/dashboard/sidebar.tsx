@@ -8,7 +8,16 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users, LifeBuoy } from "lucide-react"
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Settings,
+  LogOut,
+  Menu,
+  Users,
+  LifeBuoy,
+  CalendarDays,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -30,6 +39,7 @@ const navigation = [
   { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, countKey: null },
   { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
   { label: "Annuaire", href: "/contacts", icon: Users, countKey: "contacts" as const },
+  { label: "Échéances", href: "/deadlines", icon: CalendarDays, countKey: null },
   { label: "Paramètres", href: "/settings", icon: Settings, countKey: null },
   { label: "Support", href: "/support", icon: LifeBuoy, countKey: null },
 ]
