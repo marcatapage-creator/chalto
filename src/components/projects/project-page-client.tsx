@@ -63,6 +63,19 @@ interface ProjectPageClientProps {
   hasDropboxConnected?: boolean
 }
 
+function GradientDivider({ index }: { index: number }) {
+  const isEven = index % 2 === 0
+  return (
+    <div
+      className={
+        isEven
+          ? "h-px bg-linear-to-l from-border to-transparent"
+          : "h-px bg-linear-to-r from-border to-transparent"
+      }
+    />
+  )
+}
+
 export function ProjectPageClient({
   project,
   documents,
@@ -344,7 +357,7 @@ export function ProjectPageClient({
 
         {/* Corps scrollable */}
         <div ref={scrollContainerRef} className="relative flex-1 overflow-auto">
-          <div className="divide-y divide-border">
+          <div>
             {/* Documents */}
             <div className="px-6 md:px-8 py-6 md:py-8">
               <ProjectDocuments
@@ -375,6 +388,8 @@ export function ProjectPageClient({
               />
             </div>
 
+            <GradientDivider index={1} />
+
             {/* Dossiers administratifs — toutes phases */}
             <div ref={adminDossiersRef} className="px-6 md:px-8 py-6 md:py-8">
               <ProjectAdminDossiers
@@ -395,6 +410,7 @@ export function ProjectPageClient({
             </div>
 
             {/* Skeleton pendant le router.refresh() post-confirmation chantier */}
+            {(chantierRevealing || isChantierPhase(phase)) && <GradientDivider index={2} />}
             {chantierRevealing && !isChantierPhase(phase) && (
               <div className="divide-y divide-border">
                 {[1, 2, 3, 4].map((i) => (
@@ -414,7 +430,7 @@ export function ProjectPageClient({
                 transition={{ duration: 0.45, ease: "easeOut" }}
                 onAnimationComplete={() => setChantierRevealing(false)}
               >
-                <div className="divide-y divide-border">
+                <div>
                   <div className="px-6 md:px-8 py-6 md:py-8">
                     <ProjectContributors
                       projectId={project.id}
@@ -427,6 +443,7 @@ export function ProjectPageClient({
                       }}
                     />
                   </div>
+                  <GradientDivider index={3} />
                   <div className="px-6 md:px-8 py-6 md:py-8">
                     <ErrorBoundary>
                       <ProjectTasks
@@ -447,6 +464,7 @@ export function ProjectPageClient({
                       />
                     </ErrorBoundary>
                   </div>
+                  <GradientDivider index={4} />
                   <div className="px-6 md:px-8 py-6 md:py-8">
                     <ProjectDiscussion
                       projectId={project.id}
@@ -460,6 +478,7 @@ export function ProjectPageClient({
                       unreadCount={unreadDiscussion}
                     />
                   </div>
+                  <GradientDivider index={5} />
                   <div className="px-6 md:px-8 py-6 md:py-8">
                     <ProjectSituations
                       projectId={project.id}
