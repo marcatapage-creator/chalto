@@ -23,6 +23,7 @@ export default async function ProjectPage({
     profile,
     { data: proView },
     { data: situations },
+    { data: dossiers },
     { data: cloudLinks },
     { data: dropboxIntegration },
   ] = await Promise.all([
@@ -51,6 +52,11 @@ export default async function ProjectPage({
       .eq("project_id", id)
       .order("submitted_at", { ascending: false })
       .limit(200),
+    supabase
+      .from("admin_dossiers")
+      .select("*")
+      .eq("project_id", id)
+      .order("created_at", { ascending: true }),
     supabase
       .from("project_cloud_links")
       .select("id, provider, remote_path, last_synced_at, sync_enabled")
@@ -143,6 +149,8 @@ export default async function ProjectPage({
       initialValidations={initialValidations}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       initialSituations={(situations ?? []) as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      initialDossiers={(dossiers ?? []) as any}
       unreadDocs={unreadDocs}
       unreadTasks={unreadTasks}
       unreadDiscussion={unreadDiscussion}

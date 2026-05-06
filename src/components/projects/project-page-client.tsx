@@ -16,6 +16,7 @@ import { ProjectTasks } from "@/components/projects/project-tasks"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { ProjectContributors } from "@/components/projects/project-contributors"
 import { ProjectSituations } from "@/components/projects/project-situations"
+import { ProjectAdminDossiers } from "@/components/projects/project-admin-dossiers"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -29,6 +30,7 @@ import type {
   Project,
   ValidationData,
   Situation,
+  AdminDossier,
   CloudLink,
 } from "@/types/domain"
 
@@ -53,6 +55,7 @@ interface ProjectPageClientProps {
   initialHighlightId?: string | null
   initialValidations?: Record<string, ValidationData>
   initialSituations?: Situation[]
+  initialDossiers?: AdminDossier[]
   unreadDocs?: number
   unreadTasks?: number
   unreadDiscussion?: number
@@ -71,6 +74,7 @@ export function ProjectPageClient({
   initialHighlightId,
   initialValidations = {},
   initialSituations = [],
+  initialDossiers = [],
   unreadDocs = 0,
   unreadTasks = 0,
   unreadDiscussion = 0,
@@ -416,6 +420,16 @@ export function ProjectPageClient({
                     )
                   }
                   highlightedSituationId={highlightedSituationId}
+                  onOpen={() => {
+                    if (!isDesktop) setDetailsOpen(false)
+                  }}
+                />
+              </div>
+              <div className="px-6 md:px-8 py-6 md:py-8">
+                <ProjectAdminDossiers
+                  projectId={project.id}
+                  initialDossiers={initialDossiers}
+                  readOnly={phase === "cloture"}
                   onOpen={() => {
                     if (!isDesktop) setDetailsOpen(false)
                   }}

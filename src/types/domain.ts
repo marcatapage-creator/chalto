@@ -106,3 +106,34 @@ export interface Situation {
   attachments?: SituationAttachment[]
   contributor?: { name: string; contact_id: string }
 }
+
+// ─── Dossiers administratifs ──────────────────────────────────────────────────
+
+export type AdminDossierType =
+  | "permis_construire"
+  | "declaration_prealable"
+  | "doc"
+  | "daact"
+  | "erp"
+  | "autre"
+
+export type AdminDossierStatus =
+  | "en_preparation"
+  | "depose"
+  | "en_instruction"
+  | "obtenu"
+  | "refuse"
+
+export interface AdminDossier {
+  id: string
+  project_id: string
+  user_id: string
+  type: AdminDossierType
+  label?: string | null
+  status: AdminDossierStatus
+  deadline?: string | null
+  notes?: string | null
+  notified_thresholds: number[]
+  created_at: string
+  updated_at: string
+}

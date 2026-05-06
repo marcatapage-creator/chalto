@@ -130,3 +130,39 @@ export const unlinkCloudFolderSchema = z.object({
   linkId: uuid,
   projectId: uuid,
 })
+
+// ─── Dossiers administratifs ──────────────────────────────────────────────────
+
+const dossierType = z.enum([
+  "permis_construire",
+  "declaration_prealable",
+  "doc",
+  "daact",
+  "erp",
+  "autre",
+])
+const dossierStatus = z.enum(["en_preparation", "depose", "en_instruction", "obtenu", "refuse"])
+const dateString = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .nullable()
+  .optional()
+
+// POST /api/admin-dossiers
+export const createAdminDossierSchema = z.object({
+  projectId: uuid,
+  type: dossierType,
+  label: z.string().max(100).nullable().optional(),
+  status: dossierStatus.default("en_preparation"),
+  deadline: dateString,
+  notes: z.string().max(1000).nullable().optional(),
+})
+
+// PATCH /api/admin-dossiers/[id]
+export const updateAdminDossierSchema = z.object({
+  type: dossierType.optional(),
+  label: z.string().max(100).nullable().optional(),
+  status: dossierStatus.optional(),
+  deadline: dateString,
+  notes: z.string().max(1000).nullable().optional(),
+})
