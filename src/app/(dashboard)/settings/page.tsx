@@ -1,25 +1,41 @@
+import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { SettingsForm } from "@/components/settings/settings-form"
 import { FadeIn } from "@/components/ui/motion"
 import { getProfessions } from "@/lib/cached-queries"
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; error?: string }>
+}) {
   const user = await getAuthUser()
+  if (!user) redirect("/login")
   const supabase = await createClient()
 
-  const [{ data: profile }, professions, { data: userProfessionsRows }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*, professions!profession_id(id, label, slug)")
-      .eq("id", user!.id)
-      .single(),
-    getProfessions(),
-    supabase
-      .from("user_professions")
-      .select("professions(id, label, slug)")
-      .eq("user_id", user!.id),
-  ])
+  const { tab, error } = await searchParams
+
+  const [{ data: profile }, professions, { data: userProfessionsRows }, { data: integration }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("*, professions!profession_id(id, label, slug)")
+        .eq("id", user.id)
+        .single(),
+      getProfessions(),
+      supabase
+        .from("user_professions")
+        .select("professions(id, label, slug)")
+        .eq("user_id", user.id),
+      supabase
+        .from("user_integrations")
+        .select("provider_account_email, connected_at, status")
+        .eq("user_id", user.id)
+        .eq("provider", "dropbox")
+        .eq("status", "active")
+        .maybeSingle(),
+    ])
 
   type ProfRow = { id: string; label: string; slug: string }
   const userProfessions = (userProfessionsRows ?? [])
@@ -37,6 +53,9 @@ export default async function SettingsPage() {
           profile={profile}
           professions={professions}
           userProfessions={userProfessions}
+          defaultTab={tab}
+          dropboxIntegration={integration}
+          integrationError={error}
           notifProfile={{
             id: profile?.id ?? "",
             notif_email_approved: profile?.notif_email_approved !== false,

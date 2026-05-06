@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Deno Edge Functions — not Next.js, not linted by this config
+    "supabase/functions/**",
   ]),
   {
     rules: {

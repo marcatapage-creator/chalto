@@ -20,7 +20,7 @@ function makeClient(user: unknown = { id: "user-1", email: "pro@example.com" }) 
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(emailModule.sendWelcomeEmail).mockResolvedValue(undefined as never)
+  vi.mocked(emailModule.sendWelcomeEmail).mockResolvedValue({ data: null, error: null } as never)
 })
 
 describe("POST /api/send-welcome", () => {

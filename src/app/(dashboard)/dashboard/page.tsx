@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
@@ -82,19 +83,20 @@ function RecentProjects({ projects }: { projects: ProjectWithCounts[] }) {
 
 export default async function DashboardPage() {
   const user = await getAuthUser()
+  if (!user) redirect("/login")
   const supabase = await createClient()
 
   const [{ data: projects }, { data: profile }] = await Promise.all([
     supabase
       .from("projects")
       .select("id, status, name, client_name, phase, created_at, professions(slug, label)")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100),
     supabase
       .from("profiles")
       .select("demo_project_id, onboarding_completed")
-      .eq("id", user!.id)
+      .eq("id", user.id)
       .single(),
   ])
 
@@ -107,20 +109,15 @@ export default async function DashboardPage() {
   })
 
   const projectIds = projects?.map((p) => p.id) ?? []
-  const [{ data: documents }, { count: documentSentCount }, { data: unreadRows }] =
-    await Promise.all([
-      projectIds.length > 0
-        ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
-        : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
-      projectIds.length > 0
-        ? supabase
-            .from("documents")
-            .select("*", { count: "exact", head: true })
-            .in("project_id", projectIds)
-            .in("status", ["sent", "approved", "rejected"])
-        : Promise.resolve({ count: 0 }),
-      supabase.rpc("get_projects_unread_counts"),
-    ])
+  const [{ data: documents }, { data: unreadRows }] = await Promise.all([
+    projectIds.length > 0
+      ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
+      : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
+    supabase.rpc("get_projects_unread_counts"),
+  ])
+  const documentSentCount = (documents ?? []).filter((d) =>
+    ["sent", "approved", "rejected"].includes(d.status)
+  ).length
 
   const unreadMap = new Map<string, number>(
     (unreadRows ?? []).map((r: { project_id: string; unread_count: number }) => [
@@ -176,13 +173,13 @@ export default async function DashboardPage() {
           </Button>
         </FadeIn>
 
-        <DashboardStats userId={user!.id} initialCounts={initialCounts} />
+        <DashboardStats userId={user.id} initialCounts={initialCounts} />
 
         <DashboardUrgences projectIds={projectIds} />
 
         {!profile?.onboarding_completed && (
           <OnboardingChecklist
-            userId={user!.id}
+            userId={user.id}
             demoProjectId={profile?.demo_project_id}
             documentSentCount={documentSentCount ?? 0}
             onboardingCompleted={profile?.onboarding_completed ?? false}

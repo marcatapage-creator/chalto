@@ -10,12 +10,14 @@ interface ContributorHeaderProps {
   docsCount: number
   tasksCount: number
   discussionCount: number
+  situationsCount: number
   docsRead: boolean
   tasksRead: boolean
   discussionRead: boolean
   onDocsClick: () => void
   onTasksClick: () => void
   onDiscussionClick: () => void
+  onSituationsClick: () => void
 }
 
 export function ContributorHeader({
@@ -24,12 +26,14 @@ export function ContributorHeader({
   docsCount,
   tasksCount,
   discussionCount,
+  situationsCount,
   docsRead,
   tasksRead,
   discussionRead,
   onDocsClick,
   onTasksClick,
   onDiscussionClick,
+  onSituationsClick,
 }: ContributorHeaderProps) {
   return (
     <div className="sticky top-0 z-20">
@@ -102,6 +106,17 @@ export function ContributorHeader({
                 )}
               >
                 {discussionCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={onSituationsClick}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-center"
+          >
+            <span className="truncate">Situations</span>
+            {situationsCount > 0 && (
+              <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs leading-none shrink-0 px-1 bg-muted text-muted-foreground">
+                {situationsCount}
               </span>
             )}
           </button>

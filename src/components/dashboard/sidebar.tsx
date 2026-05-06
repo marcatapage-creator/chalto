@@ -8,7 +8,16 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { LayoutDashboard, FolderOpen, Settings, LogOut, Menu, Users, LifeBuoy } from "lucide-react"
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Settings,
+  LogOut,
+  Menu,
+  Users,
+  LifeBuoy,
+  CalendarDays,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -22,13 +31,14 @@ type Profile = {
   email?: string | null
 }
 
-type Counts = { projects: number; contacts: number }
+type Counts = { projects: number; contacts: number; deadlines: number }
 
 type NotifProps = ReturnType<typeof useNotifications>
 
 const navigation = [
   { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, countKey: null },
   { label: "Projets", href: "/projects", icon: FolderOpen, countKey: "projects" as const },
+  { label: "Échéances", href: "/deadlines", icon: CalendarDays, countKey: "deadlines" as const },
   { label: "Annuaire", href: "/contacts", icon: Users, countKey: "contacts" as const },
   { label: "Paramètres", href: "/settings", icon: Settings, countKey: null },
   { label: "Support", href: "/support", icon: LifeBuoy, countKey: null },
@@ -40,12 +50,14 @@ function SidebarContent({
   notifProps,
   showBell = true,
   onNavigate,
+  instanceId,
 }: {
   profile: Profile
   counts: Counts
   notifProps: NotifProps
   showBell?: boolean
   onNavigate?: () => void
+  instanceId: string
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -103,20 +115,26 @@ function SidebarContent({
                 onNavigate?.()
               }}
               className={cn(
-                "nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
-                isActive ? "active" : "text-muted-foreground",
+                "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150",
+                isActive
+                  ? "text-[hsl(0,0%,98%)] dark:text-[hsl(0,0%,9%)]"
+                  : "text-muted-foreground hover:bg-black/8 dark:hover:bg-white/8 hover:text-foreground",
                 isPending && "opacity-60"
               )}
             >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
+              {isActive && (
+                <motion.div
+                  layoutId={`nav-pill-${instanceId}`}
+                  className="absolute inset-0 rounded-lg bg-[hsl(0,0%,9%)] dark:bg-[hsl(0,0%,98%)]"
+                  transition={{ type: "spring", stiffness: 400, damping: 38 }}
+                />
+              )}
+              <Icon className="relative h-4 w-4" />
+              <span className="relative">{item.label}</span>
               {item.countKey && (
-                <span className="ml-auto inline-flex items-center justify-center text-xs bg-background text-muted-foreground h-5 min-w-5 rounded-full">
+                <span className="relative ml-auto inline-flex items-center justify-center text-xs bg-background text-muted-foreground h-5 min-w-5 rounded-full">
                   {counts[item.countKey]}
                 </span>
-              )}
-              {isActive && !item.countKey && (
-                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground opacity-70" />
               )}
             </Link>
           )
@@ -168,7 +186,12 @@ export function Sidebar({
     <>
       {/* Desktop sidebar */}
       <aside className="hidden xl:flex w-64 border-r bg-card flex-col h-full">
-        <SidebarContent profile={profile} counts={counts} notifProps={notifProps} />
+        <SidebarContent
+          profile={profile}
+          counts={counts}
+          notifProps={notifProps}
+          instanceId="desktop"
+        />
       </aside>
 
       {/* Mobile/tablet header + burger */}
@@ -212,6 +235,7 @@ export function Sidebar({
                 notifProps={notifProps}
                 showBell={false}
                 onNavigate={() => setOpen(false)}
+                instanceId="mobile"
               />
             </motion.div>
           </>

@@ -31,24 +31,12 @@ import {
   MoreHorizontal,
   Trash2,
   Plus,
+  RefreshCw,
 } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 import { AnimatePresence, motion } from "framer-motion"
-
-interface Contact {
-  id: string
-  name: string
-  professions?: { label: string }[]
-}
-
-interface Contributor {
-  id: string
-  name: string
-  invite_token: string
-  contact_id: string
-  professions?: { label: string } | null
-}
+import type { Contact, Contributor } from "@/types/domain"
 
 interface ProjectContributorsProps {
   projectId: string
@@ -189,6 +177,27 @@ export function ProjectContributors({
     setAddingContact(false)
   }
 
+  const handleRenew = async (contributor: Contributor) => {
+    setLoading(contributor.id)
+    const res = await fetchWithTimeout(`/api/contributors/${contributor.id}/renew`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contributorId: contributor.id, projectId }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setContributors((prev) =>
+        prev.map((c) =>
+          c.id === contributor.id ? { ...c, invite_token: data.contributor.invite_token } : c
+        )
+      )
+      toast.success("Lien renouvelé pour 1 an ✅")
+    } else {
+      toast.error("Erreur lors du renouvellement")
+    }
+    setLoading(null)
+  }
+
   const handleDelete = async (contributorId: string) => {
     const contributor = contributors.find((c) => c.id === contributorId)
     if (!contributor) return
@@ -236,7 +245,7 @@ export function ProjectContributors({
           <div className="pl-3" onClick={(e) => e.stopPropagation()}>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1.5 h-8">
+                <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5 sm:hidden" />
                   <UserPlus className="h-3.5 w-3.5 hidden sm:block" />
                   <span className="hidden sm:inline">Inviter</span>
@@ -433,6 +442,13 @@ export function ProjectContributors({
                               <Copy className="h-4 w-4 mr-2" />
                             )}
                             {copied === contributor.id ? "Copié !" : "Copier le lien"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={loading === contributor.id}
+                            onClick={() => void handleRenew(contributor)}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Renouveler le lien
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem

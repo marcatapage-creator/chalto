@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -15,35 +15,24 @@ import { ProjectStepper } from "@/components/projects/project-stepper"
 import { ProjectTasks } from "@/components/projects/project-tasks"
 import { ProjectDiscussion } from "@/components/projects/project-discussion"
 import { ProjectContributors } from "@/components/projects/project-contributors"
+import { ProjectSituations } from "@/components/projects/project-situations"
+import { ProjectAdminDossiers } from "@/components/projects/project-admin-dossiers"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
 } from "@/components/projects/project-details-dialog"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useProjectDocuments } from "@/hooks/use-project-documents"
-import type { ProjectDocument } from "@/hooks/use-project-documents"
 import { useMediaQuery } from "@/hooks/use-media-query"
-
-interface Contact {
-  id: string
-  name: string
-  professions?: { label: string }[]
-}
-
-interface Project {
-  id: string
-  name: string
-  status: string
-  created_at: string
-  client_name?: string
-  client_email?: string
-  address?: string
-  description?: string
-  work_type?: string
-  budget_range?: string
-  deadline?: string
-  constraints?: string
-}
+import type {
+  ProjectDocument,
+  Contact,
+  Project,
+  ValidationData,
+  Situation,
+  AdminDossier,
+  CloudLink,
+} from "@/types/domain"
 
 const statusMap: Record<
   string,
@@ -53,13 +42,6 @@ const statusMap: Record<
   active: { label: "En cours", variant: "default", dot: "bg-primary" },
   completed: { label: "Terminé", variant: "secondary", dot: "bg-muted-foreground" },
   archived: { label: "Archivé", variant: "outline", dot: "bg-muted-foreground/40" },
-}
-
-type ValidationData = {
-  status: string
-  comment?: string | null
-  approved_at?: string
-  client_name?: string
 }
 
 interface ProjectPageClientProps {
@@ -72,9 +54,13 @@ interface ProjectPageClientProps {
   professionSlug?: string | null
   initialHighlightId?: string | null
   initialValidations?: Record<string, ValidationData>
+  initialSituations?: Situation[]
+  initialDossiers?: AdminDossier[]
   unreadDocs?: number
   unreadTasks?: number
   unreadDiscussion?: number
+  cloudLinks?: CloudLink[]
+  hasDropboxConnected?: boolean
 }
 
 export function ProjectPageClient({
@@ -87,9 +73,13 @@ export function ProjectPageClient({
   professionSlug,
   initialHighlightId,
   initialValidations = {},
+  initialSituations = [],
+  initialDossiers = [],
   unreadDocs = 0,
   unreadTasks = 0,
   unreadDiscussion = 0,
+  cloudLinks = [],
+  hasDropboxConnected = false,
 }: ProjectPageClientProps) {
   const {
     label: statusLabel,
@@ -101,28 +91,39 @@ export function ProjectPageClient({
   const isDesktop = useMediaQuery("(min-width: 1280px)")
 
   // ─── UI panels ───────────────────────────────────────────────────────────────
-  const isLatePhase = phase === "reception" || phase === "cloture"
-  const startCollapsed = isLatePhase && !initialHighlightId
+  const startCollapsed = !initialHighlightId
 
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
-  const [detailsOpen, setDetailsOpen] = useState(!startCollapsed)
-  const [docsOpen, setDocsOpen] = useState(
-    !isChantierPhase(phase) || (initialHighlightId?.startsWith("doc_") ?? false)
-  )
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const [docsOpen, setDocsOpen] = useState(initialHighlightId?.startsWith("doc_") ?? false)
 
   // ─── Highlight (notification deep-link) ──────────────────────────────────────
-  const [highlightedId, setHighlightedId] = useState<string | null>(initialHighlightId ?? null)
+  // "tab_situations" is a legacy sentinel from old ?tab=situations notifications — not a real highlight
+  const isLegacySituationsTab = initialHighlightId === "tab_situations"
+  const [highlightedId, setHighlightedId] = useState<string | null>(
+    isLegacySituationsTab ? null : (initialHighlightId ?? null)
+  )
+
+  const applyHighlight = useCallback((id: string | null) => {
+    if (!id) return
+    setHighlightedId(id)
+    if (id.startsWith("doc_")) setDocsOpen(true)
+    setTimeout(() => setHighlightedId(null), 2500)
+  }, [])
+
+  // Écoute les events dispatched par NotificationBell lors des clics sur notifications
+  useEffect(() => {
+    const handler = (e: Event) => applyHighlight((e as CustomEvent<string>).detail)
+    window.addEventListener("chalto:highlight", handler)
+    return () => window.removeEventListener("chalto:highlight", handler)
+  }, [applyHighlight])
+
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
+  const highlightedSituationId = highlightedId?.startsWith("sit_") ? highlightedId.slice(4) : null
   const openDiscussion = highlightedId === "discussion"
-
-  useEffect(() => {
-    if (!highlightedId) return
-    const t = setTimeout(() => setHighlightedId(null), 2500)
-    return () => clearTimeout(t)
-  }, [highlightedId])
 
   // ─── Documents (Realtime + CRUD) ─────────────────────────────────────────────
   const {
@@ -185,6 +186,13 @@ export function ProjectPageClient({
 
   // ─── Contributors (shared between Contributors + Tasks) ──────────────────────
   const [contributorContactIds, setContributorContactIds] = useState<Set<string>>(new Set())
+
+  // ─── Chantier reveal ─────────────────────────────────────────────────────────
+  const [chantierRevealing, setChantierRevealing] = useState(false)
+
+  // ─── Scroll refs ─────────────────────────────────────────────────────────────
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const adminDossiersRef = useRef<HTMLDivElement>(null)
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -266,7 +274,7 @@ export function ProjectPageClient({
               >
                 <div className="border-t flex flex-col sm:flex-row">
                   {/* Infos client */}
-                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-3">
+                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
@@ -313,7 +321,10 @@ export function ProjectPageClient({
                       currentPhase={phase}
                       professionSlug={professionSlug}
                       onPhaseChange={(newPhase) => {
-                        if (isChantierPhase(newPhase)) setDocsOpen(false)
+                        if (isChantierPhase(newPhase)) {
+                          setDocsOpen(false)
+                          setChantierRevealing(true)
+                        }
                       }}
                     />
                   </div>
@@ -324,85 +335,148 @@ export function ProjectPageClient({
         </div>
 
         {/* Corps scrollable */}
-        <div className="flex-1 overflow-auto divide-y divide-border">
-          {/* Documents */}
-          <div className="px-6 md:px-8 py-6 md:py-8">
-            <ProjectDocuments
-              documents={localDocs}
-              projectId={project.id}
-              projectName={project.name}
-              workType={project.work_type}
-              clientName={project.client_name}
-              professionSlug={professionSlug}
-              selectedDocId={selectedDoc?.id ?? null}
-              onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
-              onDeleteDoc={handleDeleteDoc}
-              isOpen={docsOpen}
-              onToggle={() => {
-                if (docsOpen) {
-                  setSelectedDocId(null)
-                } else {
+        <div ref={scrollContainerRef} className="relative flex-1 overflow-auto">
+          <div className="divide-y divide-border">
+            {/* Documents */}
+            <div className="px-6 md:px-8 py-6 md:py-8">
+              <ProjectDocuments
+                documents={localDocs}
+                projectId={project.id}
+                projectName={project.name}
+                workType={project.work_type}
+                clientName={project.client_name}
+                professionSlug={professionSlug}
+                selectedDocId={selectedDoc?.id ?? null}
+                onSelectDoc={(doc) => setSelectedDocId(doc?.id ?? null)}
+                onDeleteDoc={handleDeleteDoc}
+                isOpen={docsOpen}
+                onToggle={() => {
+                  if (docsOpen) {
+                    setSelectedDocId(null)
+                  } else {
+                    if (!isDesktop) setDetailsOpen(false)
+                    markDocsRead()
+                  }
+                  setDocsOpen((v) => !v)
+                }}
+                readOnly={phase === "cloture"}
+                highlightedId={highlightedDocId}
+                unreadCount={localUnreadDocs}
+                cloudLinks={cloudLinks}
+                hasDropboxConnected={hasDropboxConnected}
+              />
+            </div>
+
+            {/* Dossiers administratifs — toutes phases */}
+            <div ref={adminDossiersRef} className="px-6 md:px-8 py-6 md:py-8">
+              <ProjectAdminDossiers
+                projectId={project.id}
+                initialDossiers={initialDossiers}
+                readOnly={phase === "cloture"}
+                onOpen={() => {
                   if (!isDesktop) setDetailsOpen(false)
-                  markDocsRead()
-                }
-                setDocsOpen((v) => !v)
-              }}
-              readOnly={phase === "cloture"}
-              highlightedId={highlightedDocId}
-              unreadCount={localUnreadDocs}
-            />
+                  setTimeout(() => {
+                    const container = scrollContainerRef.current
+                    const el = adminDossiersRef.current
+                    if (container && el) {
+                      container.scrollTo({ top: el.offsetTop - 24, behavior: "smooth" })
+                    }
+                  }, 50)
+                }}
+              />
+            </div>
+
+            {/* Skeleton pendant le router.refresh() post-confirmation chantier */}
+            {chantierRevealing && !isChantierPhase(phase) && (
+              <div className="divide-y divide-border">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="px-6 md:px-8 py-6 md:py-8 space-y-3 animate-pulse">
+                    <div className="h-4 w-40 rounded-md bg-muted" />
+                    <div className="h-20 rounded-lg bg-muted" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Prestataires + Kanban tâches — phases chantier et au-delà */}
+            {isChantierPhase(phase) && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                onAnimationComplete={() => setChantierRevealing(false)}
+              >
+                <div className="divide-y divide-border">
+                  <div className="px-6 md:px-8 py-6 md:py-8">
+                    <ProjectContributors
+                      projectId={project.id}
+                      contacts={contacts}
+                      onContributorsChange={setContributorContactIds}
+                      readOnly={phase === "cloture"}
+                      defaultOpen={!startCollapsed}
+                      onOpen={() => {
+                        if (!isDesktop) setDetailsOpen(false)
+                      }}
+                    />
+                  </div>
+                  <div className="px-6 md:px-8 py-6 md:py-8">
+                    <ErrorBoundary>
+                      <ProjectTasks
+                        projectId={project.id}
+                        userId={userId}
+                        contacts={contacts}
+                        authorName={authorName}
+                        readOnly={phase === "cloture"}
+                        highlightedId={highlightedTaskId}
+                        externalInvitedIds={contributorContactIds}
+                        defaultOpen={!startCollapsed}
+                        onOpen={() => {
+                          if (!isDesktop) setDetailsOpen(false)
+                          setLocalUnreadTasks(0)
+                        }}
+                        unreadCount={localUnreadTasks}
+                        onNewPrestaComment={() => setLocalUnreadTasks((n) => n + 1)}
+                      />
+                    </ErrorBoundary>
+                  </div>
+                  <div className="px-6 md:px-8 py-6 md:py-8">
+                    <ProjectDiscussion
+                      projectId={project.id}
+                      authorName={authorName}
+                      authorRole="pro"
+                      readOnly={phase === "cloture"}
+                      autoOpen={openDiscussion}
+                      onOpen={() => {
+                        if (!isDesktop) setDetailsOpen(false)
+                      }}
+                      unreadCount={unreadDiscussion}
+                    />
+                  </div>
+                  <div className="px-6 md:px-8 py-6 md:py-8">
+                    <ProjectSituations
+                      projectId={project.id}
+                      initialSituations={initialSituations}
+                      readOnly={phase === "cloture"}
+                      defaultOpen={
+                        !!highlightedSituationId ||
+                        isLegacySituationsTab ||
+                        initialSituations.some(
+                          (s) => s.status === "en_attente" || s.status === "corrigee"
+                        )
+                      }
+                      highlightedSituationId={highlightedSituationId}
+                      onOpen={() => {
+                        if (!isDesktop) setDetailsOpen(false)
+                      }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
 
-          {/* Prestataires + Kanban tâches — phases chantier et au-delà */}
-          {isChantierPhase(phase) && (
-            <>
-              <div className="px-6 md:px-8 py-6 md:py-8">
-                <ProjectContributors
-                  projectId={project.id}
-                  contacts={contacts}
-                  onContributorsChange={setContributorContactIds}
-                  readOnly={phase === "cloture"}
-                  defaultOpen={!startCollapsed}
-                  onOpen={() => {
-                    if (!isDesktop) setDetailsOpen(false)
-                  }}
-                />
-              </div>
-              <div className="px-6 md:px-8 py-6 md:py-8">
-                <ErrorBoundary>
-                  <ProjectTasks
-                    projectId={project.id}
-                    userId={userId}
-                    contacts={contacts}
-                    authorName={authorName}
-                    readOnly={phase === "cloture"}
-                    highlightedId={highlightedTaskId}
-                    externalInvitedIds={contributorContactIds}
-                    defaultOpen={!startCollapsed}
-                    onOpen={() => {
-                      if (!isDesktop) setDetailsOpen(false)
-                      setLocalUnreadTasks(0)
-                    }}
-                    unreadCount={localUnreadTasks}
-                    onNewPrestaComment={() => setLocalUnreadTasks((n) => n + 1)}
-                  />
-                </ErrorBoundary>
-              </div>
-              <div className="px-6 md:px-8 py-6 md:py-8">
-                <ProjectDiscussion
-                  projectId={project.id}
-                  authorName={authorName}
-                  authorRole="pro"
-                  readOnly={phase === "cloture"}
-                  autoOpen={openDiscussion}
-                  onOpen={() => {
-                    if (!isDesktop) setDetailsOpen(false)
-                  }}
-                  unreadCount={unreadDiscussion}
-                />
-              </div>
-            </>
-          )}
+          {/* Fade directionnel bas */}
+          <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-background to-transparent" />
         </div>
       </div>
 

@@ -383,3 +383,251 @@ export async function sendApprovalEmail({
     `,
   })
 }
+
+export async function sendSituationSubmittedEmail({
+  architectEmail,
+  architectName,
+  contributorName,
+  projectName,
+  projectId,
+  lotLabel,
+  percentage,
+  baseUrl,
+}: {
+  architectEmail: string
+  architectName: string
+  contributorName: string
+  projectName: string
+  projectId: string
+  lotLabel: string
+  percentage: number
+  baseUrl: string
+}) {
+  return getResend().emails.send({
+    from: FROM,
+    to: architectEmail,
+    subject: `Nouvelle situation de travaux — ${escapeHtml(projectName)}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">Nouvelle situation de travaux</h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">Bonjour ${escapeHtml(architectName)},</p>
+
+          <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
+            <strong>${escapeHtml(contributorName)}</strong> a soumis une situation de travaux
+            sur le projet <strong>${escapeHtml(projectName)}</strong>.
+          </p>
+
+          <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Lot</p>
+            <p style="margin: 0 0 12px; font-weight: 600; font-size: 16px;">${escapeHtml(lotLabel)}</p>
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Avancement</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px;">${percentage}%</p>
+          </div>
+
+          <a href="${baseUrl}/projects/${projectId}?tab=situations"
+             style="display: inline-block; background: #3b5fdb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+            Valider ou refuser →
+          </a>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Notification automatique Chalto
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendSituationReviewedEmail({
+  contributorEmail,
+  contributorName,
+  projectName,
+  lotLabel,
+  percentage,
+  action,
+  reviewerComment,
+  refusalReason,
+  inviteUrl,
+}: {
+  contributorEmail: string
+  contributorName: string
+  projectName: string
+  lotLabel: string
+  percentage: number
+  action: "validate" | "refuse"
+  reviewerComment?: string
+  refusalReason?: string
+  inviteUrl: string
+}) {
+  const isValidated = action === "validate"
+
+  return getResend().emails.send({
+    from: FROM,
+    to: contributorEmail,
+    subject: `${isValidated ? "✅ Situation validée" : "❌ Situation refusée"} — ${escapeHtml(projectName)}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            ${isValidated ? "✅ Situation validée" : "❌ Situation refusée"}
+          </h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">Bonjour ${escapeHtml(contributorName)},</p>
+
+          <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
+            Votre situation de travaux sur le projet <strong>${escapeHtml(projectName)}</strong>
+            a été <strong>${isValidated ? "validée" : "refusée"}</strong>.
+          </p>
+
+          <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Lot</p>
+            <p style="margin: 0 0 12px; font-weight: 600; font-size: 16px;">${escapeHtml(lotLabel)}</p>
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Avancement</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px;">${percentage}%</p>
+          </div>
+
+          ${
+            refusalReason
+              ? `
+          <div style="background: #fff5f5; border-left: 3px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Motif de refus</p>
+            <p style="margin: 0; color: #333; line-height: 1.7;">${escapeHtml(refusalReason)}</p>
+          </div>
+          `
+              : ""
+          }
+
+          ${
+            reviewerComment
+              ? `
+          <div style="background: #f9f9f9; border-left: 3px solid #3b5fdb; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Commentaire</p>
+            <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${escapeHtml(reviewerComment)}"</p>
+          </div>
+          `
+              : ""
+          }
+
+          <a href="${inviteUrl}"
+             style="display: inline-block; background: #111; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+            Voir le projet →
+          </a>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Notification automatique Chalto
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendDeadlineAlertEmail({
+  userEmail,
+  userName,
+  projectName,
+  projectId,
+  dossierType,
+  deadline,
+  daysRemaining,
+  threshold,
+  baseUrl,
+}: {
+  userEmail: string
+  userName: string
+  projectName: string
+  projectId: string
+  dossierType: string
+  deadline: string
+  daysRemaining: number
+  threshold: number
+  baseUrl: string
+}) {
+  const formattedDeadline = new Date(deadline + "T00:00:00").toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+
+  const isExpired = daysRemaining < 0
+  const urgencyColor = daysRemaining <= 7 ? "#ef4444" : daysRemaining <= 30 ? "#f59e0b" : "#22c55e"
+  const urgencyLabel = isExpired
+    ? "Échéance dépassée"
+    : daysRemaining === 0
+      ? "Échéance aujourd'hui"
+      : `J-${daysRemaining}`
+
+  const subject = isExpired
+    ? `⚫ Échéance dépassée — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+    : daysRemaining <= 7
+      ? `🔴 ${urgencyLabel} — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+      : `🟠 ${urgencyLabel} — ${escapeHtml(dossierType)} · ${escapeHtml(projectName)}`
+
+  return getResend().emails.send({
+    from: FROM,
+    to: userEmail,
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;">
+            <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
+            <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
+          </div>
+
+          <div style="display: inline-block; background: ${urgencyColor}; color: #fff; font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;">
+            ${escapeHtml(urgencyLabel)}
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            ${isExpired ? "Échéance dépassée" : "Rappel d'échéance"}
+          </h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">Bonjour ${escapeHtml(userName)},</p>
+
+          <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Projet</p>
+            <p style="margin: 0 0 16px; font-weight: 600; font-size: 16px;">${escapeHtml(projectName)}</p>
+
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Dossier</p>
+            <p style="margin: 0 0 16px; font-weight: 600; font-size: 16px;">${escapeHtml(dossierType)}</p>
+
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Échéance</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px; color: ${urgencyColor};">${escapeHtml(formattedDeadline)}</p>
+          </div>
+
+          <a href="${baseUrl}/projects/${projectId}"
+             style="display: inline-block; background: #111; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; margin-bottom: 32px;">
+            Voir le projet →
+          </a>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Notification automatique Chalto · Alerte J-${threshold}
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}

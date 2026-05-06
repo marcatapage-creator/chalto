@@ -4,21 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel"
+import type { ProjectDocument } from "@/types/domain"
 
-export interface ProjectDocument {
-  id: string
-  name: string
-  type: string
-  status: string
-  version: number
-  validation_token: string
-  project_id: string
-  file_url?: string
-  file_name?: string
-  file_type?: string
-  file_size?: number
-  created_at: string
-}
+export type { ProjectDocument } from "@/types/domain"
 
 interface UseProjectDocumentsOptions {
   supabase: SupabaseClient

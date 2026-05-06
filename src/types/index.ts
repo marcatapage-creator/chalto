@@ -34,6 +34,10 @@ export const NOTIFICATION_TYPE = {
   DOCUMENT_REJECTED: "document_rejected",
   MESSAGE_RECEIVED: "message_received",
   TASK_ASSIGNED: "task_assigned",
+  SITUATION_SUBMITTED: "situation_submitted",
+  SITUATION_REVIEWED: "situation_reviewed",
+  CLOUD_FILE_SYNCED: "cloud_file_synced",
+  CLOUD_TOKEN_EXPIRED: "cloud_token_expired",
 } as const
 
 export type NotificationType = (typeof NOTIFICATION_TYPE)[keyof typeof NOTIFICATION_TYPE]
@@ -46,6 +50,37 @@ export const DOCUMENT_AUDIENCE = {
 } as const
 
 export type DocumentAudience = (typeof DOCUMENT_AUDIENCE)[keyof typeof DOCUMENT_AUDIENCE]
+
+// Providers cloud
+export const CLOUD_PROVIDER = {
+  DROPBOX: "dropbox",
+  GDRIVE: "gdrive",
+} as const
+
+export type CloudProvider = (typeof CLOUD_PROVIDER)[keyof typeof CLOUD_PROVIDER]
+
+// Statuts intégration cloud
+export const INTEGRATION_STATUS = {
+  ACTIVE: "active",
+  EXPIRED: "expired",
+  REVOKED: "revoked",
+} as const
+
+export type IntegrationStatus = (typeof INTEGRATION_STATUS)[keyof typeof INTEGRATION_STATUS]
+
+// Source d'un document
+export const DOCUMENT_SOURCE = {
+  CHALTO: "chalto",
+  DROPBOX: "dropbox",
+  GDRIVE: "gdrive",
+} as const
+
+export type DocumentSource = (typeof DOCUMENT_SOURCE)[keyof typeof DOCUMENT_SOURCE]
+
+export const CLOUD_PROVIDER_LABEL: Record<CloudProvider, string> = {
+  dropbox: "Dropbox",
+  gdrive: "Google Drive",
+}
 
 // Statuts tâches
 export const TASK_STATUS = {

@@ -47,7 +47,13 @@ export function NotificationBell({
   const handleClick = async (notif: Notification) => {
     setOpen(false)
     await markAsRead(notif.id)
-    if (notif.link) router.push(notif.link)
+    if (notif.link) {
+      router.push(notif.link)
+      const highlightMatch = notif.link.match(/[?&]highlight=([^&]+)/)
+      if (highlightMatch) {
+        window.dispatchEvent(new CustomEvent("chalto:highlight", { detail: highlightMatch[1] }))
+      }
+    }
   }
 
   return (

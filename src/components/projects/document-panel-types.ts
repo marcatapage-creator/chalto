@@ -1,9 +1,4 @@
-export interface ValidationData {
-  status: string
-  comment?: string | null
-  approved_at?: string
-  client_name?: string
-}
+export type { ValidationData } from "@/types/domain"
 
 export interface ValidationEntry {
   status: string

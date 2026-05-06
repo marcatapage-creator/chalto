@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useRef, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner"
 import { NotificationsForm } from "@/components/settings/notifications-form"
 import { BrandingForm } from "@/components/settings/branding-form"
+import { IntegrationsForm, type DropboxIntegration } from "@/components/settings/integrations-form"
 
 interface Profession {
   id: string
@@ -45,15 +46,58 @@ export function SettingsForm({
   userProfessions = [],
   notifProfile,
   brandingProfile,
+  defaultTab,
+  dropboxIntegration,
+  integrationError,
 }: {
   profile: Profile
   professions: Profession[]
   userProfessions?: { id: string; label: string; slug: string }[]
   notifProfile: React.ComponentProps<typeof NotificationsForm>["profile"]
   brandingProfile: React.ComponentProps<typeof BrandingForm>["profile"]
+  defaultTab?: string
+  dropboxIntegration?: DropboxIntegration | null
+  integrationError?: string | null
 }) {
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [activeTab, setActiveTab] = useState(defaultTab ?? "profil")
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value)
+    requestAnimationFrame(() => {
+      const container = scrollRef.current
+      if (!container) return
+      // Trouver par data-tab-value (stable, pas de race avec data-state)
+      const active = container.querySelector<HTMLElement>(`[data-tab-value="${value}"]`)
+      if (!active) return
+
+      const next = active.nextElementSibling as HTMLElement | null
+      const prev = active.previousElementSibling as HTMLElement | null
+
+      // Peek l'onglet suivant s'il déborde à droite
+      if (
+        next &&
+        next.offsetLeft + next.offsetWidth > container.scrollLeft + container.clientWidth
+      ) {
+        container.scrollTo({
+          left: next.offsetLeft + next.offsetWidth - container.clientWidth + 8,
+          behavior: "smooth",
+        })
+        return
+      }
+
+      // Peek l'onglet précédent s'il déborde à gauche
+      if (prev && prev.offsetLeft < container.scrollLeft) {
+        container.scrollTo({ left: prev.offsetLeft - 8, behavior: "smooth" })
+        return
+      }
+
+      active.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
+    })
+  }, [])
+
   const [form, setForm] = useState({
     full_name: profile?.full_name ?? "",
     phone: profile?.phone ?? "",
@@ -104,13 +148,26 @@ export function SettingsForm({
   }
 
   return (
-    <Tabs defaultValue="profil" className="flex flex-col gap-6">
-      <TabsList className="w-fit">
-        <TabsTrigger value="profil">Profil</TabsTrigger>
-        <TabsTrigger value="entreprise">Entreprise</TabsTrigger>
-        <TabsTrigger value="compte">Compte</TabsTrigger>
-        <TabsTrigger value="notifications">Notifs</TabsTrigger>
-      </TabsList>
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-6">
+      <div ref={scrollRef} className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
+        <TabsList className="w-max">
+          <TabsTrigger value="profil" className="shrink-0" data-tab-value="profil">
+            Profil
+          </TabsTrigger>
+          <TabsTrigger value="entreprise" className="shrink-0" data-tab-value="entreprise">
+            Entreprise
+          </TabsTrigger>
+          <TabsTrigger value="compte" className="shrink-0" data-tab-value="compte">
+            Compte
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="shrink-0" data-tab-value="notifications">
+            Notifs
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="shrink-0" data-tab-value="integrations">
+            Intégrations
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       {/* Onglet Profil */}
       <TabsContent value="profil" className="space-y-4">
@@ -275,6 +332,14 @@ export function SettingsForm({
       {/* Onglet Notifications */}
       <TabsContent value="notifications">
         <NotificationsForm profile={notifProfile} />
+      </TabsContent>
+
+      {/* Onglet Intégrations */}
+      <TabsContent value="integrations">
+        <IntegrationsForm
+          dropboxIntegration={dropboxIntegration ?? null}
+          error={integrationError}
+        />
       </TabsContent>
     </Tabs>
   )

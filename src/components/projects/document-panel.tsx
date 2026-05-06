@@ -24,24 +24,10 @@ import type {
   AudienceInfo,
 } from "./document-panel-types"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Document {
-  id: string
-  name: string
-  type: string
-  status: string
-  version: number
-  validation_token: string
-  project_id: string
-  file_url?: string
-  file_name?: string
-  file_type?: string
-  file_size?: number
-}
+import type { ProjectDocument } from "@/types/domain"
 
 export interface DocumentPanelProps {
-  document: Document
+  document: ProjectDocument
   userId: string
   clientName?: string
   phase?: string

@@ -1,5 +1,6 @@
 import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedProfile } from "@/lib/cached-queries"
 
 /**
  * Retourne l'utilisateur authentifié courant.
@@ -14,17 +15,9 @@ export const getAuthUser = cache(async () => {
 })
 
 /**
- * Retourne le profil complet. Dédupliqué par React cache() dans le même request.
- * On sélectionne un sur-ensemble des champs utilisés dans le layout, la page projet et la page dashboard.
+ * Retourne le profil complet.
+ * React cache() déduplique dans le même render tree ; unstable_cache persiste 60s entre les requêtes.
  */
 export const getProfile = cache(async (userId: string) => {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("profiles")
-    .select(
-      "full_name, email, logo_url, company_name, branding_enabled, professions!profession_id(slug)"
-    )
-    .eq("id", userId)
-    .single()
-  return data
+  return getCachedProfile(userId)
 })

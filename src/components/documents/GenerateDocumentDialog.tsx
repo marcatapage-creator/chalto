@@ -177,7 +177,7 @@ export function GenerateDocumentDialog({
           to { --ai-btn-angle: 360deg; }
         }
         .ai-btn-border {
-          background: conic-gradient(from var(--ai-btn-angle), hsl(var(--border) / 0.5) 25%, hsl(224 79% 65% / 0.45), #a78bfa70, hsl(224 79% 65% / 0.45), hsl(var(--border) / 0.5) 75%);
+          background: conic-gradient(from var(--ai-btn-angle), hsl(var(--border)) 25%, hsl(224 79% 65% / 0.45), #a78bfa70, hsl(224 79% 65% / 0.45), hsl(var(--border)) 75%);
           animation: ai-btn-spin 7s linear infinite;
         }
       `}</style>

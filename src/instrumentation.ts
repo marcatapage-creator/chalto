@@ -9,6 +9,12 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url("doit être une URL valide"),
   UPSTASH_REDIS_REST_URL: z.string().url("doit être une URL valide"),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "token Upstash manquant"),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url("doit être une URL valide").optional(),
+  // Dropbox OAuth — requis à partir du Sprint 2 (intégrations cloud)
+  DROPBOX_APP_KEY: z.string().min(1).optional(),
+  DROPBOX_APP_SECRET: z.string().min(1).optional(),
+  // Vercel Cron — requis en production pour protéger /api/cron/*
+  CRON_SECRET: z.string().min(16).optional(),
 })
 
 export async function register() {

@@ -40,8 +40,18 @@ const documentTypes = [
 const acceptedTypes = ["application/pdf", "image/jpeg", "image/png"]
 const maxSize = 10 * 1024 * 1024
 
-export function AddDocumentDialog({ projectId }: { projectId: string }) {
-  const [open, setOpen] = useState(false)
+export function AddDocumentDialog({
+  projectId,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+}: {
+  projectId: string
+  open?: boolean
+  onOpenChange?: (v: boolean) => void
+}) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = externalOpen ?? internalOpen
+  const setOpen = externalOnOpenChange ?? setInternalOpen
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState("")
   const [type, setType] = useState("")
@@ -144,12 +154,14 @@ export function AddDocumentDialog({ projectId }: { projectId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="h-8">
-          <Plus className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Ajouter un document</span>
-        </Button>
-      </DialogTrigger>
+      {!externalOnOpenChange && (
+        <DialogTrigger asChild>
+          <Button size="sm" className="h-8">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Ajouter un document</span>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nouveau document</DialogTitle>
