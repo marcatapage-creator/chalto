@@ -225,7 +225,7 @@ export function ProjectSituations({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1 pb-1 px-px">
+            <div className="pt-1 pb-1 px-1">
               {situations.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -243,14 +243,16 @@ export function ProjectSituations({
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
                         À réviser — {pending.length}
                       </p>
-                      {pending.map((s) => (
-                        <SituationCard
-                          key={s.id}
-                          situation={s}
-                          highlighted={highlightedSituationId === s.id}
-                          onReview={!readOnly ? openReview : undefined}
-                        />
-                      ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {pending.map((s) => (
+                          <SituationCard
+                            key={s.id}
+                            situation={s}
+                            highlighted={highlightedSituationId === s.id}
+                            onReview={!readOnly ? openReview : undefined}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -260,13 +262,15 @@ export function ProjectSituations({
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
                         Révisées — {reviewed.length}
                       </p>
-                      {reviewed.map((s) => (
-                        <SituationCard
-                          key={s.id}
-                          situation={s}
-                          highlighted={highlightedSituationId === s.id}
-                        />
-                      ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {reviewed.map((s) => (
+                          <SituationCard
+                            key={s.id}
+                            situation={s}
+                            highlighted={highlightedSituationId === s.id}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
