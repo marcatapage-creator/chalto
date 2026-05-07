@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
+import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -9,14 +10,8 @@ import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil } from "lucide-react
 import { cn, isChantierPhase } from "@/lib/utils"
 import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
-import { DocumentPanel } from "@/components/projects/document-panel"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { ProjectStepper } from "@/components/projects/project-stepper"
-import { ProjectTasks } from "@/components/projects/project-tasks"
-import { ProjectDiscussion } from "@/components/projects/project-discussion"
-import { ProjectContributors } from "@/components/projects/project-contributors"
-import { ProjectSituations } from "@/components/projects/project-situations"
-import { ProjectAdminDossiers } from "@/components/projects/project-admin-dossiers"
 import {
   ProjectDetailsDialog,
   type ProjectInfo,
@@ -24,6 +19,51 @@ import {
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useProjectDocuments } from "@/hooks/use-project-documents"
 import { useMediaQuery } from "@/hooks/use-media-query"
+
+const DocumentPanel = dynamic(
+  () => import("@/components/projects/document-panel").then((m) => ({ default: m.DocumentPanel })),
+  { ssr: false }
+)
+
+const ProjectAdminDossiers = dynamic(
+  () =>
+    import("@/components/projects/project-admin-dossiers").then((m) => ({
+      default: m.ProjectAdminDossiers,
+    })),
+  {
+    ssr: false,
+    loading: () => <div className="h-11 rounded-lg bg-muted animate-pulse" />,
+  }
+)
+
+const ProjectContributors = dynamic(
+  () =>
+    import("@/components/projects/project-contributors").then((m) => ({
+      default: m.ProjectContributors,
+    })),
+  { ssr: false }
+)
+
+const ProjectTasks = dynamic(
+  () => import("@/components/projects/project-tasks").then((m) => ({ default: m.ProjectTasks })),
+  { ssr: false }
+)
+
+const ProjectDiscussion = dynamic(
+  () =>
+    import("@/components/projects/project-discussion").then((m) => ({
+      default: m.ProjectDiscussion,
+    })),
+  { ssr: false }
+)
+
+const ProjectSituations = dynamic(
+  () =>
+    import("@/components/projects/project-situations").then((m) => ({
+      default: m.ProjectSituations,
+    })),
+  { ssr: false }
+)
 import type {
   ProjectDocument,
   Contact,
@@ -142,6 +182,16 @@ export function ProjectPageClient({
     window.addEventListener("chalto:highlight", handler)
     return () => window.removeEventListener("chalto:highlight", handler)
   }, [applyHighlight])
+
+  // Réagit aux changements de initialHighlightId (navigation same-page via searchParams)
+  // useState ne se réinitialise pas quand la prop change après le premier mount
+  const prevHighlightRef = useRef<string | null>(initialHighlightId ?? null)
+  useEffect(() => {
+    if (!initialHighlightId || isLegacySituationsTab) return
+    if (initialHighlightId === prevHighlightRef.current) return
+    prevHighlightRef.current = initialHighlightId
+    applyHighlight(initialHighlightId)
+  }, [initialHighlightId, isLegacySituationsTab, applyHighlight])
 
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
