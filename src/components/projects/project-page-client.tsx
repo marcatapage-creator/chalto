@@ -388,26 +388,29 @@ export function ProjectPageClient({
               />
             </div>
 
-            <GradientDivider index={1} />
-
-            {/* Dossiers administratifs — toutes phases */}
-            <div ref={adminDossiersRef} className="px-6 md:px-8 py-6 md:py-8">
-              <ProjectAdminDossiers
-                projectId={project.id}
-                initialDossiers={initialDossiers}
-                readOnly={phase === "cloture"}
-                onOpen={() => {
-                  if (!isDesktop) setDetailsOpen(false)
-                  setTimeout(() => {
-                    const container = scrollContainerRef.current
-                    const el = adminDossiersRef.current
-                    if (container && el) {
-                      container.scrollTo({ top: el.offsetTop - 24, behavior: "smooth" })
-                    }
-                  }, 50)
-                }}
-              />
-            </div>
+            {professionSlug !== "architecte_interieur" && (
+              <>
+                <GradientDivider index={1} />
+                {/* Dossiers administratifs — toutes phases */}
+                <div ref={adminDossiersRef} className="px-6 md:px-8 py-6 md:py-8">
+                  <ProjectAdminDossiers
+                    projectId={project.id}
+                    initialDossiers={initialDossiers}
+                    readOnly={phase === "cloture"}
+                    onOpen={() => {
+                      if (!isDesktop) setDetailsOpen(false)
+                      setTimeout(() => {
+                        const container = scrollContainerRef.current
+                        const el = adminDossiersRef.current
+                        if (container && el) {
+                          container.scrollTo({ top: el.offsetTop - 24, behavior: "smooth" })
+                        }
+                      }, 50)
+                    }}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Skeleton pendant le router.refresh() post-confirmation chantier */}
             {(chantierRevealing || isChantierPhase(phase)) && <GradientDivider index={2} />}
