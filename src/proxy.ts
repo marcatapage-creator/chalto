@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
         "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://www.google-analytics.com",
         "font-src 'self'",
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://resend.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://va.vercel-scripts.com",
-        "frame-src https://*.supabase.co",
+        "frame-src https://*.supabase.co https://vercel.live",
         "frame-ancestors 'none'",
         "object-src 'none'",
         "base-uri 'self'",
