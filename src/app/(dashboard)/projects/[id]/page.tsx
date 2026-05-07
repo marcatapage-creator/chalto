@@ -78,53 +78,66 @@ export default async function ProjectPage({
   const taskIdList = (taskRows ?? []).map((t: { id: string }) => t.id)
   const lastViewed = proView?.last_viewed_at ?? null
 
-  const [validationsResult, unreadDocsResult, unreadTasksResult, unreadDiscResult] =
-    await Promise.all([
-      docIds.length > 0
-        ? supabase
-            .from("validations")
-            .select("document_id, status, comment, approved_at, client_name")
-            .in("document_id", docIds)
-            .order("created_at", { ascending: false })
-            .limit(500)
-        : Promise.resolve({
-            data: [] as {
-              document_id: string
-              status: string
-              comment: string | null
-              approved_at: string | null
-              client_name: string | null
-            }[],
-          }),
-      lastViewed && docIds.length > 0
-        ? supabase
-            .from("validations")
-            .select("*", { count: "exact", head: true })
-            .in("document_id", docIds)
-            .gt("created_at", lastViewed)
-        : Promise.resolve({ count: 0 as number | null }),
-      lastViewed && taskIdList.length > 0
-        ? supabase
-            .from("task_comments")
-            .select("*", { count: "exact", head: true })
-            .in("task_id", taskIdList)
-            .eq("author_role", "prestataire")
-            .gt("created_at", lastViewed)
-        : Promise.resolve({ count: 0 as number | null }),
-      lastViewed
-        ? supabase
-            .from("project_messages")
-            .select("*", { count: "exact", head: true })
-            .eq("project_id", id)
-            .eq("author_role", "prestataire")
-            .gt("created_at", lastViewed)
-        : Promise.resolve({ count: 0 as number | null }),
-    ])
+  const [
+    validationsResult,
+    unreadDocsResult,
+    unreadTasksResult,
+    unreadDiscResult,
+    unreadSituationsResult,
+  ] = await Promise.all([
+    docIds.length > 0
+      ? supabase
+          .from("validations")
+          .select("document_id, status, comment, approved_at, client_name")
+          .in("document_id", docIds)
+          .order("created_at", { ascending: false })
+          .limit(500)
+      : Promise.resolve({
+          data: [] as {
+            document_id: string
+            status: string
+            comment: string | null
+            approved_at: string | null
+            client_name: string | null
+          }[],
+        }),
+    lastViewed && docIds.length > 0
+      ? supabase
+          .from("validations")
+          .select("*", { count: "exact", head: true })
+          .in("document_id", docIds)
+          .gt("created_at", lastViewed)
+      : Promise.resolve({ count: 0 as number | null }),
+    lastViewed && taskIdList.length > 0
+      ? supabase
+          .from("task_comments")
+          .select("*", { count: "exact", head: true })
+          .in("task_id", taskIdList)
+          .eq("author_role", "prestataire")
+          .gt("created_at", lastViewed)
+      : Promise.resolve({ count: 0 as number | null }),
+    lastViewed
+      ? supabase
+          .from("project_messages")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", id)
+          .eq("author_role", "prestataire")
+          .gt("created_at", lastViewed)
+      : Promise.resolve({ count: 0 as number | null }),
+    lastViewed
+      ? supabase
+          .from("situations")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", id)
+          .gt("submitted_at", lastViewed)
+      : Promise.resolve({ count: 0 as number | null }),
+  ])
 
   const validationRows = validationsResult.data ?? []
   const unreadDocs = unreadDocsResult.count ?? 0
   const unreadTasks = unreadTasksResult.count ?? 0
   const unreadDiscussion = unreadDiscResult.count ?? 0
+  const unreadSituations = unreadSituationsResult.count ?? 0
 
   const initialValidations: Record<
     string,
@@ -159,6 +172,7 @@ export default async function ProjectPage({
       unreadDocs={unreadDocs}
       unreadTasks={unreadTasks}
       unreadDiscussion={unreadDiscussion}
+      unreadSituations={unreadSituations}
       cloudLinks={cloudLinks ?? []}
       hasDropboxConnected={!!dropboxIntegration}
     />

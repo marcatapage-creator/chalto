@@ -59,6 +59,7 @@ interface ProjectPageClientProps {
   unreadDocs?: number
   unreadTasks?: number
   unreadDiscussion?: number
+  unreadSituations?: number
   cloudLinks?: CloudLink[]
   hasDropboxConnected?: boolean
 }
@@ -91,6 +92,7 @@ export function ProjectPageClient({
   unreadDocs = 0,
   unreadTasks = 0,
   unreadDiscussion = 0,
+  unreadSituations = 0,
   cloudLinks = [],
   hasDropboxConnected = false,
 }: ProjectPageClientProps) {
@@ -144,6 +146,7 @@ export function ProjectPageClient({
   const highlightedDocId = highlightedId?.startsWith("doc_") ? highlightedId.slice(4) : null
   const highlightedTaskId = highlightedId?.startsWith("task_") ? highlightedId.slice(5) : null
   const highlightedSituationId = highlightedId?.startsWith("sit_") ? highlightedId.slice(4) : null
+  const highlightedDossierId = highlightedId?.startsWith("dossier_") ? highlightedId.slice(8) : null
   const openDiscussion = highlightedId === "discussion"
 
   // ─── Documents (Realtime + CRUD) ─────────────────────────────────────────────
@@ -397,6 +400,7 @@ export function ProjectPageClient({
                     projectId={project.id}
                     initialDossiers={initialDossiers}
                     readOnly={phase === "cloture"}
+                    highlightedDossierId={highlightedDossierId}
                     onOpen={() => {
                       if (!isDesktop) setDetailsOpen(false)
                       setTimeout(() => {
@@ -495,6 +499,7 @@ export function ProjectPageClient({
                         )
                       }
                       highlightedSituationId={highlightedSituationId}
+                      unreadCount={unreadSituations}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
                       }}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown, Plus, Pencil, Trash2, FolderOpen, CalendarDays, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -77,6 +77,7 @@ interface ProjectAdminDossiersProps {
   initialDossiers: AdminDossier[]
   readOnly?: boolean
   defaultOpen?: boolean
+  highlightedDossierId?: string | null
   onOpen?: () => void
 }
 
@@ -101,10 +102,21 @@ export function ProjectAdminDossiers({
   initialDossiers,
   readOnly = false,
   defaultOpen = false,
+  highlightedDossierId,
   onOpen,
 }: ProjectAdminDossiersProps) {
   const [dossiers, setDossiers] = useState<AdminDossier[]>(initialDossiers)
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [isOpen, setIsOpen] = useState(defaultOpen || !!highlightedDossierId)
+
+  useEffect(() => {
+    if (!highlightedDossierId) return
+    setIsOpen(true)
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-dossier-id="${highlightedDossierId}"]`)
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [highlightedDossierId])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<AdminDossier | null>(null)
   const [form, setForm] = useState<FormState>(defaultForm())
@@ -310,6 +322,7 @@ export function ProjectAdminDossiers({
                         <DossierCard
                           key={d.id}
                           dossier={d}
+                          highlighted={highlightedDossierId === d.id}
                           onEdit={!readOnly ? openEdit : undefined}
                           onDelete={!readOnly ? handleDelete : undefined}
                           onNextStatus={!readOnly ? handleNextStatus : undefined}
@@ -330,6 +343,7 @@ export function ProjectAdminDossiers({
                         <DossierCard
                           key={d.id}
                           dossier={d}
+                          highlighted={highlightedDossierId === d.id}
                           onEdit={!readOnly ? openEdit : undefined}
                           onDelete={!readOnly ? handleDelete : undefined}
                           deletingId={deletingId}
@@ -447,12 +461,14 @@ export function ProjectAdminDossiers({
 
 function DossierCard({
   dossier: d,
+  highlighted,
   onEdit,
   onDelete,
   onNextStatus,
   deletingId,
 }: {
   dossier: AdminDossier
+  highlighted?: boolean
   onEdit?: (d: AdminDossier) => void
   onDelete?: (id: string) => void
   onNextStatus?: (d: AdminDossier) => void
@@ -464,7 +480,14 @@ function DossierCard({
   const typeLabel = d.type === "autre" && d.label ? d.label : TYPE_LABEL[d.type]
 
   return (
-    <Card className={cn("transition-all duration-200", isDeleting && "opacity-50")}>
+    <Card
+      data-dossier-id={d.id}
+      className={cn(
+        "transition-all duration-200",
+        isDeleting && "opacity-50",
+        highlighted && "border-ring ring-3 ring-ring/50"
+      )}
+    >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
