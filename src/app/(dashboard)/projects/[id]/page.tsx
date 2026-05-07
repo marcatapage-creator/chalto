@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { getCachedProfile } from "@/lib/cached-queries"
 import { notFound, redirect } from "next/navigation"
+import type { Situation, AdminDossier } from "@/types/domain"
 import { ProjectPageClient } from "@/components/projects/project-page-client"
 
 export default async function ProjectPage({
@@ -165,10 +166,8 @@ export default async function ProjectPage({
       professionSlug={professionSlug}
       initialHighlightId={highlight ?? (tab === "situations" ? "tab_situations" : null)}
       initialValidations={initialValidations}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      initialSituations={(situations ?? []) as any}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      initialDossiers={(dossiers ?? []) as any}
+      initialSituations={(situations ?? []) as unknown as Situation[]}
+      initialDossiers={(dossiers ?? []) as unknown as AdminDossier[]}
       unreadDocs={unreadDocs}
       unreadTasks={unreadTasks}
       unreadDiscussion={unreadDiscussion}

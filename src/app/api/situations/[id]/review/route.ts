@@ -96,7 +96,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           reviewerComment,
           refusalReason,
           inviteUrl: `${baseUrl}/invite/${contributor.invite_token}`,
-        })
+        }).catch((err: unknown) =>
+          console.error("[situations review] sendSituationReviewedEmail", err)
+        )
       }
 
       void createNotification({
@@ -105,7 +107,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         title: action === "validate" ? "Situation validée" : "Situation refusée",
         body: `${situation.lot_label} — ${situation.percentage}%`,
         link: `/projects/${situation.project_id}?highlight=sit_${situation.id}`,
-      })
+      }).catch((err: unknown) => console.error("[situations review] createNotification", err))
     }
 
     return NextResponse.json({ situation: updated })

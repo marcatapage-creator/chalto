@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         title: `Note de ${authorName}`,
         body: `Sur « ${task.title} » : ${content.trim().slice(0, 80)}`,
         link: `/projects/${task.project_id}?highlight=task_${taskId}`,
-      })
+      }).catch((err: unknown) => console.error("[task-comment] createNotification", err))
     }
 
     return NextResponse.json({ comment })

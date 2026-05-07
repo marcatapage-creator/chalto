@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         title: `Suggestion de ${contributorName}`,
         body: `« ${title.trim()} »`,
         link: `/projects/${projectId}?highlight=task_${task.id}`,
-      })
+      }).catch((err: unknown) => console.error("[task-suggest] createNotification", err))
     }
 
     return NextResponse.json({ task })

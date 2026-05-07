@@ -13,7 +13,7 @@ Sentry.init({
   enableLogs: true,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 
   beforeSend(event, hint) {
     const err = hint?.originalException
