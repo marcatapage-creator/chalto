@@ -60,6 +60,7 @@ interface ProjectSituationsProps {
   readOnly?: boolean
   defaultOpen?: boolean
   highlightedSituationId?: string | null
+  unreadCount?: number
   onOpen?: () => void
 }
 
@@ -75,9 +76,11 @@ export function ProjectSituations({
   readOnly = false,
   defaultOpen = true,
   highlightedSituationId,
+  unreadCount = 0,
   onOpen,
 }: ProjectSituationsProps) {
   const [situations, setSituations] = useState<Situation[]>(initialSituations)
+  const [localUnread, setLocalUnread] = useState(unreadCount)
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [reviewing, setReviewing] = useState<ReviewState | null>(null)
   const [action, setAction] = useState<"validate" | "refuse">("validate")
@@ -156,7 +159,10 @@ export function ProjectSituations({
       <div
         className="flex items-center justify-between group cursor-pointer"
         onClick={() => {
-          if (!isOpen) onOpen?.()
+          if (!isOpen) {
+            onOpen?.()
+            setLocalUnread(0)
+          }
           setIsOpen((v) => !v)
         }}
       >
@@ -173,12 +179,19 @@ export function ProjectSituations({
           {situations.length > 0 && (
             <span
               className={cn(
-                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
-                pendingCount > 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0 transition-colors",
+                localUnread > 0
+                  ? "bg-destructive text-destructive-foreground font-semibold"
+                  : pendingCount > 0
+                    ? "bg-amber-500 text-white"
+                    : "bg-muted text-muted-foreground"
               )}
             >
               {situations.length}
             </span>
+          )}
+          {localUnread > 0 && !isOpen && (
+            <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
           )}
         </div>
         {situations.length > 0 && (

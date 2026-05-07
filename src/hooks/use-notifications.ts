@@ -72,7 +72,11 @@ export function useNotifications(userId: string) {
               const notif = payload.new as Notification
               setNotifications((prev) => [notif, ...prev].slice(0, 20))
               if (!isInitialLoad.current) {
-                toast(notif.title, { description: notif.body })
+                if (notif.type === "deadline_alert") {
+                  toast.warning(notif.title, { description: notif.body })
+                } else {
+                  toast(notif.title, { description: notif.body })
+                }
               }
             }
           )

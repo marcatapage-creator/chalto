@@ -24,6 +24,11 @@ const typeIcon: Record<string, string> = {
   document_rejected: "❌",
   message_received: "💬",
   task_assigned: "📋",
+  situation_submitted: "📤",
+  situation_reviewed: "📋",
+  deadline_alert: "⏰",
+  cloud_file_synced: "📁",
+  cloud_token_expired: "⚠️",
 }
 
 export function NotificationBell({
@@ -65,7 +70,7 @@ export function NotificationBell({
         position="bottom"
       >
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" aria-label="Notifications">
             <span className="relative">
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (

@@ -58,7 +58,7 @@ export default async function SituationsPrintPage({ params }: { params: Promise<
     <>
       <PrintButton />
 
-      <div className="max-w-3xl mx-auto px-6 py-10 print:p-0 print:max-w-none font-sans text-sm text-gray-900">
+      <div className="max-w-3xl mx-auto px-6 pt-20 pb-10 print:p-0 print:max-w-none font-sans text-sm text-gray-900">
         {/* En-tête */}
         <div className="mb-8 pb-6 border-b border-gray-200">
           <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">

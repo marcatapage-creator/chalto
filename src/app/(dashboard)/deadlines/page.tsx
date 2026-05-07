@@ -87,7 +87,7 @@ function DossierRow({ d }: { d: DossierRow }) {
 
   return (
     <Link
-      href={`/projects/${d.project?.id}`}
+      href={`/projects/${d.project?.id}?highlight=dossier_${d.id}`}
       className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors group"
     >
       <DeadlineBadge days={d.days} />

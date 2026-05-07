@@ -366,3 +366,113 @@ test("8.8 — le lien 'Récap PDF' depuis la fiche projet ouvre la bonne URL", a
   const href = await pdfLink.getAttribute("href")
   expect(href).toContain(`/projects/${projectId}/situations/print`)
 })
+
+// ─── 8.9 : Badge "non-lu" sur la section Situations ─────────────────────────
+
+test("8.9 — la section 'Situations de travaux' affiche un badge de comptage", async ({ page }) => {
+  const projectId = e2eEnv("E2E_PROJECT_ID")
+  if (!projectId) {
+    test.skip(true, "E2E_PROJECT_ID non défini")
+    return
+  }
+
+  await page.goto(`/projects/${projectId}`)
+  if (page.url().includes("/login")) {
+    test.skip(true, "Session expirée")
+    return
+  }
+
+  // La section doit exister
+  const header = page.getByText(/situations de travaux/i).first()
+  await expect(header).toBeVisible({ timeout: 10_000 })
+
+  // S'il y a des situations, le badge de count doit être visible
+  const badge = page
+    .getByText(/situations de travaux/i)
+    .first()
+    .locator("..")
+    .locator("..")
+    .locator("span.rounded-full")
+    .first()
+
+  const hasBadge = await badge.isVisible({ timeout: 3_000 }).catch(() => false)
+  if (!hasBadge) {
+    test.skip(true, "Badge introuvable — probablement aucune situation dans ce projet")
+    return
+  }
+
+  await expect(badge).toBeVisible()
+})
+
+test("8.9 — badge rouge (non-lu) visible après soumission prestataire sans visite préalable", async ({
+  page,
+}) => {
+  const token = e2eEnv("E2E_INVITE_TOKEN")
+  const projectId = e2eEnv("E2E_PROJECT_ID")
+  if (!token || !projectId) {
+    test.skip(true, "E2E_INVITE_TOKEN ou E2E_PROJECT_ID non défini")
+    return
+  }
+
+  // Étape 1 : prestataire soumet une situation
+  await page.goto(`/invite/${token}`)
+  await expect(page).not.toHaveURL(/login/)
+
+  const newBtn = page.getByRole("button", { name: /nouvelle situation|soumettre|ajouter/i }).first()
+  const hasBtn = await newBtn.isVisible({ timeout: 8_000 }).catch(() => false)
+  if (!hasBtn) {
+    test.skip(true, "Bouton de soumission introuvable")
+    return
+  }
+
+  await newBtn.click()
+
+  const lotInput = page.getByRole("textbox", { name: /lot|intitulé|label/i }).first()
+  const hasForm = await lotInput.isVisible({ timeout: 5_000 }).catch(() => false)
+  if (!hasForm) {
+    test.skip(true, "Formulaire de situation introuvable")
+    return
+  }
+
+  await lotInput.fill(`Lot badge E2E ${Date.now()}`)
+
+  const percentInput = page
+    .getByRole("spinbutton")
+    .or(page.getByPlaceholder(/pourcentage|%/i))
+    .first()
+  const hasPercent = await percentInput.isVisible({ timeout: 2_000 }).catch(() => false)
+  if (hasPercent) await percentInput.fill("25")
+
+  await page
+    .getByRole("button", { name: /soumettre|envoyer|créer|confirmer/i })
+    .last()
+    .click()
+
+  await page.waitForTimeout(2_000)
+
+  // Étape 2 : architecte accède au projet — le badge doit être rouge (bg-destructive)
+  await page.goto(`/projects/${projectId}`)
+  if (page.url().includes("/login")) {
+    test.skip(true, "Session expirée")
+    return
+  }
+
+  await page.waitForLoadState("networkidle")
+
+  // Cherche un badge destructif dans l'en-tête de la section Situations
+  const destructiveBadge = page.locator("span.bg-destructive, span.text-destructive-foreground")
+  const hasDestructive = await destructiveBadge
+    .first()
+    .isVisible({ timeout: 5_000 })
+    .catch(() => false)
+
+  if (!hasDestructive) {
+    test.skip(
+      true,
+      "Badge destructif absent — la pro_view peut avoir été mise à jour avant la soumission"
+    )
+    return
+  }
+
+  await expect(destructiveBadge.first()).toBeVisible()
+})

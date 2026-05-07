@@ -71,7 +71,7 @@ export async function GET(request: Request) {
         type: "deadline_alert",
         title: days < 0 ? `Échéance dépassée — ${typeLabel}` : `Échéance J-${days} — ${typeLabel}`,
         body: `${project.name} · ${new Date(dossier.deadline + "T00:00:00").toLocaleDateString("fr-FR")}`,
-        link: `/projects/${project.id}`,
+        link: `/projects/${project.id}?highlight=dossier_${dossier.id}`,
       })
 
       void sendDeadlineAlertEmail({
