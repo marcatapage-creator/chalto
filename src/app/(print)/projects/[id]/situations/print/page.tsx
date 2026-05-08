@@ -99,72 +99,78 @@ export default async function SituationsPrintPage({ params }: { params: Promise<
                   <h2 className="text-lg font-semibold text-gray-900">{contributorName}</h2>
                 </div>
 
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b-2 border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
-                      <th className="pb-3 pr-6 font-semibold">Lot</th>
-                      <th className="pb-3 pr-6 font-semibold text-right">%</th>
-                      <th className="pb-3 pr-6 font-semibold text-right">Montant HT</th>
-                      <th className="pb-3 pr-6 font-semibold">Statut</th>
-                      <th className="pb-3 font-semibold">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {(rows ?? []).map((s) => (
-                      <React.Fragment key={s!.id}>
-                        <tr className="align-top">
-                          <td className="py-4 pr-6 font-medium">{s!.lot_label}</td>
-                          <td className="py-4 pr-6 text-right text-gray-700">{s!.percentage}%</td>
-                          <td className="py-4 pr-6 text-right font-medium">
-                            {s!.amount_ht
-                              ? s!.amount_ht.toLocaleString("fr-FR", {
-                                  minimumFractionDigits: 0,
-                                }) + " €"
-                              : "—"}
-                          </td>
-                          <td className="py-4 pr-6">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[s!.status as SituationStatus]}`}
-                            >
-                              {STATUS_LABEL[s!.status as SituationStatus]}
-                            </span>
-                          </td>
-                          <td className="py-4 text-gray-500 text-xs">
-                            {new Date(s!.submitted_at).toLocaleDateString("fr-FR")}
-                          </td>
-                        </tr>
-                        {(s!.comment || s!.refusal_reason || s!.reviewer_comment) && (
-                          <tr>
-                            <td colSpan={5} className="pb-4 pt-0 pl-1">
-                              <div className="bg-gray-50 rounded-md px-3 py-2.5 space-y-1 print:bg-transparent print:border print:border-gray-200">
-                                {s!.comment && (
-                                  <p className="text-xs text-gray-500 italic">
-                                    <span className="not-italic font-medium text-gray-600">
-                                      Commentaire :{" "}
-                                    </span>
-                                    {s!.comment}
-                                  </p>
-                                )}
-                                {s!.refusal_reason && (
-                                  <p className="text-xs text-red-600">
-                                    <span className="font-medium">Motif de refus : </span>
-                                    {s!.refusal_reason}
-                                  </p>
-                                )}
-                                {s!.reviewer_comment && (
-                                  <p className="text-xs text-gray-600">
-                                    <span className="font-medium">Note architecte : </span>
-                                    {s!.reviewer_comment}
-                                  </p>
-                                )}
-                              </div>
+                <div className="overflow-x-auto -mx-2 px-2">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
+                        <th className="pb-3 pr-3 sm:pr-6 font-semibold">Lot</th>
+                        <th className="pb-3 pr-3 sm:pr-6 font-semibold text-right">%</th>
+                        <th className="pb-3 pr-6 font-semibold text-right whitespace-nowrap">
+                          Montant HT
+                        </th>
+                        <th className="pb-3 pr-4 font-semibold pl-2">Statut</th>
+                        <th className="pb-3 font-semibold whitespace-nowrap">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(rows ?? []).map((s) => (
+                        <React.Fragment key={s!.id}>
+                          <tr className="align-top">
+                            <td className="py-3 pr-3 sm:pr-6 font-medium">{s!.lot_label}</td>
+                            <td className="py-3 pr-3 sm:pr-6 text-right text-gray-700">
+                              {s!.percentage}%
+                            </td>
+                            <td className="py-3 pr-6 text-right font-medium whitespace-nowrap">
+                              {s!.amount_ht
+                                ? s!.amount_ht.toLocaleString("fr-FR", {
+                                    minimumFractionDigits: 0,
+                                  }) + " €"
+                                : "—"}
+                            </td>
+                            <td className="py-3 pr-4 pl-2">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[s!.status as SituationStatus]}`}
+                              >
+                                {STATUS_LABEL[s!.status as SituationStatus]}
+                              </span>
+                            </td>
+                            <td className="py-3 text-gray-500 text-xs whitespace-nowrap">
+                              {new Date(s!.submitted_at).toLocaleDateString("fr-FR")}
                             </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
+                          {(s!.comment || s!.refusal_reason || s!.reviewer_comment) && (
+                            <tr>
+                              <td colSpan={5} className="pb-4 pt-0 pl-1">
+                                <div className="bg-gray-50 rounded-md px-3 py-2.5 space-y-1 print:bg-transparent print:border print:border-gray-200">
+                                  {s!.comment && (
+                                    <p className="text-xs text-gray-500 italic">
+                                      <span className="not-italic font-medium text-gray-600">
+                                        Commentaire :{" "}
+                                      </span>
+                                      {s!.comment}
+                                    </p>
+                                  )}
+                                  {s!.refusal_reason && (
+                                    <p className="text-xs text-red-600">
+                                      <span className="font-medium">Motif de refus : </span>
+                                      {s!.refusal_reason}
+                                    </p>
+                                  )}
+                                  {s!.reviewer_comment && (
+                                    <p className="text-xs text-gray-600">
+                                      <span className="font-medium">Note architecte : </span>
+                                      {s!.reviewer_comment}
+                                    </p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))}
           </div>
