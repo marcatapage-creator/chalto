@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 
 const TRIGGER_THRESHOLD = 130
 const SHOW_THRESHOLD = 15 // dead zone before indicator appears
-const HEADER_HEIGHT = 56
+const HEADER_HEIGHT = 74
 const INDICATOR_SIZE = 36
 const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2
 const TOTAL_TRAVEL = INDICATOR_SIZE + SNAP_Y
@@ -35,6 +35,7 @@ export function PullToRefresh() {
   const startYRef = useRef<number | null>(null)
   const dragYRef = useRef(0)
   const activeRef = useRef(false)
+  const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
@@ -51,10 +52,19 @@ export function PullToRefresh() {
       const delta = e.touches[0].clientY - startYRef.current
       if (delta > 0) {
         dragYRef.current = delta
-        setDragY(delta)
+        if (rafRef.current === null) {
+          rafRef.current = requestAnimationFrame(() => {
+            setDragY(dragYRef.current)
+            rafRef.current = null
+          })
+        }
       } else {
         activeRef.current = false
         dragYRef.current = 0
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = null
+        }
         setDragY(0)
       }
     }
@@ -64,6 +74,10 @@ export function PullToRefresh() {
       activeRef.current = false
       const drag = dragYRef.current
       dragYRef.current = 0
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
       setDragY(0)
       startYRef.current = null
       if (drag >= TRIGGER_THRESHOLD) {

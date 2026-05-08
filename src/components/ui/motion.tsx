@@ -64,10 +64,11 @@ export const StaggerItem = ({
         hidden: { opacity: 0, y: 12 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
       }}
-      whileTap={
-        pressable ? { scale: 0.97, opacity: 0.85, transition: { duration: 0.1 } } : undefined
+      className={
+        pressable
+          ? `${className ?? ""} active:scale-[0.97] active:opacity-85 transition-transform duration-100`
+          : className
       }
-      className={className}
     >
       {children}
     </motion.div>
