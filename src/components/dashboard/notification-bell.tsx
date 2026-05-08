@@ -17,6 +17,7 @@ interface NotificationBellProps {
   markAsRead: (id: string) => Promise<void>
   markAllAsRead: () => Promise<void>
   popoverAlign?: "start" | "center" | "end"
+  buttonClassName?: string
 }
 
 const typeIcon: Record<string, string> = {
@@ -37,6 +38,7 @@ export function NotificationBell({
   markAsRead,
   markAllAsRead,
   popoverAlign = "end",
+  buttonClassName,
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -70,7 +72,12 @@ export function NotificationBell({
         position="bottom"
       >
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Notifications"
+            className={buttonClassName}
+          >
             <span className="relative">
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (

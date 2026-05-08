@@ -201,8 +201,8 @@ export function Sidebar({
           <span className="font-bold">Chalto</span>
         </div>
         <div className="flex items-center gap-2">
-          <NotificationBell {...notifProps} />
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <NotificationBell {...notifProps} buttonClassName="border-0" />
+          <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="border-0">
             <Menu className="h-5 w-5" />
           </Button>
         </div>
