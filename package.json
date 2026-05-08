@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:fresh": "rm -f e2e/.auth/user.json && playwright test",
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint",
     "prepare": "husky"

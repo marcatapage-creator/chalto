@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { fetchDashboardCounts } from "@/app/(dashboard)/dashboard/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FolderOpen, FileText, CheckCircle, Clock, CheckCircle2 } from "lucide-react"
-import { StaggerList, StaggerItem } from "@/components/ui/motion"
 
 interface Counts {
   activeProjects: number
@@ -23,9 +22,14 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
   const supabase = useMemo(() => createClient(), [])
   const [counts, setCounts] = useState<Counts>(initialCounts)
 
-  const refreshCounts = useCallback(async () => {
-    const updated = await fetchDashboardCounts(userId)
-    setCounts(updated)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const refreshCounts = useCallback(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(async () => {
+      const updated = await fetchDashboardCounts(userId)
+      setCounts(updated)
+    }, 500)
   }, [userId])
 
   useEffect(() => {
@@ -38,6 +42,7 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
       })
 
     return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
       supabase.removeChannel(channel)
     }
   }, [refreshCounts, supabase])
@@ -76,44 +81,45 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
   ]
 
   return (
-    <StaggerList className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
-          <StaggerItem key={stat.label}>
-            <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
-                </CardTitle>
-                <Icon
-                  className={
-                    stat.allClear ? "h-4 w-4 text-green-500" : "h-4 w-4 text-muted-foreground"
-                  }
-                />
-              </CardHeader>
-              <CardContent>
-                <div
-                  className={
-                    stat.allClear ? "text-2xl font-bold text-green-500" : "text-2xl font-bold"
-                  }
-                >
-                  {stat.value}
-                </div>
-                <p
-                  className={
-                    stat.allClear
-                      ? "text-xs text-green-600 mt-1 font-medium"
-                      : "text-xs text-muted-foreground mt-1"
-                  }
-                >
-                  {stat.description}
-                </p>
-              </CardContent>
-            </Card>
-          </StaggerItem>
+          <Card
+            key={stat.label}
+            className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50"
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.label}
+              </CardTitle>
+              <Icon
+                className={
+                  stat.allClear ? "h-4 w-4 text-green-500" : "h-4 w-4 text-muted-foreground"
+                }
+              />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={
+                  stat.allClear ? "text-2xl font-bold text-green-500" : "text-2xl font-bold"
+                }
+              >
+                {stat.value}
+              </div>
+              <p
+                className={
+                  stat.allClear
+                    ? "text-xs text-green-600 mt-1 font-medium"
+                    : "text-xs text-muted-foreground mt-1"
+                }
+              >
+                {stat.description}
+              </p>
+            </CardContent>
+          </Card>
         )
       })}
-    </StaggerList>
+    </div>
   )
 }

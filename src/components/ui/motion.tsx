@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 
 // Fade simple — pour les pages et cards
 export const FadeIn = ({
@@ -29,19 +29,23 @@ export const StaggerList = ({
 }: {
   children: React.ReactNode
   className?: string
-}) => (
-  <motion.div
-    initial="hidden"
-    animate="visible"
-    variants={{
-      hidden: {},
-      visible: { transition: { staggerChildren: 0.07 } },
-    }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-)
+}) => {
+  const shouldReduce = useReducedMotion()
+  if (shouldReduce) return <div className={className}>{children}</div>
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.07 } },
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 export const StaggerItem = ({
   children,
@@ -51,18 +55,24 @@ export const StaggerItem = ({
   children: React.ReactNode
   className?: string
   pressable?: boolean
-}) => (
-  <motion.div
-    variants={{
-      hidden: { opacity: 0, y: 12 },
-      visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
-    }}
-    whileTap={pressable ? { scale: 0.97, opacity: 0.85, transition: { duration: 0.1 } } : undefined}
-    className={className}
-  >
-    {children}
-  </motion.div>
-)
+}) => {
+  const shouldReduce = useReducedMotion()
+  if (shouldReduce) return <div className={className}>{children}</div>
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 12 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+      }}
+      whileTap={
+        pressable ? { scale: 0.97, opacity: 0.85, transition: { duration: 0.1 } } : undefined
+      }
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 // Scale — pour les modales et dialogs
 export const ScaleIn = ({
