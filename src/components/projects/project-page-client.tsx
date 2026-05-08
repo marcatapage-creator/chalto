@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ProjectDocuments } from "@/components/projects/project-documents"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
@@ -142,6 +143,7 @@ export function ProjectPageClient({
     dot: statusDot,
   } = statusMap[project.status] ?? statusMap.draft
 
+  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const isDesktop = useMediaQuery("(min-width: 1280px)")
 
@@ -169,11 +171,13 @@ export function ProjectPageClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const applyHighlight = useCallback((id: string | null) => {
     if (!id) return
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
     setHighlightedId(id)
     if (id.startsWith("doc_")) setDocsOpen(true)
-    setTimeout(() => setHighlightedId(null), 2500)
+    highlightTimerRef.current = setTimeout(() => setHighlightedId(null), 2500)
   }, [])
 
   // Écoute les events dispatched par NotificationBell lors des clics sur notifications
@@ -182,6 +186,18 @@ export function ProjectPageClient({
     window.addEventListener("chalto:highlight", handler)
     return () => window.removeEventListener("chalto:highlight", handler)
   }, [applyHighlight])
+
+  // Nettoie le param ?highlight de l'URL après l'avoir consommé
+  // Évite qu'un refresh ou retour arrière re-sélectionne le doc "par défaut"
+  useEffect(() => {
+    if (!initialHighlightId || isLegacySituationsTab) return
+    const url = new URL(window.location.href)
+    if (url.searchParams.has("highlight")) {
+      url.searchParams.delete("highlight")
+      router.replace(url.pathname + (url.search || ""), { scroll: false })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Réagit aux changements de initialHighlightId (navigation same-page via searchParams)
   // useState ne se réinitialise pas quand la prop change après le premier mount
@@ -211,10 +227,7 @@ export function ProjectPageClient({
     projectId: project.id,
     initialDocs: documents,
     initialUnreadDocs: unreadDocs,
-    onNewDoc: (doc) => {
-      setDocsOpen(true)
-      setHighlightedId(`doc_${doc.id}`)
-    },
+    onNewDoc: (doc) => applyHighlight(`doc_${doc.id}`),
   })
 
   const selectedDoc = useMemo(

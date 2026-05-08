@@ -88,9 +88,11 @@ export function useProjectDocuments({
           { event: "INSERT", schema: "public", table: "validations" },
           (payload) => {
             const v = payload.new as { document_id: string; status: string }
-            setDocs((prev) =>
-              prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
-            )
+            setDocs((prev) => {
+              const idx = prev.findIndex((d) => d.id === v.document_id)
+              if (idx === -1) return prev // doc hors projet — même référence, pas de re-render
+              return prev.map((d) => (d.id === v.document_id ? { ...d, status: v.status } : d))
+            })
             setUnreadDocs((n) => n + 1)
           }
         )

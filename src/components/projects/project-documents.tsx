@@ -16,7 +16,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { FileText, ChevronRight, ChevronDown, Trash2, RefreshCw, Upload, Plus } from "lucide-react"
+import {
+  FileText,
+  ChevronRight,
+  ChevronDown,
+  Trash2,
+  RefreshCw,
+  Upload,
+  Plus,
+  X,
+} from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
 import { DropboxFolderPicker } from "@/components/projects/dropbox-folder-picker"
@@ -182,6 +191,25 @@ export function ProjectDocuments({
   const router = useRouter()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [addDocOpen, setAddDocOpen] = useState(false)
+  const [unlinkingId, setUnlinkingId] = useState<string | null>(null)
+
+  async function handleUnlink(linkId: string) {
+    setUnlinkingId(linkId)
+    try {
+      const res = await fetch("/api/dropbox/link", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ linkId, projectId }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success("Dossier Dropbox délié")
+      router.refresh()
+    } catch {
+      toast.error("Impossible de délier le dossier")
+    } finally {
+      setUnlinkingId(null)
+    }
+  }
 
   useEffect(() => {
     if (!highlightedId) return
@@ -312,6 +340,39 @@ export function ProjectDocuments({
                       </span>
                     ) : (
                       <span className="shrink-0">En attente</span>
+                    )}
+                    {!readOnly && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            className="shrink-0 text-muted-foreground hover:text-destructive"
+                            disabled={unlinkingId === link.id}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Délier ce dossier Dropbox ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Le dossier <span className="font-mono">{link.remote_path}</span> ne
+                              sera plus synchronisé. Les documents déjà importés restent dans le
+                              projet.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleUnlink(link.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Délier
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 ))}

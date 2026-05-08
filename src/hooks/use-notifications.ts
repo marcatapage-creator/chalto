@@ -36,7 +36,7 @@ export function useNotifications(userId: string) {
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(20)
-        if (data) setNotifications(data)
+        if (!cancelled && data) setNotifications(data)
       } finally {
         isInitialLoad.current = false
       }
