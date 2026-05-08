@@ -68,8 +68,11 @@ function getDeadlineBadge(deadline: string | null | undefined) {
   const days = differenceInDays(parseISO(deadline), new Date())
   if (days < 0) return { label: "Expiré", className: "bg-gray-700 text-white" }
   if (days <= 7) return { label: `J-${days}`, className: "bg-red-500 text-white" }
-  if (days <= 30) return { label: `J-${days}`, className: "bg-amber-500 text-white" }
-  return { label: `J-${days}`, className: "bg-green-500 text-white" }
+  if (days <= 30) return { label: `J-${days}`, className: "bg-amber-400 text-gray-900" }
+  return {
+    label: `J-${days}`,
+    className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  }
 }
 
 interface ProjectAdminDossiersProps {
@@ -298,7 +301,7 @@ export function ProjectAdminDossiers({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1 pb-1 px-1 space-y-4">
+            <div className="pt-1 pb-1 px-1 space-y-4 max-w-2xl">
               {dossiers.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -317,17 +320,18 @@ export function ProjectAdminDossiers({
               ) : (
                 <>
                   {active.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-wrap gap-3">
                       {active.map((d) => (
-                        <DossierCard
-                          key={d.id}
-                          dossier={d}
-                          highlighted={highlightedDossierId === d.id}
-                          onEdit={!readOnly ? openEdit : undefined}
-                          onDelete={!readOnly ? handleDelete : undefined}
-                          onNextStatus={!readOnly ? handleNextStatus : undefined}
-                          deletingId={deletingId}
-                        />
+                        <div key={d.id} className="flex-1 min-w-72">
+                          <DossierCard
+                            dossier={d}
+                            highlighted={highlightedDossierId === d.id}
+                            onEdit={!readOnly ? openEdit : undefined}
+                            onDelete={!readOnly ? handleDelete : undefined}
+                            onNextStatus={!readOnly ? handleNextStatus : undefined}
+                            deletingId={deletingId}
+                          />
+                        </div>
                       ))}
                     </div>
                   )}
@@ -339,16 +343,17 @@ export function ProjectAdminDossiers({
                           Terminés — {archived.length}
                         </p>
                       )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex flex-wrap gap-3">
                         {archived.map((d) => (
-                          <DossierCard
-                            key={d.id}
-                            dossier={d}
-                            highlighted={highlightedDossierId === d.id}
-                            onEdit={!readOnly ? openEdit : undefined}
-                            onDelete={!readOnly ? handleDelete : undefined}
-                            deletingId={deletingId}
-                          />
+                          <div key={d.id} className="flex-1 min-w-72">
+                            <DossierCard
+                              dossier={d}
+                              highlighted={highlightedDossierId === d.id}
+                              onEdit={!readOnly ? openEdit : undefined}
+                              onDelete={!readOnly ? handleDelete : undefined}
+                              deletingId={deletingId}
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>

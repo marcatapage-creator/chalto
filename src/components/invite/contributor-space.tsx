@@ -675,7 +675,7 @@ export function ContributorSpace({
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 flex-1">
-                            <Clock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                             <div className="flex-1">
                               <p className="text-sm font-medium text-muted-foreground">
                                 {task.title}

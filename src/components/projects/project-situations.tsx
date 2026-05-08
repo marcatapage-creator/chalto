@@ -183,7 +183,7 @@ export function ProjectSituations({
                 localUnread > 0
                   ? "bg-destructive text-destructive-foreground font-semibold"
                   : pendingCount > 0
-                    ? "bg-amber-500 text-white"
+                    ? "bg-amber-400 text-gray-900"
                     : "bg-muted text-muted-foreground"
               )}
             >

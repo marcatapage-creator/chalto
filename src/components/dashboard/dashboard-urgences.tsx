@@ -40,7 +40,7 @@ export async function DashboardUrgences({ projectIds }: { projectIds: string[] }
   return (
     <FadeIn delay={0.1}>
       <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-amber-500" />À traiter
+        <AlertTriangle className="h-4 w-4 text-amber-600" />À traiter
       </h2>
       <Card className="overflow-hidden py-0">
         <CardContent className="p-0 divide-y">
@@ -54,7 +54,7 @@ export async function DashboardUrgences({ projectIds }: { projectIds: string[] }
                 className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="h-4 w-4 text-amber-500 shrink-0" />
+                  <FileText className="h-4 w-4 text-amber-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{doc.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{projectName}</p>

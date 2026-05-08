@@ -186,7 +186,7 @@ export function ContributorSituations({
             <span
               className={cn(
                 "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0",
-                pendingCount > 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+                pendingCount > 0 ? "bg-amber-400 text-gray-900" : "bg-muted text-muted-foreground"
               )}
             >
               {situations.length}

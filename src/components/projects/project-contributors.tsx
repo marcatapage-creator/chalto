@@ -392,7 +392,7 @@ export function ProjectContributors({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="p-1">
+            <div className="p-1 max-w-2xl">
               {contributors.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 px-4 text-center border rounded-xl bg-white dark:bg-card">
                   <Users className="h-6 w-6 text-muted-foreground mb-2" />

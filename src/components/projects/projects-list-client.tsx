@@ -165,7 +165,7 @@ export function ProjectCard({
                     icon={Clock}
                     value={c.pending}
                     title="En attente"
-                    className="text-amber-500"
+                    className="text-amber-600"
                   />
                 )}
                 <Indicator icon={CheckCircle} value={c.approved} title="Validés" />
@@ -191,7 +191,7 @@ export function ProjectCard({
                   icon={Clock}
                   value={c.pending}
                   title="En attente"
-                  className="text-amber-500"
+                  className="text-amber-600"
                 />
               )}
               <Indicator icon={CheckCircle} value={c.approved} title="Validés" />

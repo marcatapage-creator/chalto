@@ -66,7 +66,7 @@ function DeadlineBadge({ days }: { days: number }) {
     )
   if (days <= 30)
     return (
-      <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500 text-white">
+      <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-400 text-gray-900">
         J-{days}
       </span>
     )
