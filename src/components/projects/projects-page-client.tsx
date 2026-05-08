@@ -74,7 +74,7 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
     <div className="relative flex-1 overflow-auto">
       {/* Zone sticky : header + filtres en un seul bloc */}
       <div className="sticky top-0 z-20 bg-neutral-50 dark:bg-background px-6 md:px-8 pt-6 pb-4 space-y-4">
-        <FadeIn className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Projets</h1>
             <p className="text-muted-foreground">Gérez vos projets et vos clients</p>
@@ -85,7 +85,7 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
               <span className="hidden sm:inline">Nouveau projet</span>
             </Link>
           </Button>
-        </FadeIn>
+        </div>
 
         {/* Filtres */}
         <div className="flex items-center gap-2 flex-wrap">

@@ -160,7 +160,7 @@ export default async function DashboardPage() {
   return (
     <div className="relative flex-1 overflow-auto">
       <div className="p-6 md:p-8 space-y-8">
-        <FadeIn className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
             <p className="text-muted-foreground">Vue d&apos;ensemble de votre activité</p>
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
               <span className="hidden sm:inline">Nouveau projet</span>
             </Link>
           </Button>
-        </FadeIn>
+        </div>
 
         <DashboardStats userId={user.id} initialCounts={initialCounts} />
 
