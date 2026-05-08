@@ -12,15 +12,13 @@ export default function SupportPage() {
   return (
     <div className="flex-1 overflow-auto">
       <div className="p-6 md:p-8 max-w-2xl space-y-8">
-        <FadeIn>
-          <div className="flex items-center gap-3">
-            <LifeBuoy className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Support</h1>
-              <p className="text-muted-foreground text-sm">Nous sommes là pour vous aider</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <LifeBuoy className="h-6 w-6 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Support</h1>
+            <p className="text-muted-foreground text-sm">Nous sommes là pour vous aider</p>
           </div>
-        </FadeIn>
+        </div>
 
         {/* Contact */}
         <FadeIn>

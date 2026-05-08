@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { SettingsForm } from "@/components/settings/settings-form"
-import { FadeIn } from "@/components/ui/motion"
 import { getProfessions } from "@/lib/cached-queries"
 
 export default async function SettingsPage({
@@ -45,10 +44,10 @@ export default async function SettingsPage({
   return (
     <div className="flex-1 overflow-auto">
       <div className="p-6 md:p-8 max-w-2xl space-y-6">
-        <FadeIn>
+        <div>
           <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
           <p className="text-muted-foreground">Gérez votre profil et vos préférences</p>
-        </FadeIn>
+        </div>
         <SettingsForm
           profile={profile}
           professions={professions}

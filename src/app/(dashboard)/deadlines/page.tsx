@@ -172,7 +172,7 @@ export default async function DeadlinesPage() {
     <div className="flex-1 overflow-auto">
       <div className="p-6 md:p-8 max-w-2xl space-y-8">
         {/* Header */}
-        <FadeIn>
+        <div>
           <h1 className="text-2xl font-bold tracking-tight">Échéances</h1>
           <p className="text-muted-foreground">
             {rows.length === 0
@@ -181,7 +181,7 @@ export default async function DeadlinesPage() {
                 ? `${totalUrgent} échéance${totalUrgent > 1 ? "s" : ""} urgente${totalUrgent > 1 ? "s" : ""}`
                 : `${rows.length} échéance${rows.length > 1 ? "s" : ""} à venir`}
           </p>
-        </FadeIn>
+        </div>
 
         {/* Empty state */}
         {rows.length === 0 && (
