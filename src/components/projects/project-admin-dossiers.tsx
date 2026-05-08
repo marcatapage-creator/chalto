@@ -317,7 +317,7 @@ export function ProjectAdminDossiers({
               ) : (
                 <>
                   {active.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {active.map((d) => (
                         <DossierCard
                           key={d.id}
@@ -339,7 +339,7 @@ export function ProjectAdminDossiers({
                           Terminés — {archived.length}
                         </p>
                       )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {archived.map((d) => (
                           <DossierCard
                             key={d.id}

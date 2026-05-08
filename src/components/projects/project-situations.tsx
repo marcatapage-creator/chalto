@@ -243,7 +243,7 @@ export function ProjectSituations({
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
                         À réviser — {pending.length}
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {pending.map((s) => (
                           <SituationCard
                             key={s.id}
@@ -262,7 +262,7 @@ export function ProjectSituations({
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-0.5">
                         Révisées — {reviewed.length}
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {reviewed.map((s) => (
                           <SituationCard
                             key={s.id}

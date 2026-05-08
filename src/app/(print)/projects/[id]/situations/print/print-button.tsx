@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Printer } from "lucide-react"
 
 export function PrintButton() {
   const router = useRouter()
@@ -10,15 +10,16 @@ export function PrintButton() {
     <div className="print:hidden fixed top-4 left-4 right-4 flex items-center justify-between z-50">
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 bg-background border text-sm font-medium px-3 py-2 rounded-lg shadow-md hover:bg-muted transition-colors"
+        className="inline-flex items-center gap-1.5 bg-white border text-sm font-medium px-3 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-gray-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Retour
       </button>
       <button
         onClick={() => window.print()}
-        className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-lg shadow-md hover:bg-primary/90 transition-colors"
+        className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:bg-gray-800 transition-colors"
       >
+        <Printer className="h-4 w-4" />
         Imprimer / Enregistrer PDF
       </button>
     </div>
