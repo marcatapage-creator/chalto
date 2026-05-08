@@ -107,7 +107,9 @@ export function ProjectTasks({
   }, [])
 
   useEffect(() => {
-    if (highlightedIdProp) triggerHighlight(highlightedIdProp)
+    if (!highlightedIdProp) return
+    setTasksOpen(true)
+    triggerHighlight(highlightedIdProp)
   }, [highlightedIdProp, triggerHighlight])
 
   useEffect(() => {

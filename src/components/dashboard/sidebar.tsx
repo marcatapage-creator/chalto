@@ -13,7 +13,6 @@ import {
   FolderOpen,
   Settings,
   LogOut,
-  Menu,
   Users,
   LifeBuoy,
   CalendarDays,
@@ -102,7 +101,12 @@ function SidebarContent({
       <Separator />
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 bg-muted dark:bg-transparent">
+      <nav
+        className={cn(
+          "flex-1 p-4 bg-muted dark:bg-transparent",
+          instanceId === "mobile" ? "space-y-2" : "space-y-1"
+        )}
+      >
         {navigation.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -115,7 +119,8 @@ function SidebarContent({
                 onNavigate?.()
               }}
               className={cn(
-                "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150",
+                "relative flex items-center gap-3 px-3 rounded-lg font-medium transition-colors duration-150",
+                instanceId === "mobile" ? "text-[18px] min-h-11 py-2" : "text-sm py-2.5",
                 isActive
                   ? "text-[hsl(0,0%,98%)] dark:text-[hsl(0,0%,9%)]"
                   : "text-muted-foreground hover:bg-black/8 dark:hover:bg-white/8 hover:text-foreground",
@@ -195,7 +200,7 @@ export function Sidebar({
       </aside>
 
       {/* Mobile/tablet header + burger */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-card">
+      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-18.5 border-b bg-card">
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>
@@ -203,7 +208,26 @@ export function Sidebar({
         <div className="flex items-center gap-2">
           <NotificationBell {...notifProps} buttonClassName="border-0" />
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="border-0">
-            <Menu className="h-5 w-5" />
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <line
+                x1="3"
+                y1="4"
+                x2="17"
+                y2="4"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
+              <line
+                x1="3"
+                y1="16"
+                x2="17"
+                y2="16"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
+            </svg>
           </Button>
         </div>
       </div>

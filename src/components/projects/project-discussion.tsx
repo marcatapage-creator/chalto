@@ -24,6 +24,7 @@ interface ProjectDiscussionProps {
   readOnly?: boolean
   onSend?: (content: string) => Promise<Message | null>
   autoOpen?: boolean
+  highlighted?: boolean
   controlledOpen?: boolean
   onControlledOpenChange?: (v: boolean) => void
   onCountChange?: (count: number) => void
@@ -38,6 +39,7 @@ export function ProjectDiscussion({
   readOnly = false,
   onSend,
   autoOpen = false,
+  highlighted = false,
   controlledOpen,
   onControlledOpenChange,
   onCountChange,
@@ -150,6 +152,18 @@ export function ProjectDiscussion({
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [messages, open, autoOpen])
 
+  useEffect(() => {
+    if (!highlighted) return
+    const tOpen = setTimeout(() => setInternalOpen(true), 0)
+    const tScroll = setTimeout(() => {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 350)
+    return () => {
+      clearTimeout(tOpen)
+      clearTimeout(tScroll)
+    }
+  }, [highlighted])
+
   const handleSend = async () => {
     if (!content.trim()) return
     setLoading(true)
@@ -237,112 +251,123 @@ export function ProjectDiscussion({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="border rounded-xl overflow-hidden bg-white dark:bg-card max-w-2xl">
-              <div className="p-4 space-y-4">
-                <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
-                  {hasMore && (
-                    <div className="flex justify-center pb-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleLoadMore}
-                        loading={loadingMore}
-                        className="text-xs text-muted-foreground"
-                      >
-                        Charger les messages précédents
-                      </Button>
-                    </div>
-                  )}
-                  {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <Users className="h-6 w-6 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Aucun message pour l&apos;instant
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Échangez avec votre équipe ici
-                      </p>
-                    </div>
-                  ) : (
-                    messages.map((msg, index) => {
-                      const isPro = msg.author_role === "pro"
-                      const isFirst =
-                        index === 0 ||
-                        messages[index - 1].author_name !== msg.author_name ||
-                        messages[index - 1].author_role !== msg.author_role
-
-                      return (
-                        <div
-                          key={msg.id}
-                          className={cn("flex gap-3", isPro ? "flex-row" : "flex-row-reverse")}
+            <div className="p-1">
+              <div
+                className={cn(
+                  "border rounded-xl overflow-hidden bg-white dark:bg-card max-w-2xl transition-all duration-500",
+                  highlighted && "border-ring ring-3 ring-ring/50"
+                )}
+              >
+                <div className="p-4 space-y-4">
+                  <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
+                    {hasMore && (
+                      <div className="flex justify-center pb-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleLoadMore}
+                          loading={loadingMore}
+                          className="text-xs text-muted-foreground"
                         >
-                          {isFirst ? (
-                            <Avatar className="h-7 w-7 shrink-0 mt-0.5">
-                              <AvatarFallback
-                                className={cn(
-                                  "text-xs font-medium",
-                                  isPro
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground"
-                                )}
-                              >
-                                {initials(msg.author_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div className="w-7 shrink-0" />
-                          )}
+                          Charger les messages précédents
+                        </Button>
+                      </div>
+                    )}
+                    {messages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Users className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Aucun message pour l&apos;instant
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Échangez avec votre équipe ici
+                        </p>
+                      </div>
+                    ) : (
+                      messages.map((msg, index) => {
+                        const isPro = msg.author_role === "pro"
+                        const isFirst =
+                          index === 0 ||
+                          messages[index - 1].author_name !== msg.author_name ||
+                          messages[index - 1].author_role !== msg.author_role
 
+                        return (
                           <div
-                            className={cn(
-                              "flex flex-col gap-1 max-w-[75%]",
-                              isPro ? "items-start" : "items-end"
-                            )}
+                            key={msg.id}
+                            className={cn("flex gap-3", isPro ? "flex-row" : "flex-row-reverse")}
                           >
-                            {isFirst && (
-                              <div className="flex items-center gap-2 px-1">
-                                <span className="text-xs font-medium">{msg.author_name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(msg.created_at)}
-                                </span>
-                              </div>
+                            {isFirst ? (
+                              <Avatar className="h-7 w-7 shrink-0 mt-0.5">
+                                <AvatarFallback
+                                  className={cn(
+                                    "text-xs font-medium",
+                                    isPro
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-muted text-muted-foreground"
+                                  )}
+                                >
+                                  {initials(msg.author_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                            ) : (
+                              <div className="w-7 shrink-0" />
                             )}
+
                             <div
                               className={cn(
-                                "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
-                                isPro
-                                  ? "bg-muted text-foreground rounded-tl-sm"
-                                  : "bg-primary text-primary-foreground rounded-tr-sm"
+                                "flex flex-col gap-1 max-w-[75%]",
+                                isPro ? "items-start" : "items-end"
                               )}
                             >
-                              {msg.content}
+                              {isFirst && (
+                                <div className="flex items-center gap-2 px-1">
+                                  <span className="text-xs font-medium">{msg.author_name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(msg.created_at)}
+                                  </span>
+                                </div>
+                              )}
+                              <div
+                                className={cn(
+                                  "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                                  isPro
+                                    ? "bg-muted text-foreground rounded-tl-sm"
+                                    : "bg-primary text-primary-foreground rounded-tr-sm"
+                                )}
+                              >
+                                {msg.content}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })
-                  )}
-                  <div ref={bottomRef} />
-                </div>
-
-                {!readOnly && (
-                  <div ref={inputRef} className="border-t pt-3 space-y-2">
-                    <Textarea
-                      placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      rows={2}
-                      className="resize-none text-sm"
-                    />
-                    <div className="flex justify-end">
-                      <Button size="sm" onClick={handleSend} disabled={loading || !content.trim()}>
-                        <Send className="h-4 w-4 mr-2" />
-                        Envoyer
-                      </Button>
-                    </div>
+                        )
+                      })
+                    )}
+                    <div ref={bottomRef} />
                   </div>
-                )}
+
+                  {!readOnly && (
+                    <div ref={inputRef} className="border-t pt-3 space-y-2">
+                      <Textarea
+                        placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        rows={2}
+                        className="resize-none text-sm"
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          onClick={handleSend}
+                          disabled={loading || !content.trim()}
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Envoyer
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>

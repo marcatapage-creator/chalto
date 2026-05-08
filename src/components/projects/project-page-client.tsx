@@ -542,6 +542,7 @@ export function ProjectPageClient({
                       authorRole="pro"
                       readOnly={phase === "cloture"}
                       autoOpen={openDiscussion}
+                      highlighted={openDiscussion}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
                       }}
