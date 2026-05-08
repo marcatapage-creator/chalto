@@ -67,12 +67,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Erreur lors de la création" }, { status: 500 })
     }
 
+    const ALLOWED_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp", "heic", "heif"])
     const files = formData.getAll("files") as File[]
     const attachments = []
 
     for (const file of files) {
       if (!(file instanceof File)) continue
-      const ext = file.name.split(".").pop() ?? "bin"
+      const ext = (file.name.split(".").pop() ?? "").toLowerCase()
+      if (!ALLOWED_EXTENSIONS.has(ext)) continue
       const fileName = `${crypto.randomUUID()}.${ext}`
       const path = `${data.projectId}/${situation.id}/${fileName}`
 
@@ -121,7 +123,9 @@ export async function POST(request: Request) {
         lotLabel: data.lotLabel,
         percentage: data.percentage,
         baseUrl,
-      })
+      }).catch((err: unknown) =>
+        console.error("[situations POST] sendSituationSubmittedEmail", err)
+      )
     }
 
     void createNotification({
@@ -130,7 +134,7 @@ export async function POST(request: Request) {
       title: "Nouvelle situation de travaux",
       body: `${contributor.name} a soumis une situation pour le lot « ${data.lotLabel} » (${data.percentage}%)`,
       link: `/projects/${data.projectId}?highlight=sit_${situation.id}`,
-    })
+    }).catch((err: unknown) => console.error("[situations POST] createNotification", err))
 
     return NextResponse.json({ situation: { ...situation, attachments } }, { status: 201 })
   } catch (error) {

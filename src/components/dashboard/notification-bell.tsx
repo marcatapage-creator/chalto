@@ -53,11 +53,11 @@ export function NotificationBell({
     setOpen(false)
     await markAsRead(notif.id)
     if (notif.link) {
-      router.push(notif.link)
       const highlightMatch = notif.link.match(/[?&]highlight=([^&]+)/)
       if (highlightMatch) {
         window.dispatchEvent(new CustomEvent("chalto:highlight", { detail: highlightMatch[1] }))
       }
+      router.push(notif.link)
     }
   }
 

@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         title: days < 0 ? `Échéance dépassée — ${typeLabel}` : `Échéance J-${days} — ${typeLabel}`,
         body: `${project.name} · ${new Date(dossier.deadline + "T00:00:00").toLocaleDateString("fr-FR")}`,
         link: `/projects/${project.id}?highlight=dossier_${dossier.id}`,
-      })
+      }).catch((err: unknown) => console.error("[deadline-alerts] createNotification", err))
 
       void sendDeadlineAlertEmail({
         userEmail: profile.email,
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         daysRemaining: days,
         threshold,
         baseUrl,
-      })
+      }).catch((err: unknown) => console.error("[deadline-alerts] sendDeadlineAlertEmail", err))
 
       // Marquer le seuil comme notifié
       await admin

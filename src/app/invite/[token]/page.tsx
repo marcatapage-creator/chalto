@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { ContributorSpace } from "@/components/invite/contributor-space"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import type { Situation } from "@/types/domain"
 
 export async function generateMetadata({
   params,
@@ -141,10 +142,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       initialDocs={
         (docContributors ?? []) as unknown as Parameters<typeof ContributorSpace>[0]["initialDocs"]
       }
-      initialSituations={
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (situations ?? []) as any
-      }
+      initialSituations={(situations ?? []) as unknown as Situation[]}
       logoUrl={proProfile?.branding_enabled ? (proProfile.logo_url ?? null) : null}
       companyName={proProfile?.company_name ?? null}
       initialTaskComments={
