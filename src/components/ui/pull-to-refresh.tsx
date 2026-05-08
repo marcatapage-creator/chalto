@@ -23,6 +23,17 @@ function hasScrollableParentAbove(target: Element): boolean {
   return false
 }
 
+// Walk up the DOM: return the nearest scrollable ancestor (regardless of scrollTop)
+function findNearestScrollable(target: Element): Element | null {
+  let el: Element | null = target
+  while (el && el !== document.body && el !== document.documentElement) {
+    const { overflowY } = window.getComputedStyle(el)
+    if (overflowY === "auto" || overflowY === "scroll") return el
+    el = el.parentElement
+  }
+  return null
+}
+
 // Vaul mounts the overlay in a portal only when a drawer is open
 function isAnyDrawerOpen(): boolean {
   return !!document.querySelector('[data-slot="drawer-overlay"]')
@@ -36,6 +47,7 @@ export function PullToRefresh() {
   const dragYRef = useRef(0)
   const activeRef = useRef(false)
   const rafRef = useRef<number | null>(null)
+  const scrollContainerRef = useRef<Element | null>(null)
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
@@ -45,10 +57,22 @@ export function PullToRefresh() {
       if (hasScrollableParentAbove(e.target as Element)) return
       startYRef.current = e.touches[0].clientY
       activeRef.current = true
+      scrollContainerRef.current = findNearestScrollable(e.target as Element)
     }
 
     const onTouchMove = (e: TouchEvent) => {
       if (!activeRef.current || startYRef.current === null) return
+      // If the scroll container moved, the browser chose to scroll — cancel pull-to-refresh
+      if (scrollContainerRef.current && scrollContainerRef.current.scrollTop > 0) {
+        activeRef.current = false
+        dragYRef.current = 0
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = null
+        }
+        setDragY(0)
+        return
+      }
       const delta = e.touches[0].clientY - startYRef.current
       if (delta > 0) {
         dragYRef.current = delta
@@ -80,7 +104,10 @@ export function PullToRefresh() {
       }
       setDragY(0)
       startYRef.current = null
-      if (drag >= TRIGGER_THRESHOLD) {
+      const scrolledDuringGesture =
+        scrollContainerRef.current && scrollContainerRef.current.scrollTop > 0
+      scrollContainerRef.current = null
+      if (drag >= TRIGGER_THRESHOLD && !scrolledDuringGesture) {
         setRefreshing(true)
         router.refresh()
         setTimeout(() => setRefreshing(false), 1200)
