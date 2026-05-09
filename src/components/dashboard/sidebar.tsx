@@ -125,8 +125,10 @@ function SidebarContent({
                 onNavigate?.()
               }}
               className={cn(
-                "relative flex items-center gap-3 px-3 rounded-lg font-medium transition-colors duration-150",
-                instanceId === "mobile" ? "text-[18px] min-h-11 py-2" : "text-sm py-2.5",
+                "relative flex items-center gap-3 px-3 rounded-lg font-medium transition-[color,background-color,transform] duration-150",
+                instanceId === "mobile"
+                  ? "text-[18px] min-h-11 py-2 touch-manipulation active:scale-[0.97] active:bg-black/12 dark:active:bg-white/12"
+                  : "text-sm py-2.5",
                 isActive
                   ? "text-[hsl(0,0%,98%)] dark:text-[hsl(0,0%,9%)]"
                   : "text-muted-foreground hover:bg-black/8 dark:hover:bg-white/8 hover:text-foreground",
