@@ -21,8 +21,8 @@ export function ValidationsSection({
       ? allValidations
       : allValidations.filter((v) => (v.version ?? 1) === activeVersion)
 
-  // Validation client (contributor_id === null)
-  const clientValidation = visibleValidations.find((v) => v.contributor_id === null)
+  // Toutes les validations client pour cette version (peut être >1 si envoi transmission puis validation)
+  const clientValidations = visibleValidations.filter((v) => v.contributor_id === null)
 
   // Validations prestataires pour cette version — le nom vient de client_name stocké à la validation
   const contributorValidations = visibleValidations.filter((v) => v.contributor_id !== null)
@@ -34,7 +34,9 @@ export function ValidationsSection({
     : []
 
   const hasContent =
-    clientValidation || contributorValidations.length > 0 || pendingContributors.length > 0
+    clientValidations.length > 0 ||
+    contributorValidations.length > 0 ||
+    pendingContributors.length > 0
   if (!hasContent) return null
 
   const statusCfg = (status?: string | null) => {
@@ -50,29 +52,26 @@ export function ValidationsSection({
         Validations
       </p>
       <div className="space-y-1">
-        {/* Client */}
-        {clientValidation &&
-          (() => {
-            const cfg = statusCfg(clientValidation.status)
-            const Icon = cfg.icon
-            return (
-              <div className="flex items-center gap-2 text-sm py-0.5">
-                <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
-                <span className="min-w-0 truncate">
-                  {clientValidation.client_name ?? clientName ?? "Client"}
+        {/* Client — toutes les entrées dans l'ordre chronologique */}
+        {clientValidations.map((cv, i) => {
+          const cfg = statusCfg(cv.status)
+          const Icon = cfg.icon
+          return (
+            <div key={`client-${i}`} className="flex items-center gap-2 text-sm py-0.5">
+              <Icon className={cn("h-3.5 w-3.5 shrink-0", cfg.cls)} />
+              <span className="min-w-0 truncate">{cv.client_name ?? clientName ?? "Client"}</span>
+              <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
+              {cv.approved_at && (
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {new Date(cv.approved_at).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "short",
+                  })}
                 </span>
-                <span className={cn("text-xs ml-auto shrink-0", cfg.cls)}>{cfg.label}</span>
-                {clientValidation.approved_at && (
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {new Date(clientValidation.approved_at).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                )}
-              </div>
-            )
-          })()}
+              )}
+            </div>
+          )
+        })}
 
         {/* Prestataires ayant agi sur cette version */}
         {contributorValidations.map((cv, i) => {
