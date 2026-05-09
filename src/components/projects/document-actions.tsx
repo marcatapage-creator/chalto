@@ -116,7 +116,7 @@ export function DocumentActions({
 }: DocumentActionsProps) {
   const [open, setOpen] = useState(false)
   const [audience, setAudience] = useState<"client" | "contributor">(
-    status === "approved" || status === "commented" ? "contributor" : "client"
+    status === "approved" ? "contributor" : "client"
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
@@ -256,7 +256,13 @@ export function DocumentActions({
           className={cn(className)}
         >
           <Send className="h-4 w-4 mr-2" />
-          {status === "sent" ? "Envoyé" : status === "approved" ? "Partager" : "Envoyer"}
+          {status === "sent"
+            ? "Envoyé"
+            : status === "approved"
+              ? "Partager"
+              : status === "commented"
+                ? "Envoyer pour validation"
+                : "Envoyer"}
         </Button>
       </OnboardingTooltip>
 
@@ -264,16 +270,14 @@ export function DocumentActions({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {status === "approved" || status === "commented"
-                ? "Partager avec un prestataire"
-                : "Envoyer ce document"}
+              {status === "approved" ? "Partager avec un prestataire" : "Envoyer ce document"}
             </DialogTitle>
             <DialogDescription>Choisissez le type de requête</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Choix audience — masqué si le doc est approuvé ou lu (on force contributor) */}
-            {isChantier && status !== "approved" && status !== "commented" && (
+            {/* Choix audience — visible en chantier, ou hors chantier pour un doc "lu" */}
+            {(isChantier || status === "commented") && status !== "approved" && (
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setAudience("client")}
