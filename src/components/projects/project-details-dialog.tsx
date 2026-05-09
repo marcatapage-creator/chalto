@@ -4,6 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -147,10 +148,11 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">Notes</Label>
-          <Input
+          <Textarea
             placeholder="Description ou notes sur le projet..."
             value={form.description ?? ""}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="min-h-24 resize-none"
           />
         </div>
       </div>
@@ -206,23 +208,22 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Délai souhaité</Label>
-            <Input
-              placeholder="Ex: Fin du T2 2026..."
-              value={form.deadline ?? ""}
-              onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Contraintes</Label>
-            <Input
-              placeholder="Ex: Bâtiment classé..."
-              value={form.constraints ?? ""}
-              onChange={(e) => setForm({ ...form, constraints: e.target.value })}
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Délai souhaité</Label>
+          <Input
+            placeholder="Ex: Fin du T2 2026..."
+            value={form.deadline ?? ""}
+            onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Contraintes</Label>
+          <Textarea
+            placeholder="Ex: Bâtiment classé..."
+            value={form.constraints ?? ""}
+            onChange={(e) => setForm({ ...form, constraints: e.target.value })}
+            className="min-h-20 resize-none"
+          />
         </div>
       </div>
     </div>

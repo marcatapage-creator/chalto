@@ -276,8 +276,8 @@ export function DocumentActions({
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Choix audience — visible en chantier, ou hors chantier pour un doc "lu" */}
-            {(isChantier || status === "commented") && status !== "approved" && (
+            {/* Choix audience — uniquement en phase chantier */}
+            {isChantier && status !== "approved" && (
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setAudience("client")}

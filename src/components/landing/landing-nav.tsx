@@ -45,7 +45,7 @@ export function LandingNav({ showPricing, showTestimonials }: LandingNavProps) {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <div className="max-w-6xl mx-auto px-6 md:px-4 h-14 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 md:px-4 h-18.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>

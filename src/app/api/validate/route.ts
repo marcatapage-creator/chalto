@@ -67,29 +67,28 @@ export async function POST(request: Request) {
     const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/projects/${document.project_id}`
 
     if (isTransmission) {
-      await Promise.all([
-        createNotification({
-          userId,
-          type: "document_approved",
-          title: "Document lu par votre client",
-          body: comment
-            ? `${clientName} a lu « ${document.name} » · "${comment.length > 80 ? comment.slice(0, 80) + "…" : comment}"`
-            : `${clientName} a lu « ${document.name} »`,
-          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
-          inAppEnabled: proProfile?.notif_inapp_enabled,
-        }),
-        proProfile?.email
-          ? sendTransmissionAckEmail({
-              proEmail: proProfile.email,
-              proName: proProfile.full_name ?? "Professionnel",
-              contributorName: clientName,
-              projectName: document.projects?.name ?? "Projet",
-              documentName: document.name,
-              comment,
-              projectUrl,
-            })
-          : Promise.resolve(),
-      ])
+      void createNotification({
+        userId,
+        type: "document_approved",
+        title: "Document lu par votre client",
+        body: comment
+          ? `${clientName} a lu « ${document.name} » · "${comment.length > 80 ? comment.slice(0, 80) + "…" : comment}"`
+          : `${clientName} a lu « ${document.name} »`,
+        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+        inAppEnabled: proProfile?.notif_inapp_enabled,
+      }).catch((err: unknown) => console.error("[validate] createNotification lu:", err))
+
+      if (proProfile?.email) {
+        void sendTransmissionAckEmail({
+          proEmail: proProfile.email,
+          proName: proProfile.full_name ?? "Professionnel",
+          contributorName: clientName,
+          projectName: document.projects?.name ?? "Projet",
+          documentName: document.name,
+          comment,
+          projectUrl,
+        }).catch((err: unknown) => console.error("[validate] sendTransmissionAckEmail:", err))
+      }
     } else {
       const shouldSendEmail =
         proProfile?.notif_email_frequency !== "never" &&
@@ -97,28 +96,37 @@ export async function POST(request: Request) {
           ? proProfile?.notif_email_approved !== false
           : proProfile?.notif_email_rejected !== false)
 
-      await Promise.all([
-        createNotification({
-          userId,
-          type: status === "approved" ? "document_approved" : "document_rejected",
-          title: status === "approved" ? "Document approuvé" : "Document refusé",
-          body: `${clientName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
-          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
-          inAppEnabled: proProfile?.notif_inapp_enabled,
-        }),
-        proProfile?.email && shouldSendEmail
-          ? sendApprovalEmail({
-              proEmail: proProfile.email,
-              proName: proProfile.full_name ?? "Professionnel",
-              clientName,
-              projectName: document.projects.name,
-              documentName: document.name,
-              status: status as "approved" | "rejected",
-              comment: comment ?? undefined,
-              projectUrl,
-            })
-          : Promise.resolve(),
-      ])
+      void createNotification({
+        userId,
+        type: status === "approved" ? "document_approved" : "document_rejected",
+        title: status === "approved" ? "Document approuvé" : "Document refusé",
+        body: `${clientName} a ${status === "approved" ? "approuvé" : "refusé"} "${document.name}"`,
+        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+        inAppEnabled: proProfile?.notif_inapp_enabled,
+      }).catch((err: unknown) => console.error("[validate] createNotification:", err))
+
+      if (proProfile?.email && shouldSendEmail) {
+        void sendApprovalEmail({
+          proEmail: proProfile.email,
+          proName: proProfile.full_name ?? "Professionnel",
+          clientName,
+          projectName: document.projects.name,
+          documentName: document.name,
+          status: status as "approved" | "rejected",
+          comment: comment ?? undefined,
+          projectUrl,
+        }).catch((err: unknown) =>
+          console.error("[validate] sendApprovalEmail:", err, { shouldSendEmail, status })
+        )
+      } else {
+        console.warn("[validate] email non envoyé", {
+          hasEmail: !!proProfile?.email,
+          shouldSendEmail,
+          frequency: proProfile?.notif_email_frequency,
+          notifRejected: proProfile?.notif_email_rejected,
+          status,
+        })
+      }
     }
 
     return NextResponse.json({ success: true })
