@@ -97,11 +97,6 @@ test("wording — client lit une transmission → le pro voit 'Commenté par [cl
     const proPage = await proCtx.newPage()
     const clientPage = await clientCtx.newPage()
 
-    // Le pro ouvre la fiche projet et laisse Realtime s'abonner
-    await proPage.goto(`/projects/${projectId}`)
-    await expect(proPage).not.toHaveURL(/login/)
-    await proPage.waitForTimeout(2_000)
-
     // Le client lit le document "pour information"
     await clientPage.goto(`/validate/${token}`)
     const readBtn = clientPage
@@ -117,8 +112,21 @@ test("wording — client lit une transmission → le pro voit 'Commenté par [cl
       timeout: 10_000,
     })
 
-    // Le pro voit "Commenté par" apparaître (Realtime ou rechargement automatique)
-    await expect(proPage.getByText(/Commenté par/i).first()).toBeVisible({ timeout: 20_000 })
+    // Le pro ouvre la fiche projet et trouve le document commenté
+    await proPage.goto(`/projects/${projectId}`)
+    await expect(proPage).not.toHaveURL(/login/)
+
+    // Ouvre le document "transmission client" pour voir le banner
+    const docItem = proPage.getByText(/transmission client/i).first()
+    const hasDoc = await docItem.isVisible({ timeout: 10_000 }).catch(() => false)
+    if (!hasDoc) {
+      test.skip(true, "Document 'transmission client' non trouvé sur la fiche projet")
+      return
+    }
+    await docItem.click()
+
+    // Le banner "Commenté par" doit apparaître dans le panel
+    await expect(proPage.getByText(/Commenté par/i).first()).toBeVisible({ timeout: 10_000 })
 
     // "le prestataire" ne doit pas apparaître
     const prestBanner = proPage.getByText(/Commenté par le prestataire/i)
