@@ -128,6 +128,22 @@
 
 ---
 
+## 13. Situations de travaux
+
+| # | Action | Résultat attendu |
+|---|--------|-----------------|
+| 13.1 | Ouvrir l'espace prestataire `/invite/[token]` en phase chantier | Section "Situations de travaux" visible, bouton de navigation "Situations" présent dans le header. |
+| 13.2 | Cliquer "Nouvelle situation" et remplir le formulaire (lot, pourcentage) | Formulaire affiché après clic, champs accessibles. |
+| 13.3 | Soumettre la situation | Badge "En attente" visible, situation apparaît dans la liste. |
+| 13.4 | Ouvrir la fiche projet `/projects/[id]` (côté pro) | Section "Situations de travaux" visible, situation seedée "[E2E] Gros œuvre" présente. |
+| 13.5 | Cliquer "Réviser cette situation" sur une situation en attente | Dialog "Réviser la situation" s'ouvre avec les boutons Valider et Refuser. |
+| 13.6 | Valider une situation dans le dialog | Statut passe à "Validée" — email de notification envoyé au prestataire. |
+| 13.7 | Basculer sur "Refuser" dans le dialog — laisser le motif vide | Bouton de confirmation désactivé. Remplir le motif et confirmer → statut "Refusée". |
+| 13.8 | Accéder à `/projects/[id]/situations/print` | Page chargée sans 404, titre "Récapitulatif situations de travaux" visible, bouton "Imprimer / Enregistrer PDF" présent. |
+| 13.9 | Prestataire soumet une situation sans que le pro ait visité la page | Badge rouge (destructive) visible sur la section Situations dans la fiche projet. |
+
+---
+
 ## 12. Tests Playwright — couverture obligatoire
 
 > **Étape bloquante.** Tout nouveau code (feature, fix, refacto visible) doit être couvert par au moins un test Playwright avant push.
@@ -154,4 +170,4 @@ Si la recette complète n'est pas réalisable, valider **au minimum** ces flux c
 
 ---
 
-*Dernière mise à jour : 2026-04-24*
+*Dernière mise à jour : 2026-05-09*

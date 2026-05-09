@@ -10,6 +10,7 @@
  *   E2E_PROJECT_ID    — UUID d'un projet existant
  */
 import { test, expect, type Page } from "@playwright/test"
+import { e2eEnv } from "./helpers/env"
 
 // Skip gracefully si le serveur local est temporairement indisponible (HMR, redémarrage)
 async function gotoOrSkip(page: Page, url: string): Promise<boolean> {
@@ -27,13 +28,13 @@ async function gotoOrSkip(page: Page, url: string): Promise<boolean> {
 }
 
 test.beforeEach(({}, testInfo) => {
-  if (!process.env.E2E_USER_EMAIL || !process.env.E2E_PROJECT_ID) {
+  if (!e2eEnv("E2E_USER_EMAIL") || !e2eEnv("E2E_PROJECT_ID")) {
     testInfo.skip(true, "E2E_USER_EMAIL ou E2E_PROJECT_ID non défini")
   }
 })
 
 test("3.1 — la liste des documents s'affiche sur la fiche projet", async ({ page }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   const isAuth = await page
     .waitForURL(/login/, { timeout: 5_000 })
     .then(() => false)
@@ -55,7 +56,7 @@ test("3.1 — la liste des documents s'affiche sur la fiche projet", async ({ pa
 })
 
 test("3.3 — le bouton 'Envoyer' est présent sur un document en brouillon", async ({ page }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   // Ouvrir le premier document visible
@@ -75,7 +76,7 @@ test("3.3 — le bouton 'Envoyer' est présent sur un document en brouillon", as
 test("3.3 — l'interface d'envoi propose les options 'Client' et 'Prestataire'", async ({
   page,
 }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   const docItem = page.getByText(/draft|brouillon/i).first()
@@ -97,7 +98,7 @@ test("3.3 — l'interface d'envoi propose les options 'Client' et 'Prestataire'"
 test("3.3 — après envoi au client, le statut passe à 'sent' et le bouton est désactivé", async ({
   page,
 }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   const docItem = page.getByText(/draft|brouillon/i).first()
@@ -140,7 +141,7 @@ test("3.3 — après envoi au client, le statut passe à 'sent' et le bouton est
 test("3.4 — l'interface d'envoi propose l'option 'Validation' pour un prestataire", async ({
   page,
 }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   const docItem = page.getByText(/draft|brouillon/i).first()
@@ -169,7 +170,7 @@ test("3.4 — l'interface d'envoi propose l'option 'Validation' pour un prestata
 // ─── 3.5 : Envoi à un prestataire — mode transmission ───────────────────────
 
 test("3.5 — le mode transmission affiche le badge 'Pour information'", async ({ page }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   // Chercher un document déjà envoyé en mode transmission
@@ -187,7 +188,7 @@ test("3.5 — le mode transmission affiche le badge 'Pour information'", async (
 // ─── 3.6 : Message pro visible dans l'espace prestataire ─────────────────────
 
 test("3.6 — le message pro est visible dans le panneau document (côté pro)", async ({ page }) => {
-  if (!(await gotoOrSkip(page, `/projects/${process.env.E2E_PROJECT_ID}`))) return
+  if (!(await gotoOrSkip(page, `/projects/${e2eEnv("E2E_PROJECT_ID")}`))) return
   await expect(page).not.toHaveURL(/login/)
 
   // Chercher un document envoyé à un prestataire
