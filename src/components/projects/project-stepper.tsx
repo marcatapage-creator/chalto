@@ -54,7 +54,7 @@ export function ProjectStepper({
 
   const doGoBack = async (targetPhase: string) => {
     setLoading(true)
-    const update: Record<string, string> = { phase: targetPhase }
+    const update: { phase: string; status?: string } = { phase: targetPhase }
     if (phase === "cloture") update.status = "active"
 
     const { error } = await supabase.from("projects").update(update).eq("id", projectId)
@@ -85,7 +85,7 @@ export function ProjectStepper({
   const doAdvance = async () => {
     if (!nextPhase) return
     setLoading(true)
-    const update: Record<string, string> = { phase: nextPhase.id }
+    const update: { phase: string; status?: string } = { phase: nextPhase.id }
     if (nextPhase.id === "cloture") update.status = "completed"
 
     const { error } = await supabase.from("projects").update(update).eq("id", projectId)

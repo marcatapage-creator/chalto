@@ -32,7 +32,7 @@ import { fetchWithTimeout } from "@/lib/fetch-timeout"
 interface Contributor {
   id: string
   name: string
-  professions?: { label: string }[] | null
+  professions?: { label: string } | null
 }
 
 interface DocumentActionsProps {
@@ -365,7 +365,7 @@ export function DocumentActions({
                       </div>
                       <div>
                         <p className="text-sm font-medium">{c.name}</p>
-                        <p className="text-xs text-muted-foreground">{c.professions?.[0]?.label}</p>
+                        <p className="text-xs text-muted-foreground">{c.professions?.label}</p>
                       </div>
                     </button>
                   ))

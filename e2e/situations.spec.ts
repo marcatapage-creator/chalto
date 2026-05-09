@@ -1,12 +1,13 @@
 /**
- * RECETTE 8.1 — Prestataire voit la section "Situations de travaux" dans son espace
- * RECETTE 8.2 — Prestataire soumet une nouvelle situation
- * RECETTE 8.3 — Situation soumise apparaît avec le statut "En attente"
- * RECETTE 8.4 — Architecte voit la situation dans la fiche projet
- * RECETTE 8.5 — Dialog de révision s'ouvre avec les contrôles Valider / Refuser
- * RECETTE 8.6 — Architecte valide une situation (statut → Validée)
- * RECETTE 8.7 — Architecte refuse une situation avec motif (statut → Refusée)
- * RECETTE 8.8 — Page récapitulatif PDF accessible et affiche les données
+ * RECETTE 13.1 — Prestataire voit la section "Situations de travaux" dans son espace
+ * RECETTE 13.2 — Prestataire soumet une nouvelle situation
+ * RECETTE 13.3 — Situation soumise apparaît avec le statut "En attente"
+ * RECETTE 13.4 — Architecte voit la situation dans la fiche projet
+ * RECETTE 13.5 — Dialog de révision s'ouvre avec les contrôles Valider / Refuser
+ * RECETTE 13.6 — Architecte valide une situation (statut → Validée)
+ * RECETTE 13.7 — Architecte refuse une situation avec motif (statut → Refusée)
+ * RECETTE 13.8 — Page récapitulatif PDF accessible et affiche les données
+ * RECETTE 13.9 — Badge "non-lu" visible après soumission prestataire
  *
  * Variables d'env requises :
  *   E2E_INVITE_TOKEN    — token prestataire (espace sans auth)
@@ -16,9 +17,9 @@
 import { test, expect } from "@playwright/test"
 import { e2eEnv } from "./helpers/env"
 
-// ─── 8.1 : Section situations visible côté prestataire ───────────────────────
+// ─── 13.1 : Section situations visible côté prestataire ───────────────────────
 
-test("8.1 — la section 'Situations de travaux' est visible dans l'espace prestataire", async ({
+test("13.1 — la section 'Situations de travaux' est visible dans l'espace prestataire", async ({
   page,
 }) => {
   const token = e2eEnv("E2E_INVITE_TOKEN")
@@ -33,7 +34,7 @@ test("8.1 — la section 'Situations de travaux' est visible dans l'espace prest
   await expect(page.getByText(/situations de travaux/i).first()).toBeVisible({ timeout: 10_000 })
 })
 
-test("8.1 — le bouton de navigation 'Situations' est présent dans le header prestataire", async ({
+test("13.1 — le bouton de navigation 'Situations' est présent dans le header prestataire", async ({
   page,
 }) => {
   const token = e2eEnv("E2E_INVITE_TOKEN")
@@ -50,9 +51,9 @@ test("8.1 — le bouton de navigation 'Situations' est présent dans le header p
   })
 })
 
-// ─── 8.2 & 8.3 : Soumission d'une situation ──────────────────────────────────
+// ─── 13.2 & 13.3 : Soumission d'une situation ──────────────────────────────────
 
-test("8.2 — le bouton 'Nouvelle situation' est présent", async ({ page }) => {
+test("13.2 — le bouton 'Nouvelle situation' est présent", async ({ page }) => {
   const token = e2eEnv("E2E_INVITE_TOKEN")
   if (!token) {
     test.skip(true, "E2E_INVITE_TOKEN non défini")
@@ -66,7 +67,7 @@ test("8.2 — le bouton 'Nouvelle situation' est présent", async ({ page }) => 
   await expect(newBtn).toBeVisible({ timeout: 10_000 })
 })
 
-test("8.3 — prestataire soumet une situation et elle apparaît en 'En attente'", async ({
+test("13.3 — prestataire soumet une situation et elle apparaît en 'En attente'", async ({
   page,
 }) => {
   const token = e2eEnv("E2E_INVITE_TOKEN")
@@ -116,9 +117,9 @@ test("8.3 — prestataire soumet une situation et elle apparaît en 'En attente'
   await expect(page.getByText(/en attente/i).first()).toBeVisible({ timeout: 12_000 })
 })
 
-// ─── 8.4 : Architecte voit la section situations ─────────────────────────────
+// ─── 13.4 : Architecte voit la section situations ─────────────────────────────
 
-test("8.4 — la section 'Situations de travaux' est visible dans la fiche projet", async ({
+test("13.4 — la section 'Situations de travaux' est visible dans la fiche projet", async ({
   page,
 }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
@@ -136,7 +137,7 @@ test("8.4 — la section 'Situations de travaux' est visible dans la fiche proje
   await expect(page.getByText(/situations de travaux/i).first()).toBeVisible({ timeout: 10_000 })
 })
 
-test("8.4 — la situation seedée '[E2E] Gros œuvre' est visible", async ({ page }) => {
+test("13.4 — la situation seedée '[E2E] Gros œuvre' est visible", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -160,9 +161,9 @@ test("8.4 — la situation seedée '[E2E] Gros œuvre' est visible", async ({ pa
   await expect(situationRow).toBeVisible()
 })
 
-// ─── 8.5 : Dialog de révision ────────────────────────────────────────────────
+// ─── 13.5 : Dialog de révision ────────────────────────────────────────────────
 
-test("8.5 — le bouton 'Réviser cette situation' ouvre un dialog", async ({ page }) => {
+test("13.5 — le bouton 'Réviser cette situation' ouvre un dialog", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -191,7 +192,7 @@ test("8.5 — le bouton 'Réviser cette situation' ouvre un dialog", async ({ pa
   })
 })
 
-test("8.5 — le dialog expose les boutons Valider et Refuser", async ({ page }) => {
+test("13.5 — le dialog expose les boutons Valider et Refuser", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -224,9 +225,9 @@ test("8.5 — le dialog expose les boutons Valider et Refuser", async ({ page })
   })
 })
 
-// ─── 8.6 : Validation d'une situation ────────────────────────────────────────
+// ─── 13.6 : Validation d'une situation ────────────────────────────────────────
 
-test("8.6 — architecte valide une situation — statut passe à 'Validée'", async ({ page }) => {
+test("13.6 — architecte valide une situation — statut passe à 'Validée'", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -259,9 +260,9 @@ test("8.6 — architecte valide une situation — statut passe à 'Validée'", a
   await expect(page.getByText(/validée|validé/i).first()).toBeVisible({ timeout: 12_000 })
 })
 
-// ─── 8.7 : Refus avec motif ───────────────────────────────────────────────────
+// ─── 13.7 : Refus avec motif ───────────────────────────────────────────────────
 
-test("8.7 — le motif de refus est obligatoire avant de valider le refus", async ({ page }) => {
+test("13.7 — le motif de refus est obligatoire avant de valider le refus", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -305,9 +306,9 @@ test("8.7 — le motif de refus est obligatoire avant de valider le refus", asyn
   await expect(dialog).not.toBeVisible({ timeout: 3_000 })
 })
 
-// ─── 8.8 : Page récapitulatif PDF ────────────────────────────────────────────
+// ─── 13.8 : Page récapitulatif PDF ────────────────────────────────────────────
 
-test("8.8 — la page récapitulatif PDF est accessible", async ({ page }) => {
+test("13.8 — la page récapitulatif PDF est accessible", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -322,7 +323,7 @@ test("8.8 — la page récapitulatif PDF est accessible", async ({ page }) => {
   expect(response?.status()).not.toBe(404)
 })
 
-test("8.8 — la page PDF affiche le nom du projet et un bouton d'impression", async ({ page }) => {
+test("13.8 — la page PDF affiche le nom du projet et un bouton d'impression", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -342,7 +343,7 @@ test("8.8 — la page PDF affiche le nom du projet et un bouton d'impression", a
   await expect(page.getByRole("button", { name: /imprimer|pdf/i })).toBeVisible({ timeout: 5_000 })
 })
 
-test("8.8 — le lien 'Récap PDF' depuis la fiche projet ouvre la bonne URL", async ({ page }) => {
+test("13.8 — le lien 'Récap PDF' depuis la fiche projet ouvre la bonne URL", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -367,9 +368,9 @@ test("8.8 — le lien 'Récap PDF' depuis la fiche projet ouvre la bonne URL", a
   expect(href).toContain(`/projects/${projectId}/situations/print`)
 })
 
-// ─── 8.9 : Badge "non-lu" sur la section Situations ─────────────────────────
+// ─── 13.9 : Badge "non-lu" sur la section Situations ─────────────────────────
 
-test("8.9 — la section 'Situations de travaux' affiche un badge de comptage", async ({ page }) => {
+test("13.9 — la section 'Situations de travaux' affiche un badge de comptage", async ({ page }) => {
   const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
@@ -404,7 +405,7 @@ test("8.9 — la section 'Situations de travaux' affiche un badge de comptage", 
   await expect(badge).toBeVisible()
 })
 
-test("8.9 — badge rouge (non-lu) visible après soumission prestataire sans visite préalable", async ({
+test("13.9 — badge rouge (non-lu) visible après soumission prestataire sans visite préalable", async ({
   page,
 }) => {
   const token = e2eEnv("E2E_INVITE_TOKEN")

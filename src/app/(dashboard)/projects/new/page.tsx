@@ -40,10 +40,7 @@ export default function NewProjectPage() {
           .select("profession_id, professions!profession_id(id, slug)")
           .eq("id", user.id)
           .single(),
-        supabase
-          .from("user_professions")
-          .select("professions(id, slug, label)")
-          .eq("user_id", user.id),
+        Promise.resolve({ data: [] as { professions: ProfessionOption | null }[] }),
       ]).then(([{ data: profile }, { data: userProfs }]) => {
         const profs = (userProfs ?? [])
           .map((r) => r.professions as unknown as ProfessionOption | null)

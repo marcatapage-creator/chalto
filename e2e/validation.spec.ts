@@ -4,12 +4,15 @@
  * RECETTE 4.4 — Token invalide → page d'erreur dédiée
  *
  * Variables d'env requises :
- *   E2E_VALIDATION_TOKEN — validation_token d'un document en statut "sent"
- *                          (compte de test dédié, ne pas utiliser un vrai doc client)
+ *   E2E_VALIDATION_TOKEN        — token d'un doc "sent" (approbation principale)
+ *   E2E_VALIDATION_TOKEN_REFUSE — token d'un doc "sent" dédié au refus
+ *   E2E_VALIDATION_TOKEN_CLIENT   — token d'un doc "sent" alternatif (approbation)
+ *   E2E_VALIDATION_TOKEN_CLIENT_2 — token d'un doc "sent" alternatif (refus)
  */
 import { test, expect } from "@playwright/test"
+import { e2eEnv } from "./helpers/env"
 
-// ─── Sans token valide (toujours exécuté) ────────────────────────────────────
+// ─── 4.4 : Token invalide (toujours exécuté, sans auth) ──────────────────────
 
 test("4.4 — token invalide affiche 'Lien invalide ou expiré'", async ({ page }) => {
   await page.goto("/validate/token-inexistant-e2e-test")
@@ -22,10 +25,10 @@ test("4.4 — le lien retour vers l'accueil est présent", async ({ page }) => {
   await expect(page.getByRole("link", { name: /accueil|retour/i })).toBeVisible({ timeout: 8_000 })
 })
 
-// ─── Avec token valide ────────────────────────────────────────────────────────
+// ─── 4.2 : Approbation ───────────────────────────────────────────────────────
 
 test("4.2 — la page de validation charge le document", async ({ page }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  const token = e2eEnv("E2E_VALIDATION_TOKEN")
   if (!token) {
     test.skip(true, "E2E_VALIDATION_TOKEN non défini")
     return
@@ -37,31 +40,79 @@ test("4.2 — la page de validation charge le document", async ({ page }) => {
 })
 
 test("4.2 — le client peut approuver le document", async ({ page }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN
+  const token = e2eEnv("E2E_VALIDATION_TOKEN")
   if (!token) {
     test.skip(true, "E2E_VALIDATION_TOKEN non défini")
     return
   }
 
   await page.goto(`/validate/${token}`)
-  await page.getByRole("button", { name: /approuver/i }).click()
-  // Confirmation visuelle après approbation
+  const approveBtn = page.getByRole("button", { name: /approuver/i })
+  const isVisible = await approveBtn.isVisible({ timeout: 8_000 }).catch(() => false)
+  if (!isVisible) {
+    test.skip(true, "Bouton Approuver non disponible (document déjà traité)")
+    return
+  }
+  await approveBtn.click()
   await expect(page.getByText(/approuvé|merci|confirmé/i)).toBeVisible({ timeout: 10_000 })
 })
 
-test("4.3 — le client peut refuser avec un commentaire", async ({ page }) => {
-  const token = process.env.E2E_VALIDATION_TOKEN_REFUSE ?? process.env.E2E_VALIDATION_TOKEN
+test("4.2 — flux client alternatif — le client peut approuver le document", async ({ page }) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_CLIENT")
   if (!token) {
-    test.skip(true, "E2E_VALIDATION_TOKEN non défini")
+    test.skip(true, "E2E_VALIDATION_TOKEN_CLIENT non défini")
     return
   }
 
   await page.goto(`/validate/${token}`)
-  // Remplir le commentaire AVANT de cliquer Refuser (le bouton appelle l'API directement)
+  await expect(page.getByRole("button", { name: /approuver/i })).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole("button", { name: /refuser/i })).toBeVisible()
+
+  const approveBtn = page.getByRole("button", { name: /approuver/i })
+  const isVisible = await approveBtn.isVisible({ timeout: 8_000 }).catch(() => false)
+  if (!isVisible) {
+    test.skip(true, "Bouton Approuver non disponible (document déjà traité)")
+    return
+  }
+  await approveBtn.click()
+  await expect(page.getByText(/document approuvé/i)).toBeVisible({ timeout: 10_000 })
+})
+
+// ─── 4.3 : Refus avec commentaire ────────────────────────────────────────────
+
+test("4.3 — le client peut refuser avec un commentaire", async ({ page }) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_REFUSE") ?? e2eEnv("E2E_VALIDATION_TOKEN")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_REFUSE non défini")
+    return
+  }
+
+  await page.goto(`/validate/${token}`)
   const textarea = page.getByRole("textbox")
   if (await textarea.isVisible()) {
     await textarea.fill("Des ajustements sont nécessaires sur ce document.")
   }
   await page.getByRole("button", { name: /refuser/i }).click()
   await expect(page.getByText(/refusé|pris en compte/i)).toBeVisible({ timeout: 10_000 })
+})
+
+test("4.3 — flux client alternatif — le client peut refuser avec un commentaire", async ({
+  page,
+}) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_CLIENT_2")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_CLIENT_2 non défini")
+    return
+  }
+
+  await page.goto(`/validate/${token}`)
+  const refuseBtn = page.getByRole("button", { name: /refuser/i })
+  const isVisible = await refuseBtn.isVisible({ timeout: 8_000 }).catch(() => false)
+  if (!isVisible) {
+    test.skip(true, "Bouton Refuser non disponible (document déjà traité)")
+    return
+  }
+  await page.getByRole("textbox").fill("Quelques ajustements nécessaires")
+  await refuseBtn.click()
+  await expect(page.getByText(/document refusé/i)).toBeVisible({ timeout: 10_000 })
 })

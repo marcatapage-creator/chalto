@@ -11,15 +11,16 @@
  * En dev sans ANTHROPIC_API_KEY, le mock est instantané.
  */
 import { test, expect, type Page } from "@playwright/test"
+import { e2eEnv } from "./helpers/env"
 
 test.beforeEach(({}, testInfo) => {
-  if (!process.env.E2E_USER_EMAIL || !process.env.E2E_PROJECT_ID) {
+  if (!e2eEnv("E2E_USER_EMAIL") || !e2eEnv("E2E_PROJECT_ID")) {
     testInfo.skip(true, "E2E_USER_EMAIL ou E2E_PROJECT_ID non défini")
   }
 })
 
 async function gotoProjectAndCheckBtn(page: Page): Promise<boolean> {
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   const isAuth = await page
     .waitForURL(/login/, { timeout: 5_000 })
     .then(() => false)
@@ -165,6 +166,6 @@ test("6.3 — aucune erreur console fatale pendant la génération", async ({ pa
 
 test("6.2 — /projects/[id] redirige vers login si non authentifié", async ({ page }) => {
   await page.context().clearCookies()
-  await page.goto(`/projects/${process.env.E2E_PROJECT_ID}`)
+  await page.goto(`/projects/${e2eEnv("E2E_PROJECT_ID")}`)
   await expect(page).toHaveURL(/login/, { timeout: 10_000 })
 })

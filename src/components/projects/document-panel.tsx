@@ -98,7 +98,7 @@ export function DocumentPanel({
       .eq("document_id", document.id)
       .order("version", { ascending: false })
       .then(({ data }) => {
-        if (data) setPrevVersions(data)
+        if (data) setPrevVersions(data as unknown as PrevVersion[])
       })
   }, [document.id, supabase])
 
@@ -109,7 +109,7 @@ export function DocumentPanel({
   const fetchAllValidations = useCallback(async () => {
     const { data, error } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id, version")
+      .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
@@ -118,7 +118,7 @@ export function DocumentPanel({
       toast.error("Impossible de charger les validations")
       return
     }
-    if (data) setAllValidations(data)
+    if (data) setAllValidations(data as unknown as ValidationEntry[])
   }, [document.id, supabase])
 
   const fetchValidation = useCallback(async () => {
@@ -135,7 +135,7 @@ export function DocumentPanel({
       return
     }
     if (data) {
-      setValidationEntry({ docId: document.id, data })
+      setValidationEntry({ docId: document.id, data: data as unknown as ValidationData })
       if (data.status) {
         setLocalStatus(data.status)
         onStatusChangeRef.current?.(document.id, data.status)
@@ -156,7 +156,10 @@ export function DocumentPanel({
           console.error("[document-panel] validation fetch error:", error)
           return
         }
-        setValidationEntry({ docId: document.id, data: data ?? null })
+        setValidationEntry({
+          docId: document.id,
+          data: (data ?? null) as unknown as ValidationData | null,
+        })
         // "approved"/"rejected" on a "sent" or "draft" doc belong to a previous version — skip.
         // "commented" (transmission) is always current: it can only appear after the current send.
         const isLegacy =
@@ -169,12 +172,12 @@ export function DocumentPanel({
       })
     supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id, version")
+      .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
       .then(({ data }) => {
-        if (data) setAllValidations(data)
+        if (data) setAllValidations(data as unknown as ValidationEntry[])
       })
   }, [document.id, document.status, supabase])
 

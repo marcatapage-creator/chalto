@@ -45,7 +45,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
       .then(({ data, count }) => {
         if (data) {
           const chronological = [...data].reverse()
-          setMessages(chronological)
+          setMessages(chronological as unknown as Message[])
           loadedCount.current = data.length
           setHasMore((count ?? 0) > PAGE_SIZE)
         }
@@ -92,7 +92,7 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
       .range(loadedCount.current, loadedCount.current + PAGE_SIZE - 1)
 
     if (older) {
-      setMessages((prev) => [...[...older].reverse(), ...prev])
+      setMessages((prev) => [...(older as unknown as Message[]).reverse(), ...prev])
       loadedCount.current += older.length
       setHasMore(older.length === PAGE_SIZE)
     }

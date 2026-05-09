@@ -88,7 +88,7 @@ export function ProjectDiscussion({
       .limit(PAGE_SIZE)
       .then(({ data, count }) => {
         if (data) {
-          setMessages([...data].reverse())
+          setMessages([...(data as unknown as Message[])].reverse())
           loadedCount.current = data.length
           const total = count ?? 0
           setTotalCount(total)
@@ -137,7 +137,7 @@ export function ProjectDiscussion({
       .order("created_at", { ascending: false })
       .range(loadedCount.current, loadedCount.current + PAGE_SIZE - 1)
     if (older) {
-      setMessages((prev) => [...[...older].reverse(), ...prev])
+      setMessages((prev) => [...(older as unknown as Message[]).reverse(), ...prev])
       loadedCount.current += older.length
       setHasMore(older.length === PAGE_SIZE)
     }
@@ -184,8 +184,10 @@ export function ProjectDiscussion({
         .select()
         .single()
 
-      if (newMsg)
-        setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]))
+      if (newMsg) {
+        const msg = newMsg as unknown as Message
+        setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]))
+      }
     }
 
     setContent("")

@@ -213,8 +213,9 @@ export function ProjectTasks({
         .limit(500)
 
       if (data) {
-        setTasks(data.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
-        setSuggestions(data.filter((t) => t.status === "suggestion"))
+        const typedData = data as unknown as Task[]
+        setTasks(typedData.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
+        setSuggestions(typedData.filter((t) => t.status === "suggestion"))
         setLoaded(true)
       }
     } finally {
@@ -301,7 +302,7 @@ export function ProjectTasks({
       console.error("[task insert]", error)
       toast.error("Erreur lors de la création")
     } else {
-      setTasks((prev) => [...prev, newTask])
+      setTasks((prev) => [...prev, newTask as unknown as Task])
       setTasksOpen(true)
       toast.success("Tâche créée ✅")
       triggerHighlight(newTask.id)
