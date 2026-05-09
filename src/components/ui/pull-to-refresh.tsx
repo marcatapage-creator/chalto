@@ -23,13 +23,16 @@ function hasScrollableParentAbove(target: Element): boolean {
   return false
 }
 
-// Walk up the DOM: return true if the element is inside a zone marked data-no-ptr
-// (e.g. the fixed mobile nav header). Overflow containers are handled separately
-// by hasScrollableParentAbove so that inner-scroll pages (dashboard, projects…) work.
-function isInsideNoPtr(target: Element): boolean {
+// Walk up the DOM: return true if the element is inside any overflow-managed container
+// or a zone explicitly marked data-no-ptr (e.g. the fixed mobile nav header).
+// Checking overflow-hidden catches the dashboard main wrapper, so PTR never fires
+// inside the app (only on public pages without that wrapper).
+function isInsideScrollContainer(target: Element): boolean {
   let el: Element | null = target
   while (el && el !== document.body && el !== document.documentElement) {
     if (el.hasAttribute("data-no-ptr")) return true
+    const { overflowY } = window.getComputedStyle(el)
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden") return true
     el = el.parentElement
   }
   return false
@@ -53,7 +56,7 @@ export function PullToRefresh() {
     const onTouchStart = (e: TouchEvent) => {
       if (activeRef.current) return
       if (isAnyDrawerOpen()) return
-      if (isInsideNoPtr(e.target as Element)) return
+      if (isInsideScrollContainer(e.target as Element)) return
       // Abort if an inner scroll container has been scrolled down — the gesture is a scroll,
       // not a pull-to-refresh. At scrollTop=0 we allow PTR even inside overflow-auto pages.
       if (hasScrollableParentAbove(e.target as Element)) return

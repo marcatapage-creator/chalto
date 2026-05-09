@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         }}
         userId={user.id}
       />
-      <main className="flex-1 flex flex-col min-h-0 xl:ml-0 bg-neutral-50 dark:bg-transparent">
+      <main className="flex-1 flex flex-col overflow-hidden xl:ml-0 bg-neutral-50 dark:bg-transparent">
         {/* Spacer mobile pour le header fixe */}
         <div className="xl:hidden h-18.5 shrink-0" />
         {children}
