@@ -132,8 +132,10 @@ test("2.3 — changer la phase met à jour le badge sans erreur console", async 
 
   await advanceBtn.click()
 
-  // Confirmer si une dialog de confirmation apparaît
-  const confirmBtn = page.getByRole("button", { name: /confirmer|passer|oui/i }).last()
+  // Confirmer si une dialog de confirmation apparaît (ex: "C'est parti !", "Clôturer")
+  const confirmBtn = page
+    .getByRole("button", { name: /c'est parti|clôturer|confirmer|oui/i })
+    .last()
   const hasConfirm = await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)
   if (hasConfirm) await confirmBtn.click()
 
