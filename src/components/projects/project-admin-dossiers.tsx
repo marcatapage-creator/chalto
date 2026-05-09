@@ -305,24 +305,21 @@ export function ProjectAdminDossiers({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1 pb-1 px-1 space-y-4 max-w-2xl">
+            <div className="pt-1 pb-1 px-1 max-w-2xl">
               {dossiers.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                     <FolderOpen className="h-8 w-8 text-muted-foreground mb-3" />
                     <p className="font-medium text-sm">Aucun dossier administratif</p>
-                    {!readOnly && (
-                      <button
-                        onClick={openAdd}
-                        className="text-xs text-primary hover:underline mt-1"
-                      >
-                        Ajouter le premier dossier
-                      </button>
-                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {readOnly
+                        ? "Aucun dossier n'a été ajouté sur ce projet"
+                        : "Utilisez le bouton + Ajouter pour créer votre premier dossier"}
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
-                <>
+                <div className="space-y-4">
                   {active.length > 0 && (
                     <div className="flex flex-wrap gap-3">
                       {active.map((d) => (
@@ -362,7 +359,7 @@ export function ProjectAdminDossiers({
                       </div>
                     </div>
                   )}
-                </>
+                </div>
               )}
             </div>
           </motion.div>

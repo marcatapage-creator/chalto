@@ -430,7 +430,7 @@ export function ProjectContributors({
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

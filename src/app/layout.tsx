@@ -62,7 +62,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://chalto.fr",
   },
-  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },

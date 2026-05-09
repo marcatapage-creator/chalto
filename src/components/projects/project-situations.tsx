@@ -176,20 +176,18 @@ export function ProjectSituations({
           <span className="font-semibold group-hover:text-foreground transition-colors">
             Situations de travaux
           </span>
-          {situations.length > 0 && (
-            <span
-              className={cn(
-                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0 transition-colors",
-                localUnread > 0
-                  ? "bg-destructive text-destructive-foreground font-semibold"
-                  : pendingCount > 0
-                    ? "bg-amber-400 text-gray-900"
-                    : "bg-muted text-muted-foreground"
-              )}
-            >
-              {situations.length}
-            </span>
-          )}
+          <span
+            className={cn(
+              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full px-1 shrink-0 transition-colors",
+              localUnread > 0
+                ? "bg-destructive text-destructive-foreground font-semibold"
+                : pendingCount > 0
+                  ? "bg-amber-400 text-gray-900"
+                  : "bg-muted text-muted-foreground"
+            )}
+          >
+            {situations.length}
+          </span>
           {localUnread > 0 && !isOpen && (
             <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
           )}
@@ -225,7 +223,7 @@ export function ProjectSituations({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-1 pb-1 px-1">
+            <div className="pt-1 pb-1 px-1 max-w-2xl">
               {situations.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">

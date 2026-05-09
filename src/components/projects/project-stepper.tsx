@@ -16,7 +16,7 @@ import {
 import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
 import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
-import { ChevronRight, Check, Archive, CheckSquare } from "lucide-react"
+import { ChevronRight, ChevronLeft, Check, Archive, CheckSquare } from "lucide-react"
 import { getProfessionConfig } from "@/lib/profession-config"
 
 const CHANTIER_DISMISSED_KEY = "chantier_onboarding_dismissed"
@@ -51,6 +51,7 @@ export function ProjectStepper({
 
   const currentIndex = phases.findIndex((p) => p.id === phase)
   const nextPhase = phases[currentIndex + 1]
+  const prevPhase = phases[currentIndex - 1]
 
   const doGoBack = async (targetPhase: string) => {
     setLoading(true)
@@ -235,7 +236,7 @@ export function ProjectStepper({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-7"
+              className="hidden sm:flex text-xs h-7"
               onClick={handleAdvance}
               loading={loading}
             >
@@ -245,8 +246,8 @@ export function ProjectStepper({
           )}
         </div>
 
-        {/* Stepper horizontal */}
-        <div className="flex items-start overflow-x-auto py-3 -my-3 pb-1">
+        {/* Stepper horizontal — desktop uniquement */}
+        <div className="hidden sm:flex items-start overflow-x-auto py-3 -my-3 pb-1">
           {phases.map((p, index) => {
             const Icon = p.icon
             const isCompleted = index < currentIndex
@@ -265,7 +266,7 @@ export function ProjectStepper({
                 >
                   <div className="relative">
                     {isActive && (
-                      <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25" />
+                      <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
                     )}
                     <div
                       className={cn(
@@ -284,13 +285,7 @@ export function ProjectStepper({
                       )}
                     </div>
                   </div>
-                  <p
-                    className={cn(
-                      "text-xs font-medium text-center leading-tight",
-                      isActive ? "text-primary" : "text-muted-foreground",
-                      !isActive && "hidden sm:block"
-                    )}
-                  >
+                  <p className="text-xs font-medium text-center leading-tight text-muted-foreground">
                     {p.label}
                   </p>
                 </div>
@@ -311,6 +306,57 @@ export function ProjectStepper({
             )
           })}
         </div>
+
+        {/* Stepper mobile — pastille active + nav gauche/droite */}
+        {(() => {
+          const activePhase = phases[currentIndex]
+          const ActiveIcon = activePhase?.icon
+          return (
+            <div className="flex sm:hidden items-center justify-between">
+              <button
+                className={cn(
+                  "h-11 w-11 flex items-center justify-center rounded-[min(var(--radius-md),12px)] border bg-background transition-colors",
+                  !prevPhase || readOnly
+                    ? "invisible"
+                    : phase === "chantier"
+                      ? "opacity-40 cursor-not-allowed"
+                      : "hover:bg-muted"
+                )}
+                onClick={() =>
+                  prevPhase &&
+                  phase !== "chantier" &&
+                  handlePhaseClick(prevPhase.id, currentIndex - 1)
+                }
+                disabled={!prevPhase || readOnly || loading || phase === "chantier"}
+                aria-label={prevPhase ? `Revenir à ${prevPhase.label}` : undefined}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="relative">
+                  <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
+                  <div className="relative h-11 w-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+                    {ActiveIcon && <ActiveIcon className="h-5 w-5" />}
+                  </div>
+                </div>
+                <p className="text-xs font-medium text-primary">{activePhase?.label}</p>
+              </div>
+
+              <button
+                className={cn(
+                  "h-11 w-11 flex items-center justify-center rounded-[min(var(--radius-md),12px)] border bg-background transition-colors",
+                  nextPhase && !readOnly ? "hover:bg-muted" : "invisible"
+                )}
+                onClick={handleAdvance}
+                disabled={!nextPhase || readOnly || loading}
+                aria-label={nextPhase ? `Passer à ${nextPhase.label}` : undefined}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          )
+        })()}
       </div>
     </>
   )

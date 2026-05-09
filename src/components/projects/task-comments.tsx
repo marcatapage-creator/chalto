@@ -41,10 +41,12 @@ export function TaskComments({
   const [open, setOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef((initialComments?.length ?? 0) > 0)
+  const fetchingRef = useRef(false)
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    if (!loadedRef.current) {
+    if (!loadedRef.current && !fetchingRef.current) {
+      fetchingRef.current = true
       supabase
         .from("task_comments")
         .select("*")
@@ -55,6 +57,7 @@ export function TaskComments({
             setComments(data as unknown as Comment[])
             loadedRef.current = true
           }
+          fetchingRef.current = false
         })
     }
 
@@ -90,7 +93,7 @@ export function TaskComments({
 
   // Lazy: charge les messages si l'ouverture précède le fetch initial
   useEffect(() => {
-    if (!open || loadedRef.current) return
+    if (!open || loadedRef.current || fetchingRef.current) return
 
     supabase
       .from("task_comments")
