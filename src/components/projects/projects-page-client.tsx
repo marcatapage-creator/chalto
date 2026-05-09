@@ -71,9 +71,9 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
   const empty = filtered.length === 0
 
   return (
-    <div className="relative flex-1 overflow-auto overscroll-contain">
-      {/* Zone sticky : header + filtres en un seul bloc */}
-      <div className="sticky top-0 z-20 bg-neutral-50 dark:bg-background px-6 md:px-8 pt-6 pb-4 space-y-4">
+    <div className="relative flex-1 flex flex-col min-h-0">
+      {/* Header + filtres — hors du scroll container, toujours visible en haut */}
+      <div className="z-20 bg-neutral-50 dark:bg-background px-6 md:px-8 pt-6 pb-4 space-y-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Projets</h1>
@@ -146,56 +146,55 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
         </div>
       </div>
 
-      {/* Liste */}
-      <div className="px-6 md:px-8 pt-4 pb-8">
-        {empty ? (
-          <FadeIn delay={0.1}>
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="font-medium">Aucun projet pour l&apos;instant</p>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">
-                  Créez votre premier projet pour commencer
-                </p>
-                <Button asChild>
-                  <Link href="/projects/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer un projet
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </FadeIn>
-        ) : groups ? (
-          <div className="space-y-8">
-            {groups.map((group) => (
-              <div key={group.label}>
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  {group.label}
-                </h2>
-                <StaggerList className="space-y-3">
-                  {group.items.map((project) => (
-                    <StaggerItem key={project.id} pressable>
-                      <ProjectCard project={project} />
-                    </StaggerItem>
-                  ))}
-                </StaggerList>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <StaggerList className="space-y-3">
-            {filtered.map((project) => (
-              <StaggerItem key={project.id} pressable>
-                <ProjectCard project={project} />
-              </StaggerItem>
-            ))}
-          </StaggerList>
-        )}
+      {/* Scroll container — sans sticky enfants */}
+      <div className="flex-1 overflow-auto overscroll-contain">
+        <div className="px-6 md:px-8 pt-4 pb-8">
+          {empty ? (
+            <FadeIn delay={0.1}>
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                  <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
+                  <p className="font-medium">Aucun projet pour l&apos;instant</p>
+                  <p className="text-sm text-muted-foreground mt-1 mb-4">
+                    Créez votre premier projet pour commencer
+                  </p>
+                  <Button asChild>
+                    <Link href="/projects/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer un projet
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </FadeIn>
+          ) : groups ? (
+            <div className="space-y-8">
+              {groups.map((group) => (
+                <div key={group.label}>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    {group.label}
+                  </h2>
+                  <StaggerList className="space-y-3">
+                    {group.items.map((project) => (
+                      <StaggerItem key={project.id} pressable>
+                        <ProjectCard project={project} />
+                      </StaggerItem>
+                    ))}
+                  </StaggerList>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <StaggerList className="space-y-3">
+              {filtered.map((project) => (
+                <StaggerItem key={project.id} pressable>
+                  <ProjectCard project={project} />
+                </StaggerItem>
+              ))}
+            </StaggerList>
+          )}
+        </div>
       </div>
-
-      {/* Fade directionnel bas */}
-      <div className="pointer-events-none sticky bottom-0 h-87.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
     </div>
   )
 }
