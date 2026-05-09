@@ -64,11 +64,7 @@ export const StaggerItem = ({
         hidden: { opacity: 0, y: 12 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
       }}
-      className={
-        pressable
-          ? `${className ?? ""} active:scale-[0.97] active:opacity-85 transition-transform duration-100`
-          : className
-      }
+      className={pressable ? `${className ?? ""} active:scale-[0.97] active:opacity-85` : className}
     >
       {children}
     </motion.div>

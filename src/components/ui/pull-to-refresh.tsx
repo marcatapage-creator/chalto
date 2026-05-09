@@ -48,6 +48,7 @@ export function PullToRefresh() {
   const activeRef = useRef(false)
   const rafRef = useRef<number | null>(null)
   const scrollContainerRef = useRef<Element | null>(null)
+  const containerScrolledRef = useRef(false)
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
@@ -57,22 +58,28 @@ export function PullToRefresh() {
       if (hasScrollableParentAbove(e.target as Element)) return
       startYRef.current = e.touches[0].clientY
       activeRef.current = true
-      scrollContainerRef.current = findNearestScrollable(e.target as Element)
+      containerScrolledRef.current = false
+      const container = findNearestScrollable(e.target as Element)
+      scrollContainerRef.current = container
+      if (container) {
+        container.addEventListener("scroll", onContainerScroll, { once: true, passive: true })
+      }
+    }
+
+    // Fires at most once per gesture (scroll event with { once: true })
+    const onContainerScroll = () => {
+      containerScrolledRef.current = true
+      activeRef.current = false
+      dragYRef.current = 0
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+      setDragY(0)
     }
 
     const onTouchMove = (e: TouchEvent) => {
       if (!activeRef.current || startYRef.current === null) return
-      // If the scroll container moved, the browser chose to scroll — cancel pull-to-refresh
-      if (scrollContainerRef.current && scrollContainerRef.current.scrollTop > 0) {
-        activeRef.current = false
-        dragYRef.current = 0
-        if (rafRef.current !== null) {
-          cancelAnimationFrame(rafRef.current)
-          rafRef.current = null
-        }
-        setDragY(0)
-        return
-      }
       const delta = e.touches[0].clientY - startYRef.current
       if (delta > 0) {
         dragYRef.current = delta
@@ -104,9 +111,12 @@ export function PullToRefresh() {
       }
       setDragY(0)
       startYRef.current = null
-      const scrolledDuringGesture =
-        scrollContainerRef.current && scrollContainerRef.current.scrollTop > 0
-      scrollContainerRef.current = null
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.removeEventListener("scroll", onContainerScroll)
+        scrollContainerRef.current = null
+      }
+      const scrolledDuringGesture = containerScrolledRef.current
+      containerScrolledRef.current = false
       if (drag >= TRIGGER_THRESHOLD && !scrolledDuringGesture) {
         setRefreshing(true)
         router.refresh()
