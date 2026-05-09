@@ -54,13 +54,13 @@ export async function POST(request: Request) {
       .single()
     const userId = project?.user_id
     if (userId) {
-      void createNotification({
+      await createNotification({
         userId,
         type: "task_assigned",
         title: `Avancement mis à jour`,
         body: `${contributor.name} a passé « ${task.title} » en ${STATUS_LABELS[status] ?? status}`,
         link: `/projects/${task.project_id}?highlight=task_${taskId}`,
-      }).catch((err: unknown) => console.error("[task-status] createNotification", err))
+      })
     }
 
     return NextResponse.json({ ok: true })

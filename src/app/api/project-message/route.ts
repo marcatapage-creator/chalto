@@ -51,13 +51,13 @@ export async function POST(request: Request) {
     }
 
     if (project?.user_id) {
-      void createNotification({
+      await createNotification({
         userId: project.user_id,
         type: "message_received",
         title: `Message de ${authorName}`,
         body: content.trim().slice(0, 100),
         link: `/projects/${projectId}?highlight=discussion`,
-      }).catch((err: unknown) => console.error("[project-message] createNotification", err))
+      })
     }
 
     return NextResponse.json({ message })

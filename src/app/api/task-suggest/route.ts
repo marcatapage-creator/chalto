@@ -53,13 +53,13 @@ export async function POST(request: Request) {
     }
 
     if (project?.user_id) {
-      void createNotification({
+      await createNotification({
         userId: project.user_id,
         type: "task_assigned",
         title: `Suggestion de ${contributorName}`,
         body: `« ${title.trim()} »`,
         link: `/projects/${projectId}?highlight=task_${task.id}`,
-      }).catch((err: unknown) => console.error("[task-suggest] createNotification", err))
+      })
     }
 
     return NextResponse.json({ task })
