@@ -71,7 +71,7 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
   const empty = filtered.length === 0
 
   return (
-    <div className="relative flex-1 overflow-auto">
+    <div className="relative flex-1 overflow-auto overscroll-contain">
       {/* Zone sticky : header + filtres en un seul bloc */}
       <div className="sticky top-0 z-20 bg-neutral-50 dark:bg-background px-6 md:px-8 pt-6 pb-4 space-y-4">
         <div className="flex items-center justify-between">

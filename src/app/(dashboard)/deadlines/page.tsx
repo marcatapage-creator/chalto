@@ -169,7 +169,7 @@ export default async function DeadlinesPage() {
   const totalUrgent = expired.length + urgent.length
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto overscroll-contain">
       <div className="p-6 md:p-8 max-w-2xl space-y-8">
         {/* Header */}
         <div>

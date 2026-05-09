@@ -23,13 +23,14 @@ function hasScrollableParentAbove(target: Element): boolean {
   return false
 }
 
-// Walk up the DOM: return true if the element is inside any scrollable container
-// (regardless of scrollTop). Prevents pull-to-refresh from firing inside scroll containers.
+// Walk up the DOM: return true if the element is inside any overflow-managed container
+// or a zone explicitly marked data-no-ptr (e.g. the fixed mobile nav header).
 function isInsideScrollContainer(target: Element): boolean {
   let el: Element | null = target
   while (el && el !== document.body && el !== document.documentElement) {
+    if (el.hasAttribute("data-no-ptr")) return true
     const { overflowY } = window.getComputedStyle(el)
-    if (overflowY === "auto" || overflowY === "scroll") return true
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden") return true
     el = el.parentElement
   }
   return false

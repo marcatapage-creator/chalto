@@ -158,7 +158,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="relative flex-1 overflow-auto">
+    <div className="relative flex-1 overflow-auto overscroll-contain">
       <div className="p-6 md:p-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>

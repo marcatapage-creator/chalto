@@ -200,7 +200,10 @@ export function Sidebar({
       </aside>
 
       {/* Mobile/tablet header + burger */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-18.5 border-b bg-card">
+      <div
+        data-no-ptr
+        className="xl:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-18.5 border-b bg-card"
+      >
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
           <span className="font-bold">Chalto</span>

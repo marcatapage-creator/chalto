@@ -11,16 +11,20 @@ export const FadeIn = ({
   children: React.ReactNode
   delay?: number
   className?: string
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay, ease: "easeOut" }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-)
+}) => {
+  const shouldReduce = useReducedMotion()
+  if (shouldReduce) return <div className={className}>{children}</div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 // Stagger — pour les listes de cards
 export const StaggerList = ({
@@ -64,7 +68,8 @@ export const StaggerItem = ({
         hidden: { opacity: 0, y: 12 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
       }}
-      className={pressable ? `${className ?? ""} active:scale-[0.97] active:opacity-85` : className}
+      style={pressable ? { touchAction: "pan-y" } : undefined}
+      className={pressable ? `${className ?? ""} active:opacity-75` : className}
     >
       {children}
     </motion.div>
