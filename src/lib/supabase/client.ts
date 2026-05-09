@@ -39,5 +39,7 @@ export function createClient() {
     })
   }
 
-  return _client
+  // Non-null assertion: _client is guaranteed assigned by the block above.
+  // TypeScript can't narrow module-level vars across assignments.
+  return _client!
 }
