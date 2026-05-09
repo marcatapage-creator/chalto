@@ -46,9 +46,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Prestataires introuvables" }, { status: 404 })
     }
 
-    const proName = proProfile?.full_name ?? "Votre professionnel"
-    const proCompany = proProfile?.company_name ? ` (${proProfile.company_name})` : ""
-    const projectName = project?.name ?? "le projet"
+    const escHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+
+    const proName = escHtml(proProfile?.full_name ?? "Votre professionnel")
+    const proCompany = proProfile?.company_name ? ` (${escHtml(proProfile.company_name)})` : ""
+    const projectName = escHtml(project?.name ?? "le projet")
     const brandHeader = buildBrandHeader(proProfile)
 
     const baseUrl = new URL(request.url).origin
@@ -89,7 +92,7 @@ export async function POST(request: Request) {
 
                 <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 ${message ? "24px" : "32px"};">
                   <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Document</p>
-                  <p style="margin: 0; font-weight: 600; font-size: 16px;">${documentName}</p>
+                  <p style="margin: 0; font-weight: 600; font-size: 16px;">${escHtml(documentName)}</p>
                   <p style="margin: 4px 0 0; font-size: 13px; color: #666;">Projet : ${projectName}</p>
                 </div>
 
@@ -98,7 +101,7 @@ export async function POST(request: Request) {
                     ? `
                 <div style="background: #f0f4ff; border-left: 3px solid #3b5fdb; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 32px;">
                   <p style="margin: 0 0 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Message de ${proName}</p>
-                  <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${message}"</p>
+                  <p style="margin: 0; color: #333; line-height: 1.7; font-style: italic;">"${escHtml(message)}"</p>
                 </div>
                 `
                     : ""
