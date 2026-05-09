@@ -575,7 +575,7 @@ export function ProjectPageClient({
           </div>
 
           {/* Fade directionnel bas */}
-          <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-background to-transparent" />
+          <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
         </div>
       </div>
 
