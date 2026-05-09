@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         inAppEnabled: proProfile?.notif_inapp_enabled,
       }).catch((err: unknown) => console.error("[validate] createNotification lu:", err))
 
-      if (proProfile?.email) {
+      if (proProfile?.email && proProfile?.notif_email_frequency !== "never") {
         void sendTransmissionAckEmail({
           proEmail: proProfile.email,
           proName: proProfile.full_name ?? "Professionnel",

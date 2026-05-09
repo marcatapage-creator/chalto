@@ -66,31 +66,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Erreur enregistrement validation" }, { status: 500 })
     }
 
+    const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`
+
     if (isTransmission) {
-      const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`
-      await Promise.all([
-        createNotification({
-          userId,
-          type: "document_approved",
-          title: "Document lu par un prestataire",
-          body: comment
-            ? `${contributorName} a lu « ${document.name} » · "${comment.length > 80 ? comment.slice(0, 80) + "…" : comment}"`
-            : `${contributorName} a lu « ${document.name} »`,
-          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
-          inAppEnabled: proProfile?.notif_inapp_enabled,
-        }),
-        proProfile?.email
-          ? sendTransmissionAckEmail({
-              proEmail: proProfile.email,
-              proName: proProfile.full_name ?? "Professionnel",
-              contributorName: contributorName ?? "Un prestataire",
-              projectName: document.projects?.name ?? "Projet",
-              documentName: document.name,
-              comment,
-              projectUrl,
-            })
-          : Promise.resolve(),
-      ])
+      void createNotification({
+        userId,
+        type: "document_approved",
+        title: "Document lu par un prestataire",
+        body: comment
+          ? `${contributorName} a lu « ${document.name} » · "${comment.length > 80 ? comment.slice(0, 80) + "…" : comment}"`
+          : `${contributorName} a lu « ${document.name} »`,
+        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+        inAppEnabled: proProfile?.notif_inapp_enabled,
+      }).catch((err: unknown) =>
+        console.error("[validate-contributor] createNotification lu:", err)
+      )
+
+      if (proProfile?.email && proProfile?.notif_email_frequency !== "never") {
+        void sendTransmissionAckEmail({
+          proEmail: proProfile.email,
+          proName: proProfile.full_name ?? "Professionnel",
+          contributorName: contributorName ?? "Un prestataire",
+          projectName: document.projects?.name ?? "Projet",
+          documentName: document.name,
+          comment,
+          projectUrl,
+        }).catch((err: unknown) =>
+          console.error("[validate-contributor] sendTransmissionAckEmail:", err)
+        )
+      }
     } else {
       const shouldSendEmail =
         proProfile?.notif_email_frequency !== "never" &&
@@ -98,31 +102,30 @@ export async function POST(request: Request) {
           ? proProfile?.notif_email_approved !== false
           : proProfile?.notif_email_rejected !== false)
 
-      await Promise.all([
-        createNotification({
-          userId,
-          type: status === "approved" ? "document_approved" : "document_rejected",
-          title:
-            status === "approved"
-              ? "Document approuvé par un prestataire"
-              : "Document refusé par un prestataire",
-          body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} « ${document.name} »`,
-          link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
-          inAppEnabled: proProfile?.notif_inapp_enabled,
-        }),
-        proProfile?.email && shouldSendEmail
-          ? sendApprovalEmail({
-              proEmail: proProfile.email,
-              proName: proProfile.full_name ?? "Professionnel",
-              clientName: contributorName ?? "Un prestataire",
-              projectName: document.projects?.name ?? "Projet",
-              documentName: document.name,
-              status: status as "approved" | "rejected",
-              comment: comment ?? undefined,
-              projectUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`,
-            })
-          : Promise.resolve(),
-      ])
+      void createNotification({
+        userId,
+        type: status === "approved" ? "document_approved" : "document_rejected",
+        title:
+          status === "approved"
+            ? "Document approuvé par un prestataire"
+            : "Document refusé par un prestataire",
+        body: `${contributorName} a ${status === "approved" ? "approuvé" : "refusé"} « ${document.name} »`,
+        link: `/projects/${document.project_id}?highlight=doc_${document.id}`,
+        inAppEnabled: proProfile?.notif_inapp_enabled,
+      }).catch((err: unknown) => console.error("[validate-contributor] createNotification:", err))
+
+      if (proProfile?.email && shouldSendEmail) {
+        void sendApprovalEmail({
+          proEmail: proProfile.email,
+          proName: proProfile.full_name ?? "Professionnel",
+          clientName: contributorName ?? "Un prestataire",
+          projectName: document.projects?.name ?? "Projet",
+          documentName: document.name,
+          status: status as "approved" | "rejected",
+          comment: comment ?? undefined,
+          projectUrl,
+        }).catch((err: unknown) => console.error("[validate-contributor] sendApprovalEmail:", err))
+      }
     }
 
     return NextResponse.json({ success: true })
