@@ -422,7 +422,7 @@ export function ProjectPageClient({
         </div>
 
         {/* Corps scrollable */}
-        <div ref={scrollContainerRef} className="relative flex-1 overflow-auto">
+        <div ref={scrollContainerRef} className="relative flex-1 overflow-auto overscroll-contain">
           <div>
             {/* Documents */}
             <div className="px-6 md:px-8 py-6 md:py-8">

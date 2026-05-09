@@ -23,6 +23,7 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
   const [counts, setCounts] = useState<Counts>(initialCounts)
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const channelId = useRef(`dashboard-stats:${crypto.randomUUID()}`)
 
   const refreshCounts = useCallback(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
@@ -34,7 +35,7 @@ export function DashboardStats({ userId, initialCounts }: DashboardStatsProps) {
 
   useEffect(() => {
     const channel = supabase
-      .channel("dashboard-stats")
+      .channel(channelId.current)
       .on("postgres_changes", { event: "*", schema: "public", table: "documents" }, refreshCounts)
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, refreshCounts)
       .subscribe((_status, err) => {
