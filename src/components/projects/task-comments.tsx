@@ -52,7 +52,7 @@ export function TaskComments({
         .order("created_at", { ascending: true })
         .then(({ data }) => {
           if (data) {
-            setComments(data)
+            setComments(data as unknown as Comment[])
             loadedRef.current = true
           }
         })
@@ -99,7 +99,7 @@ export function TaskComments({
       .order("created_at", { ascending: true })
       .then(({ data }) => {
         if (data) {
-          setComments(data)
+          setComments(data as unknown as Comment[])
           loadedRef.current = true
         }
       })
@@ -144,7 +144,7 @@ export function TaskComments({
         setLoading(false)
         return
       }
-      newComment = data
+      newComment = data as unknown as Comment
     }
 
     if (newComment)

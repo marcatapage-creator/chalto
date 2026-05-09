@@ -67,7 +67,7 @@ export function ValidationClient({
       .order("version", { ascending: true })
       .limit(20)
       .then(({ data }) => {
-        if (data) setVersions(data)
+        if (data) setVersions(data as unknown as DocumentVersion[])
       })
   }, [document.id, supabase])
 
