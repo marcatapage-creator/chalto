@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react"
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from "react"
 import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
@@ -282,6 +282,22 @@ export function ProjectPageClient({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const adminDossiersRef = useRef<HTMLDivElement>(null)
 
+  // Cleanup synchrone à l'unmount : restaure les styles body que Radix/Vaul ont pu
+  // laisser en place si la navigation interrompt la fermeture d'un Dialog/Drawer
+  // (React 18 concurrent mode peut différer les cleanup passifs)
+  useLayoutEffect(() => {
+    return () => {
+      document.body.style.removeProperty("pointer-events")
+      if (document.body.style.position === "fixed") {
+        document.body.style.removeProperty("position")
+        document.body.style.removeProperty("top")
+        document.body.style.removeProperty("left")
+        document.body.style.removeProperty("right")
+        document.body.style.removeProperty("height")
+      }
+    }
+  }, [])
+
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Contenu principal */}
@@ -412,6 +428,7 @@ export function ProjectPageClient({
                         if (isChantierPhase(newPhase)) {
                           setDocsOpen(false)
                           setChantierRevealing(true)
+                          if (!isDesktop) setDetailsOpen(false)
                         }
                       }}
                     />

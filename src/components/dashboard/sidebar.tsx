@@ -272,7 +272,7 @@ export function Sidebar({
               key="overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, pointerEvents: "none" }}
               transition={{ duration: 0.25 }}
               className="xl:hidden fixed inset-0 z-50 bg-black/40"
               onClick={() => setOpen(false)}
@@ -281,7 +281,7 @@ export function Sidebar({
               key="panel"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
+              exit={{ x: "-100%", pointerEvents: "none" }}
               transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
               className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
             >
