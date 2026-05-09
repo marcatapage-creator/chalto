@@ -271,7 +271,7 @@ export function Sidebar({
             <motion.div
               key="overlay"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              animate={{ opacity: 1, pointerEvents: "auto" }}
               exit={{ opacity: 0, pointerEvents: "none" }}
               transition={{ duration: 0.25 }}
               className="xl:hidden fixed inset-0 z-50 bg-black/40"
@@ -280,7 +280,7 @@ export function Sidebar({
             <motion.div
               key="panel"
               initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
+              animate={{ x: 0, pointerEvents: "auto" }}
               exit={{ x: "-100%", pointerEvents: "none" }}
               transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
               className="xl:hidden fixed top-0 left-0 z-50 h-full w-72 bg-card border-r"
