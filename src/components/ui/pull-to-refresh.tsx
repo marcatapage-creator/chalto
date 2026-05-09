@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const TRIGGER_THRESHOLD = 130
-const SHOW_THRESHOLD = 15 // dead zone before indicator appears
+const SHOW_THRESHOLD = 15
 const HEADER_HEIGHT = 74
 const INDICATOR_SIZE = 36
 const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2
@@ -23,15 +23,16 @@ function hasScrollableParentAbove(target: Element): boolean {
   return false
 }
 
-// Walk up the DOM: return the nearest scrollable ancestor (regardless of scrollTop)
-function findNearestScrollable(target: Element): Element | null {
+// Walk up the DOM: return true if the element is inside any scrollable container
+// (regardless of scrollTop). Prevents pull-to-refresh from firing inside scroll containers.
+function isInsideScrollContainer(target: Element): boolean {
   let el: Element | null = target
   while (el && el !== document.body && el !== document.documentElement) {
     const { overflowY } = window.getComputedStyle(el)
-    if (overflowY === "auto" || overflowY === "scroll") return el
+    if (overflowY === "auto" || overflowY === "scroll") return true
     el = el.parentElement
   }
-  return null
+  return false
 }
 
 // Vaul mounts the overlay in a portal only when a drawer is open
@@ -47,35 +48,18 @@ export function PullToRefresh() {
   const dragYRef = useRef(0)
   const activeRef = useRef(false)
   const rafRef = useRef<number | null>(null)
-  const scrollContainerRef = useRef<Element | null>(null)
-  const containerScrolledRef = useRef(false)
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
       if (activeRef.current) return
       if (window.scrollY > 0) return
       if (isAnyDrawerOpen()) return
+      // If the touch starts inside any scrollable container (e.g. overflow-auto content div),
+      // don't activate — we cannot reliably distinguish scroll from pull-to-refresh at scrollTop=0.
+      if (isInsideScrollContainer(e.target as Element)) return
       if (hasScrollableParentAbove(e.target as Element)) return
       startYRef.current = e.touches[0].clientY
       activeRef.current = true
-      containerScrolledRef.current = false
-      const container = findNearestScrollable(e.target as Element)
-      scrollContainerRef.current = container
-      if (container) {
-        container.addEventListener("scroll", onContainerScroll, { once: true, passive: true })
-      }
-    }
-
-    // Fires at most once per gesture (scroll event with { once: true })
-    const onContainerScroll = () => {
-      containerScrolledRef.current = true
-      activeRef.current = false
-      dragYRef.current = 0
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current)
-        rafRef.current = null
-      }
-      setDragY(0)
     }
 
     const onTouchMove = (e: TouchEvent) => {
@@ -111,13 +95,7 @@ export function PullToRefresh() {
       }
       setDragY(0)
       startYRef.current = null
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.removeEventListener("scroll", onContainerScroll)
-        scrollContainerRef.current = null
-      }
-      const scrolledDuringGesture = containerScrolledRef.current
-      containerScrolledRef.current = false
-      if (drag >= TRIGGER_THRESHOLD && !scrolledDuringGesture) {
+      if (drag >= TRIGGER_THRESHOLD) {
         setRefreshing(true)
         router.refresh()
         setTimeout(() => setRefreshing(false), 1200)
