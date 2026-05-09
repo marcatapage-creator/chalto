@@ -291,7 +291,64 @@ export default async function globalSetup(config: FullConfig) {
     })
   }
 
-  // ── 2h. Situation de test (en_attente, pour tests architecte) ────────────
+  // ── 2h. Documents pour les tests de correctifs ───────────────────────────
+
+  // Audience guard : doc envoyé au prestataire → /validate doit afficher le message bloquant
+  const { data: docAudienceGuard } = await admin
+    .from("documents")
+    .insert({
+      project_id: project.id,
+      name: "Document E2E – audience guard",
+      type: "Plan",
+      status: "sent",
+      version: 1,
+      audience: "contributor",
+    })
+    .select("id, validation_token")
+    .single()
+
+  // Wording Realtime : doc transmission envoyé au client (pour tester "Commenté par [client]")
+  const { data: docTransmissionClient } = await admin
+    .from("documents")
+    .insert({
+      project_id: project.id,
+      name: "Document E2E – transmission client",
+      type: "Plan",
+      status: "sent",
+      version: 1,
+      audience: "client",
+      request_type: "transmission",
+    })
+    .select("id, validation_token")
+    .single()
+
+  // Wording statique : doc déjà commenté par le client (validation seedée)
+  const { data: docClientCommented } = await admin
+    .from("documents")
+    .insert({
+      project_id: project.id,
+      name: "Document E2E – client commenté",
+      type: "Plan",
+      status: "commented",
+      version: 1,
+      audience: "client",
+      request_type: "transmission",
+    })
+    .select("id, validation_token")
+    .single()
+
+  if (docClientCommented) {
+    await admin.from("validations").insert({
+      document_id: docClientCommented.id,
+      status: "commented",
+      client_name: "Client Test E2E",
+      contributor_id: null,
+      approved_at: new Date().toISOString(),
+      version: 1,
+    })
+  }
+
+  // ── 2i. Situation de test (en_attente, pour tests architecte) ────────────
   const { data: seedSituation } = await admin
     .from("situations")
     .insert({
@@ -330,6 +387,8 @@ export default async function globalSetup(config: FullConfig) {
     E2E_INVITE_TOKEN_VALIDATION: contributor.invite_token?.toString() ?? "",
     E2E_INVITE_TOKEN_TRANSMISSION: contributor.invite_token?.toString() ?? "",
     E2E_SITUATION_ID: seedSituation?.id ?? "",
+    E2E_VALIDATION_TOKEN_AUDIENCE_GUARD: docAudienceGuard?.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT: docTransmissionClient?.validation_token ?? "",
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))
@@ -347,6 +406,9 @@ export default async function globalSetup(config: FullConfig) {
   process.env.E2E_INVITE_TOKEN = contributor.invite_token?.toString() ?? ""
   process.env.E2E_INVITE_TOKEN_VALIDATION = contributor.invite_token?.toString() ?? ""
   process.env.E2E_INVITE_TOKEN_TRANSMISSION = contributor.invite_token?.toString() ?? ""
+  process.env.E2E_VALIDATION_TOKEN_AUDIENCE_GUARD = docAudienceGuard?.validation_token ?? ""
+  process.env.E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT =
+    docTransmissionClient?.validation_token ?? ""
 
   console.log(
     `[e2e seed] Projet ${project.id} | contributor ${contributor.id} | ${sentDocs.length} docs sent | 4 docs contrib | 3 drafts | 5 tâches`

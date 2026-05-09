@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 type Profile = {
@@ -91,8 +91,14 @@ function SidebarContent({
       <div className="px-6 min-h-25 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <AnimatedLogo width={28} height={28} />
-            <span className="font-bold text-lg">Chalto</span>
+            <AnimatedLogo
+              width={instanceId === "mobile" ? 35 : 28}
+              height={instanceId === "mobile" ? 35 : 28}
+              noEntrance={instanceId === "mobile"}
+            />
+            <span className={`font-bold ${instanceId === "mobile" ? "text-[22px]" : "text-lg"}`}>
+              Chalto
+            </span>
           </div>
         </div>
         {showBell && <NotificationBell {...notifProps} popoverAlign="start" />}
@@ -185,7 +191,30 @@ export function Sidebar({
   userId: string
 }) {
   const [open, setOpen] = useState(false)
+  const [localDeadlines, setLocalDeadlines] = useState(counts.deadlines)
   const notifProps = useNotifications(userId)
+  const supabase = useMemo(() => createClient(), [])
+
+  const refreshDeadlines = useCallback(async () => {
+    // admin_dossiers absent des types générés — cast nécessaire
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count } = await (supabase as any)
+      .from("admin_dossiers")
+      .select("id", { count: "exact", head: true })
+      .not("status", "in", "(obtenu,refuse)")
+      .not("deadline", "is", null)
+    if (count !== null) setLocalDeadlines(count as number)
+  }, [supabase])
+
+  useEffect(() => {
+    const channel = new BroadcastChannel("chalto:deadlines")
+    channel.onmessage = () => {
+      void refreshDeadlines()
+    }
+    return () => channel.close()
+  }, [refreshDeadlines])
+
+  const liveCounts = { ...counts, deadlines: localDeadlines }
 
   return (
     <>
@@ -193,7 +222,7 @@ export function Sidebar({
       <aside className="hidden xl:flex w-64 border-r bg-card flex-col h-full">
         <SidebarContent
           profile={profile}
-          counts={counts}
+          counts={liveCounts}
           notifProps={notifProps}
           instanceId="desktop"
         />
@@ -258,7 +287,7 @@ export function Sidebar({
             >
               <SidebarContent
                 profile={profile}
-                counts={counts}
+                counts={liveCounts}
                 notifProps={notifProps}
                 showBell={false}
                 onNavigate={() => setOpen(false)}

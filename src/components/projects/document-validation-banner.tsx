@@ -18,7 +18,9 @@ export function ValidationResultBanner({
           <MessageSquare className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-              Commenté par {validation.client_name ?? "le prestataire"}
+              Commenté par{" "}
+              {validation.client_name ??
+                (validation.contributor_id ? "le prestataire" : "le client")}
             </p>
             {validation.comment && (
               <p className="text-sm text-muted-foreground italic">{`"${validation.comment}"`}</p>

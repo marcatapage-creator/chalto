@@ -96,6 +96,36 @@ test("4.3 — le client peut refuser avec un commentaire", async ({ page }) => {
   await expect(page.getByText(/refusé|pris en compte/i)).toBeVisible({ timeout: 10_000 })
 })
 
+// ─── 4.5 : Audience guard — doc destiné à un prestataire ────────────────────
+
+test("4.5 — /validate affiche un message bloquant si le document est destiné à un prestataire", async ({
+  page,
+}) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_AUDIENCE_GUARD")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_AUDIENCE_GUARD non défini")
+    return
+  }
+  await page.goto(`/validate/${token}`)
+  await expect(page.getByText(/en cours d'évaluation/i)).toBeVisible({ timeout: 8_000 })
+})
+
+test("4.5 — /validate masque les boutons Approuver et Refuser quand audience=contributor", async ({
+  page,
+}) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_AUDIENCE_GUARD")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_AUDIENCE_GUARD non défini")
+    return
+  }
+  await page.goto(`/validate/${token}`)
+  await page.waitForTimeout(2_000)
+  await expect(page.getByRole("button", { name: /approuver/i })).not.toBeVisible()
+  await expect(page.getByRole("button", { name: /refuser/i })).not.toBeVisible()
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 test("4.3 — flux client alternatif — le client peut refuser avec un commentaire", async ({
   page,
 }) => {

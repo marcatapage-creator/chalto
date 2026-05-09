@@ -30,12 +30,12 @@ export function createClient() {
       }
     })
 
-    // iOS throttles background timers — the auto-refresh may not fire while
-    // the app is backgrounded. Force a session refresh when the tab becomes
-    // visible again so Realtime reconnects with a valid token.
+    // iOS/Chrome throttle background timers — the auto-refresh may not fire
+    // while backgrounded. Force an explicit session refresh on visibility so
+    // onAuthStateChange fires TOKEN_REFRESHED → setAuth updates the Realtime WS.
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
-        void _client!.auth.getUser().catch(() => {})
+        void _client!.auth.refreshSession().catch(() => {})
       }
     })
   }

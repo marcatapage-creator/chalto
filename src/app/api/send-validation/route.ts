@@ -83,6 +83,7 @@ export async function POST(request: Request) {
         status: DOCUMENT_STATUS.SENT,
         pro_message: message ?? null,
         request_type: requestType,
+        audience: "client",
       })
       .eq("id", documentId)
 

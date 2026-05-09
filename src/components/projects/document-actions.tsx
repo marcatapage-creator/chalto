@@ -143,7 +143,17 @@ export function DocumentActions({
   }
 
   const handleSend = async () => {
+    if (audience === "contributor" && selectedContributors.length === 0) {
+      toast.error("Sélectionnez au moins un prestataire")
+      return
+    }
+
+    // Optimistic: fermer le dialog et passer en "envoyé" immédiatement.
+    // Les closures capturent message/selectedContributors/requestType avant les resets.
+    setOpen(false)
+    setMessage("")
     setLoading(true)
+    onSent?.()
 
     try {
       if (audience === "client") {
@@ -170,15 +180,9 @@ export function DocumentActions({
             : "Email de validation envoyé au client ✅"
         )
       } else {
-        if (selectedContributors.length === 0) {
-          toast.error("Sélectionnez au moins un prestataire")
-          setLoading(false)
-          return
-        }
-
         const { error: rpcError } = await supabase.rpc("send_document_to_client", {
           p_document_id: documentId,
-          p_status: status === "approved" ? "approved" : "sent",
+          p_status: "sent",
         })
 
         if (rpcError) {
@@ -187,6 +191,8 @@ export function DocumentActions({
           setLoading(false)
           return
         }
+
+        await supabase.from("documents").update({ audience: "contributor" }).eq("id", documentId)
 
         await supabase.from("document_contributors").upsert(
           selectedContributors.map((contributorId) => ({
@@ -220,10 +226,6 @@ export function DocumentActions({
         haptics.success()
         toast.success(`Document partagé avec ${selectedContributors.length} prestataire(s) ✅`)
       }
-
-      setMessage("")
-      setOpen(false)
-      onSent?.()
     } catch (error) {
       console.error(error)
       toast.error("Une erreur est survenue")
@@ -256,13 +258,7 @@ export function DocumentActions({
           className={cn(className)}
         >
           <Send className="h-4 w-4 mr-2" />
-          {status === "sent"
-            ? "Envoyé"
-            : status === "approved"
-              ? "Partager"
-              : status === "commented"
-                ? "Envoyer pour validation"
-                : "Envoyer"}
+          {status === "sent" ? "Envoyé" : status === "approved" ? "Partager" : "Envoyer"}
         </Button>
       </OnboardingTooltip>
 

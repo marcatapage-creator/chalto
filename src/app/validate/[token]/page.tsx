@@ -77,35 +77,56 @@ export default async function ValidatePage({ params }: { params: Promise<{ token
     )
   }
 
+  const brandHeader = (
+    <div className="text-center mb-10">
+      {proProfile?.branding_enabled && proProfile?.logo_url ? (
+        <div className="flex flex-col items-center gap-3 mb-6">
+          <Image
+            src={proProfile.logo_url}
+            alt={proProfile.company_name ?? "Logo"}
+            width={160}
+            height={64}
+            className="object-contain max-h-16"
+          />
+          <p className="text-xs text-muted-foreground">
+            Propulsé par{" "}
+            <a href="https://chalto.fr" className="text-primary hover:underline">
+              Chalto
+            </a>
+          </p>
+        </div>
+      ) : (
+        <div className="mb-6">
+          <div className="flex justify-center mb-3">
+            <Image src="/Logo.svg" alt="Chalto" width={36} height={36} />
+          </div>
+          <p className="text-muted-foreground mt-1">Validation de document</p>
+        </div>
+      )}
+    </div>
+  )
+
+  if (document.audience === "contributor") {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-2xl mx-auto px-4 py-16">
+          {brandHeader}
+          <div className="text-center space-y-3">
+            <p className="font-semibold">Document en cours d&apos;évaluation</p>
+            <p className="text-sm text-muted-foreground">
+              Ce document a été transmis à un prestataire et n&apos;attend pas votre validation pour
+              l&apos;instant. Votre professionnel vous contactera si votre avis est nécessaire.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          {proProfile?.branding_enabled && proProfile?.logo_url ? (
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <Image
-                src={proProfile.logo_url}
-                alt={proProfile.company_name ?? "Logo"}
-                width={160}
-                height={64}
-                className="object-contain max-h-16"
-              />
-              <p className="text-xs text-muted-foreground">
-                Propulsé par{" "}
-                <a href="https://chalto.fr" className="text-primary hover:underline">
-                  Chalto
-                </a>
-              </p>
-            </div>
-          ) : (
-            <div className="mb-6">
-              <div className="flex justify-center mb-3">
-                <Image src="/Logo.svg" alt="Chalto" width={36} height={36} />
-              </div>
-              <p className="text-muted-foreground mt-1">Validation de document</p>
-            </div>
-          )}
-        </div>
+        {brandHeader}
         <ValidationClient
           document={document}
           token={token}

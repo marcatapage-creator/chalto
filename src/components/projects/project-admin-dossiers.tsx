@@ -174,6 +174,7 @@ export function ProjectAdminDossiers({
         }
         const { dossier } = await res.json()
         setDossiers((prev) => prev.map((d) => (d.id === dossier.id ? dossier : d)))
+        new BroadcastChannel("chalto:deadlines").postMessage({ type: "refresh" })
         toast.success("Dossier mis à jour")
       } else {
         const res = await fetchWithTimeout("/api/admin-dossiers", {
@@ -188,6 +189,7 @@ export function ProjectAdminDossiers({
         }
         const { dossier } = await res.json()
         setDossiers((prev) => [dossier, ...prev])
+        new BroadcastChannel("chalto:deadlines").postMessage({ type: "refresh" })
         toast.success("Dossier ajouté")
       }
 
@@ -208,6 +210,7 @@ export function ProjectAdminDossiers({
         return
       }
       setDossiers((prev) => prev.filter((d) => d.id !== id))
+      new BroadcastChannel("chalto:deadlines").postMessage({ type: "refresh" })
       toast.success("Dossier supprimé")
     } catch {
       toast.error("Erreur réseau — réessayez")
@@ -231,6 +234,7 @@ export function ProjectAdminDossiers({
       }
       const { dossier } = await res.json()
       setDossiers((prev) => prev.map((x) => (x.id === dossier.id ? dossier : x)))
+      new BroadcastChannel("chalto:deadlines").postMessage({ type: "refresh" })
     } catch {
       toast.error("Erreur réseau — réessayez")
     }

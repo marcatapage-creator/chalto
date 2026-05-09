@@ -24,12 +24,21 @@ export async function POST(request: Request) {
 
     const { data: document } = await admin
       .from("documents")
-      .select("*, version, request_type, projects(name, user_id, client_name, client_email)")
+      .select(
+        "*, version, request_type, audience, projects(name, user_id, client_name, client_email)"
+      )
       .eq("validation_token", token)
       .single()
 
     if (!document) {
       return NextResponse.json({ error: "Token invalide" }, { status: 404 })
+    }
+
+    if (document.audience === "contributor") {
+      return NextResponse.json(
+        { error: "Ce document est actuellement évalué par un prestataire" },
+        { status: 403 }
+      )
     }
 
     const userId = document.projects.user_id
@@ -41,6 +50,7 @@ export async function POST(request: Request) {
           document_id: document.id,
           status,
           comment: comment || null,
+          client_name: document.projects.client_name ?? null,
           approved_at: new Date().toISOString(),
           version: document.version ?? 1,
         }),

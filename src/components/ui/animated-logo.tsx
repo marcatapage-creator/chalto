@@ -8,6 +8,7 @@ interface AnimatedLogoProps {
   height?: number
   className?: string
   loop?: boolean
+  noEntrance?: boolean
 }
 
 export function AnimatedLogo({
@@ -15,7 +16,16 @@ export function AnimatedLogo({
   height = 24,
   className,
   loop = false,
+  noEntrance = false,
 }: AnimatedLogoProps) {
+  if (noEntrance) {
+    return (
+      <div className={className}>
+        <Image src="/Logo.svg" alt="Chalto" width={width} height={height} />
+      </div>
+    )
+  }
+
   if (loop) {
     return (
       <motion.div

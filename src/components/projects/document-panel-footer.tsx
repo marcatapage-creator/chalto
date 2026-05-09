@@ -59,7 +59,7 @@ export function DocumentPanelFooter({
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Envoyer pour validation
+          Envoyer
         </p>
         <DocumentActions
           documentId={documentId}
@@ -113,12 +113,10 @@ export function DocumentPanelFooter({
                 : `En attente de réponse de ${clientName ?? "du client"}`}
           </span>
         </div>
-        {!audienceInfo.requestType && (
-          <Button variant="outline" size="sm" className="w-full" onClick={onCopyLink}>
-            <Link2 className="h-4 w-4 mr-2" />
-            Copier le lien de validation
-          </Button>
-        )}
+        <Button variant="outline" size="sm" className="w-full" onClick={onCopyLink}>
+          <Link2 className="h-4 w-4 mr-2" />
+          Copier le lien
+        </Button>
       </div>
     )
   }

@@ -24,4 +24,5 @@ export interface PrevVersion {
 export interface AudienceInfo {
   requestType: "validation" | "transmission" | null
   names: string[]
+  inviteTokens: string[]
 }

@@ -72,6 +72,7 @@ export function DocumentPanel({
   const [audienceInfo, setAudienceInfo] = useState<AudienceInfo>({
     requestType: null,
     names: [],
+    inviteTokens: [],
   })
   const [allValidations, setAllValidations] = useState<ValidationEntry[]>([])
   const [validatorContributors, setValidatorContributors] = useState<ContributorValidator[]>([])
@@ -124,7 +125,7 @@ export function DocumentPanel({
   const fetchValidation = useCallback(async () => {
     const { data, error } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name")
+      .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -146,7 +147,7 @@ export function DocumentPanel({
   useEffect(() => {
     supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name")
+      .select("status, comment, approved_at, client_name, contributor_id")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -160,11 +161,9 @@ export function DocumentPanel({
           docId: document.id,
           data: (data ?? null) as unknown as ValidationData | null,
         })
-        // "approved"/"rejected" on a "sent" or "draft" doc belong to a previous version — skip.
-        // "commented" (transmission) is always current: it can only appear after the current send.
-        const isLegacy =
-          document.status === "draft" ||
-          (document.status === "sent" && data?.status !== "commented")
+        // Validations on a "draft" or freshly-(re)sent doc belong to a previous version — skip.
+        // When document is "sent", rely on Realtime to update status; any cached validation is stale.
+        const isLegacy = document.status === "draft" || document.status === "sent"
         if (data?.status && !isLegacy) {
           setLocalStatus(data.status)
           onStatusChangeRef.current?.(document.id, data.status)
@@ -201,20 +200,45 @@ export function DocumentPanel({
 
   useEffect(() => {
     if (localStatus !== "sent") return
-    supabase
-      .from("document_contributors")
-      .select("request_type, contributor_id")
-      .eq("document_id", document.id)
-      .then(async ({ data: dcData, error }) => {
-        if (error || !dcData?.length) return
-        const reqType = (dcData[0].request_type as "validation" | "transmission") ?? "validation"
-        const ids = dcData.map((d) => d.contributor_id)
-        const { data: contribs } = await supabase.from("contributors").select("name").in("id", ids)
-        setAudienceInfo({
-          requestType: reqType,
-          names: contribs?.map((c) => c.name) ?? [],
-        })
+
+    const refresh = async () => {
+      const { data: dcData } = await supabase
+        .from("document_contributors")
+        .select("request_type, contributor_id")
+        .eq("document_id", document.id)
+
+      if (!dcData?.length) return
+
+      const reqType = (dcData[0].request_type as "validation" | "transmission") ?? "validation"
+      const ids = dcData.map((d) => d.contributor_id)
+      const { data: contribs } = await supabase
+        .from("contributors")
+        .select("name, invite_token")
+        .in("id", ids)
+
+      setAudienceInfo({
+        requestType: reqType,
+        names: contribs?.map((c) => c.name) ?? [],
+        inviteTokens: contribs?.map((c) => c.invite_token).filter((t): t is string => !!t) ?? [],
       })
+
+      // Met à jour la liste des prestataires en attente de validation
+      const validationIds = dcData
+        .filter((d) => d.request_type === "validation")
+        .map((d) => d.contributor_id)
+      if (validationIds.length > 0) {
+        const { data: validators } = await supabase
+          .from("contributors")
+          .select("id, name")
+          .in("id", validationIds)
+        setValidatorContributors(validators ?? [])
+      }
+    }
+
+    // Double déclenchement : immédiat (panel déjà "sent") + 500ms (après upsert optimiste)
+    void refresh()
+    const timer = setTimeout(() => void refresh(), 500)
+    return () => clearTimeout(timer)
   }, [document.id, localStatus, supabase])
 
   useRealtimeChannel(supabase, `document-panel:${document.id}`, (channel) =>
@@ -338,9 +362,17 @@ export function DocumentPanel({
   }
 
   const handleCopyLink = () => {
-    const validationUrl = `${window.location.origin}/validate/${document.validation_token}`
-    navigator.clipboard.writeText(validationUrl)
-    toast.success("Lien copié dans le presse-papiers")
+    const isContributor = document.audience === "contributor"
+    const url =
+      isContributor && audienceInfo.inviteTokens[0]
+        ? `${window.location.origin}/invite/${audienceInfo.inviteTokens[0]}`
+        : `${window.location.origin}/validate/${document.validation_token}`
+    navigator.clipboard.writeText(url)
+    toast.success(
+      isContributor && audienceInfo.inviteTokens.length > 1
+        ? `Lien du 1er prestataire copié (${audienceInfo.inviteTokens.length} au total)`
+        : "Lien copié dans le presse-papiers"
+    )
   }
 
   const activePrev =

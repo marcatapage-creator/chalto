@@ -13,6 +13,7 @@ export interface ProjectDocument {
   created_at: string
   source?: string
   cloud_file_id?: string | null
+  audience?: string | null
 }
 
 export interface CloudLink {
@@ -68,6 +69,7 @@ export type ValidationData = {
   comment?: string | null
   approved_at?: string
   client_name?: string | null
+  contributor_id?: string | null
 }
 
 // ─── Situations de travaux ────────────────────────────────────────────────────
