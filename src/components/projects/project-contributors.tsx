@@ -5,13 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { ActionMenu } from "@/components/ui/action-menu"
@@ -237,141 +231,140 @@ export function ProjectContributors({
 
         {!readOnly && (
           <div className="pl-3" onClick={(e) => e.stopPropagation()}>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
+            <ResponsiveDialog
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              trigger={
                 <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5 sm:hidden" />
                   <UserPlus className="h-3.5 w-3.5 hidden sm:block" />
                   <span className="hidden sm:inline">Inviter</span>
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Inviter un prestataire</DialogTitle>
-                </DialogHeader>
-                {availableContacts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-                    <Users className="h-6 w-6 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {contacts.length === 0
-                        ? "Aucun contact dans votre carnet d'adresses"
-                        : "Tous vos contacts sont déjà invités sur ce projet"}
-                    </p>
-                    {!addContactOpen ? (
-                      <Button size="sm" onClick={() => setAddContactOpen(true)}>
-                        <Plus className="h-3.5 w-3.5 mr-1.5" />
-                        Ajouter un contact
-                      </Button>
-                    ) : (
-                      <div className="w-full space-y-2 text-left pt-1">
-                        <Input
-                          placeholder="Nom *"
-                          value={newContact.name}
-                          onChange={(e) => setNewContact((p) => ({ ...p, name: e.target.value }))}
-                        />
-                        <Input
-                          placeholder="Email"
-                          type="email"
-                          value={newContact.email}
-                          onChange={(e) => setNewContact((p) => ({ ...p, email: e.target.value }))}
-                        />
-                        <div className="flex gap-2 pt-1">
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setAddContactOpen(false)
-                              setNewContact({ name: "", email: "" })
-                            }}
-                          >
-                            Annuler
-                          </Button>
-                          <Button
-                            className="flex-1"
-                            loading={addingContact}
-                            onClick={handleAddContact}
-                          >
-                            Créer
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="max-h-80 overflow-y-auto pr-1 space-y-2">
-                      {availableContacts.map((contact) => (
-                        <div
-                          key={contact.id}
-                          className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+              }
+              title="Inviter un prestataire"
+            >
+              {availableContacts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {contacts.length === 0
+                      ? "Aucun contact dans votre carnet d'adresses"
+                      : "Tous vos contacts sont déjà invités sur ce projet"}
+                  </p>
+                  {!addContactOpen ? (
+                    <Button size="sm" onClick={() => setAddContactOpen(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      Ajouter un contact
+                    </Button>
+                  ) : (
+                    <div className="w-full space-y-2 text-left pt-1">
+                      <Input
+                        placeholder="Nom *"
+                        value={newContact.name}
+                        onChange={(e) => setNewContact((p) => ({ ...p, name: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={newContact.email}
+                        onChange={(e) => setNewContact((p) => ({ ...p, email: e.target.value }))}
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => {
+                            setAddContactOpen(false)
+                            setNewContact({ name: "", email: "" })
+                          }}
                         >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">{contact.name}</p>
-                            {contact.professions?.[0]?.label && (
-                              <p className="text-xs text-muted-foreground">
-                                {contact.professions[0].label}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="shrink-0"
-                            disabled={loading === contact.id}
-                            onClick={() => handleInvite(contact)}
-                          >
-                            <Mail className="h-3.5 w-3.5 mr-1.5" />
-                            {loading === contact.id ? "Envoi..." : "Inviter"}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    {!addContactOpen ? (
-                      <button
-                        onClick={() => setAddContactOpen(true)}
-                        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Ajouter un nouveau contact
-                      </button>
-                    ) : (
-                      <div className="space-y-2 pt-2 border-t">
-                        <Input
-                          placeholder="Nom *"
-                          value={newContact.name}
-                          onChange={(e) => setNewContact((p) => ({ ...p, name: e.target.value }))}
-                        />
-                        <Input
-                          placeholder="Email"
-                          type="email"
-                          value={newContact.email}
-                          onChange={(e) => setNewContact((p) => ({ ...p, email: e.target.value }))}
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setAddContactOpen(false)
-                              setNewContact({ name: "", email: "" })
-                            }}
-                          >
-                            Annuler
-                          </Button>
-                          <Button
-                            className="flex-1"
-                            loading={addingContact}
-                            onClick={handleAddContact}
-                          >
-                            Créer
-                          </Button>
-                        </div>
+                          Annuler
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          loading={addingContact}
+                          onClick={handleAddContact}
+                        >
+                          Créer
+                        </Button>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="max-h-80 overflow-y-auto pr-1 space-y-2">
+                    {availableContacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{contact.name}</p>
+                          {contact.professions?.[0]?.label && (
+                            <p className="text-xs text-muted-foreground">
+                              {contact.professions[0].label}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          disabled={loading === contact.id}
+                          onClick={() => handleInvite(contact)}
+                        >
+                          <Mail className="h-3.5 w-3.5 mr-1.5" />
+                          {loading === contact.id ? "Envoi..." : "Inviter"}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </DialogContent>
-            </Dialog>
+                  {!addContactOpen ? (
+                    <button
+                      onClick={() => setAddContactOpen(true)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Ajouter un nouveau contact
+                    </button>
+                  ) : (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Input
+                        placeholder="Nom *"
+                        value={newContact.name}
+                        onChange={(e) => setNewContact((p) => ({ ...p, name: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={newContact.email}
+                        onChange={(e) => setNewContact((p) => ({ ...p, email: e.target.value }))}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => {
+                            setAddContactOpen(false)
+                            setNewContact({ name: "", email: "" })
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          loading={addingContact}
+                          onClick={handleAddContact}
+                        >
+                          Créer
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </ResponsiveDialog>
           </div>
         )}
       </div>

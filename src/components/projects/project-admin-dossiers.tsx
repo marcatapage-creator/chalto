@@ -6,13 +6,7 @@ import { ChevronDown, Plus, Pencil, Trash2, FolderOpen, CalendarDays, Loader2 } 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import {
   Select,
   SelectContent,
@@ -366,103 +360,101 @@ export function ProjectAdminDossiers({
         )}
       </AnimatePresence>
 
-      <Dialog open={dialogOpen} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Modifier le dossier" : "Nouveau dossier administratif"}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-1">
-            <div className="space-y-1.5">
-              <Label>Type de dossier</Label>
-              <Select
-                value={form.type}
-                onValueChange={(v) => setForm((f) => ({ ...f, type: v as AdminDossierType }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(TYPE_LABEL) as AdminDossierType[]).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TYPE_LABEL[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {form.type === "autre" && (
-              <div className="space-y-1.5">
-                <Label>Préciser</Label>
-                <Input
-                  maxLength={100}
-                  value={form.label}
-                  onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                  placeholder="Ex: Autorisation d'enseigne"
-                />
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Statut</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(v) => setForm((f) => ({ ...f, status: v as AdminDossierStatus }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(STATUS_LABEL) as AdminDossierStatus[]).map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {STATUS_LABEL[s]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>
-                  Échéance <span className="font-normal text-muted-foreground">(optionnel)</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={form.deadline}
-                  onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>
-                Notes <span className="font-normal text-muted-foreground">(optionnel)</span>
-              </Label>
-              <Textarea
-                value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                placeholder="Références, contacts instructeur…"
-                rows={2}
-                maxLength={1000}
-                className="resize-none text-sm"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
+      <ResponsiveDialog
+        open={dialogOpen}
+        onOpenChange={(o) => !o && closeDialog()}
+        title={editing ? "Modifier le dossier" : "Nouveau dossier administratif"}
+        contentClassName="sm:max-w-md"
+        footer={
+          <>
             <Button variant="outline" onClick={closeDialog} disabled={submitting}>
               Annuler
             </Button>
             <Button onClick={handleSubmit} disabled={submitting} loading={submitting}>
               {editing ? "Enregistrer" : "Ajouter"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Type de dossier</Label>
+            <Select
+              value={form.type}
+              onValueChange={(v) => setForm((f) => ({ ...f, type: v as AdminDossierType }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(TYPE_LABEL) as AdminDossierType[]).map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {TYPE_LABEL[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {form.type === "autre" && (
+            <div className="space-y-1.5">
+              <Label>Préciser</Label>
+              <Input
+                maxLength={100}
+                value={form.label}
+                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                placeholder="Ex: Autorisation d'enseigne"
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Statut</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm((f) => ({ ...f, status: v as AdminDossierStatus }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(STATUS_LABEL) as AdminDossierStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>
+                Échéance <span className="font-normal text-muted-foreground">(optionnel)</span>
+              </Label>
+              <Input
+                type="date"
+                value={form.deadline}
+                onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>
+              Notes <span className="font-normal text-muted-foreground">(optionnel)</span>
+            </Label>
+            <Textarea
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              placeholder="Références, contacts instructeur…"
+              rows={2}
+              maxLength={1000}
+              className="resize-none text-sm"
+            />
+          </div>
+        </div>
+      </ResponsiveDialog>
     </div>
   )
 }

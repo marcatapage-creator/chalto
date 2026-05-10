@@ -8,14 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import {
   Select,
   SelectContent,
@@ -454,149 +447,149 @@ export function ProjectTasks({
         </div>
 
         <div className="pl-3" onClick={(e) => e.stopPropagation()}>
-          <Dialog
-            open={open}
-            onOpenChange={(v) => {
-              setOpen(v)
-              if (!v) {
-                setDialogView("task")
-                setContactForm({ name: "", email: "", phone: "" })
-              }
-            }}
-          >
-            {!readOnly && (
-              <DialogTrigger asChild>
+          {!readOnly && (
+            <ResponsiveDialog
+              open={open}
+              onOpenChange={(v) => {
+                setOpen(v)
+                if (!v) {
+                  setDialogView("task")
+                  setContactForm({ name: "", email: "", phone: "" })
+                }
+              }}
+              trigger={
                 <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Nouvelle tâche</span>
                 </Button>
-              </DialogTrigger>
-            )}
-            <DialogContent>
-              {dialogView === "task" ? (
-                <>
-                  <DialogHeader>
-                    <DialogTitle>Nouvelle tâche</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-2">
-                    <div className="space-y-2">
-                      <Label>Titre *</Label>
-                      <Input
-                        placeholder="Ex: Pose des gaines électriques"
-                        value={form.title}
-                        onChange={(e) => setForm({ ...form, title: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Description</Label>
-                      <Input
-                        placeholder="Détails de la tâche..."
-                        value={form.description}
-                        onChange={(e) => setForm({ ...form, description: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Assigner à</Label>
-                      <Select
-                        value={form.assigned_to}
-                        onValueChange={(v) => setForm({ ...form, assigned_to: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner depuis l'annuaire" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {localContacts.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                              {c.professions?.[0] && ` — ${c.professions[0].label}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <button
-                        type="button"
-                        onClick={() => setDialogView("new-contact")}
-                        className="flex items-center gap-1.5 text-xs text-primary hover:underline mt-1"
-                      >
-                        <Plus className="h-3 w-3" />
-                        Créer un nouveau prestataire
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Date limite</Label>
-                      <Input
-                        type="date"
-                        value={form.due_date}
-                        min={todayMin}
-                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                      />
-                    </div>
+              }
+              title={
+                dialogView === "task" ? (
+                  "Nouvelle tâche"
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDialogView("task")}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    Nouveau prestataire
                   </div>
-                  <DialogFooter>
+                )
+              }
+              footer={
+                dialogView === "task" ? (
+                  <>
                     <Button variant="outline" onClick={() => setOpen(false)}>
                       Annuler
                     </Button>
                     <Button onClick={handleSubmit} loading={loading}>
                       {loading ? "Création..." : "Créer la tâche"}
                     </Button>
-                  </DialogFooter>
-                </>
-              ) : (
-                <>
-                  <DialogHeader>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDialogView("task")}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </button>
-                      <DialogTitle>Nouveau prestataire</DialogTitle>
-                    </div>
-                  </DialogHeader>
-                  <div className="space-y-4 py-2">
-                    <div className="space-y-2">
-                      <Label>Nom *</Label>
-                      <Input
-                        placeholder="Jean Dupont"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input
-                        type="email"
-                        placeholder="jean@exemple.fr"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Téléphone</Label>
-                      <Input
-                        placeholder="06 00 00 00 00"
-                        value={contactForm.phone}
-                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Le prestataire sera ajouté à votre annuaire et sélectionné automatiquement.
-                    </p>
-                  </div>
-                  <DialogFooter>
+                  </>
+                ) : (
+                  <>
                     <Button variant="outline" onClick={() => setDialogView("task")}>
                       Retour
                     </Button>
                     <Button onClick={handleCreateContact} loading={contactLoading}>
                       {contactLoading ? "Création..." : "Créer le prestataire"}
                     </Button>
-                  </DialogFooter>
-                </>
+                  </>
+                )
+              }
+            >
+              {dialogView === "task" ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Titre *</Label>
+                    <Input
+                      placeholder="Ex: Pose des gaines électriques"
+                      value={form.title}
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Input
+                      placeholder="Détails de la tâche..."
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Assigner à</Label>
+                    <Select
+                      value={form.assigned_to}
+                      onValueChange={(v) => setForm({ ...form, assigned_to: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner depuis l'annuaire" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {localContacts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                            {c.professions?.[0] && ` — ${c.professions[0].label}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => setDialogView("new-contact")}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline mt-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Créer un nouveau prestataire
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date limite</Label>
+                    <Input
+                      type="date"
+                      value={form.due_date}
+                      min={todayMin}
+                      onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Nom *</Label>
+                    <Input
+                      placeholder="Jean Dupont"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="jean@exemple.fr"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Téléphone</Label>
+                    <Input
+                      placeholder="06 00 00 00 00"
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Le prestataire sera ajouté à votre annuaire et sélectionné automatiquement.
+                  </p>
+                </div>
               )}
-            </DialogContent>
-          </Dialog>
+            </ResponsiveDialog>
+          )}
         </div>
       </div>
 

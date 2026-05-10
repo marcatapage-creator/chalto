@@ -2,13 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -165,8 +159,21 @@ export function GenerateDocumentDialog({
 
   const docLabel = docType === "aps" ? "APS" : "CCTP"
 
+  const trigger = (
+    <div
+      role="button"
+      className="ai-btn-border rounded-md p-px inline-flex cursor-pointer shrink-0"
+    >
+      <div className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[5px] bg-background text-sm font-medium hover:bg-muted/60 transition-colors lg:h-8 lg:px-3">
+        <Sparkles className="hidden sm:inline h-3.5 w-3.5 text-violet-500" />
+        <span className="sm:hidden">IA</span>
+        <span className="hidden sm:inline">Générer IA</span>
+      </div>
+    </div>
+  )
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <>
       <style>{`
         @property --ai-btn-angle {
           syntax: '<angle>';
@@ -181,30 +188,22 @@ export function GenerateDocumentDialog({
           animation: ai-btn-spin 7s linear infinite;
         }
       `}</style>
-      <DialogTrigger asChild>
-        <div
-          role="button"
-          className="ai-btn-border rounded-md p-px inline-flex cursor-pointer shrink-0"
-        >
-          <div className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[5px] bg-background text-sm font-medium hover:bg-muted/60 transition-colors lg:h-8 lg:px-3">
-            <Sparkles className="hidden sm:inline h-3.5 w-3.5 text-violet-500" />
-            <span className="sm:hidden">IA</span>
-            <span className="hidden sm:inline">Générer IA</span>
-          </div>
-        </div>
-      </DialogTrigger>
 
-      <DialogContent className="max-w-[calc(100%-3rem)] sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <ResponsiveDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        trigger={trigger}
+        title={
+          <span className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             Générer un document
-          </DialogTitle>
-        </DialogHeader>
-
+          </span>
+        }
+        contentClassName="sm:max-w-lg"
+      >
         {/* Étape 1 — Choix du type */}
         {step === 1 && (
-          <div className="space-y-3 py-2">
+          <div className="space-y-3">
             <p className="text-sm text-muted-foreground">Choisissez un type de document</p>
 
             {isArchiInterieur ? (
@@ -293,7 +292,7 @@ export function GenerateDocumentDialog({
 
         {/* Étape 2 — APS */}
         {step === 2 && docType === "aps" && (
-          <div className="space-y-5 py-2">
+          <div className="space-y-5">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Pièces concernées <span className="text-destructive">*</span>
@@ -334,11 +333,11 @@ export function GenerateDocumentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contraintes" className="text-sm font-medium">
+              <Label htmlFor="contraintes-aps" className="text-sm font-medium">
                 Contraintes particulières
               </Label>
               <Textarea
-                id="contraintes"
+                id="contraintes-aps"
                 placeholder="Ex : copropriété, hauteur sous plafond réduite, budget serré, délai court..."
                 value={answers.contraintes}
                 onChange={(e) => setAnswers((prev) => ({ ...prev, contraintes: e.target.value }))}
@@ -384,7 +383,7 @@ export function GenerateDocumentDialog({
 
         {/* Étape 2 — CCTP */}
         {step === 2 && docType === "cctp" && (
-          <div className="space-y-5 py-2">
+          <div className="space-y-5">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Lots concernés <span className="text-destructive">*</span>
@@ -425,11 +424,11 @@ export function GenerateDocumentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contraintes" className="text-sm font-medium">
+              <Label htmlFor="contraintes-cctp" className="text-sm font-medium">
                 Contraintes particulières
               </Label>
               <Textarea
-                id="contraintes"
+                id="contraintes-cctp"
                 placeholder="Ex : site classé, zone sismique, délai serré, accès difficile..."
                 value={answers.contraintes}
                 onChange={(e) => setAnswers((prev) => ({ ...prev, contraintes: e.target.value }))}
@@ -504,7 +503,7 @@ export function GenerateDocumentDialog({
             ) : null}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialog>
+    </>
   )
 }

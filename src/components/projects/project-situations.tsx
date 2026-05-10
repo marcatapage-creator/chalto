@@ -20,13 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
@@ -278,81 +272,14 @@ export function ProjectSituations({
         )}
       </AnimatePresence>
 
-      {/* Dialog révision */}
-      <Dialog open={!!reviewing} onOpenChange={(o) => !o && closeReview()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Réviser la situation</DialogTitle>
-          </DialogHeader>
-
-          {reviewing && (
-            <div className="space-y-4 py-1">
-              <div className="bg-muted/50 rounded-lg px-3 py-2 text-sm space-y-0.5">
-                <p className="font-medium">{reviewing.lotLabel}</p>
-                <p className="text-xs text-muted-foreground">{reviewing.contributorName}</p>
-              </div>
-
-              {/* Toggle valider / refuser */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setAction("validate")}
-                  className={cn(
-                    "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
-                    action === "validate"
-                      ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Valider
-                </button>
-                <button
-                  onClick={() => setAction("refuse")}
-                  className={cn(
-                    "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
-                    action === "refuse"
-                      ? "border-red-500 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <XCircle className="h-4 w-4" />
-                  Refuser
-                </button>
-              </div>
-
-              {action === "refuse" && (
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">
-                    Motif de refus <span className="text-destructive">*</span>
-                  </label>
-                  <Textarea
-                    placeholder="Expliquez pourquoi la situation est refusée…"
-                    value={refusalReason}
-                    onChange={(e) => setRefusalReason(e.target.value)}
-                    rows={3}
-                    className="resize-none text-sm"
-                    maxLength={500}
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">
-                  Commentaire <span className="text-muted-foreground font-normal">(optionnel)</span>
-                </label>
-                <Textarea
-                  placeholder="Remarques transmises au prestataire…"
-                  value={reviewerComment}
-                  onChange={(e) => setReviewerComment(e.target.value)}
-                  rows={2}
-                  className="resize-none text-sm"
-                  maxLength={1000}
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
+      {/* Drawer/Dialog révision */}
+      <ResponsiveDialog
+        open={!!reviewing}
+        onOpenChange={(o) => !o && closeReview()}
+        title="Réviser la situation"
+        contentClassName="sm:max-w-md"
+        footer={
+          <>
             <Button variant="outline" onClick={closeReview} disabled={submitting}>
               Annuler
             </Button>
@@ -370,9 +297,75 @@ export function ProjectSituations({
               )}
               {action === "validate" ? "Valider" : "Refuser"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        {reviewing && (
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg px-3 py-2 text-sm space-y-0.5">
+              <p className="font-medium">{reviewing.lotLabel}</p>
+              <p className="text-xs text-muted-foreground">{reviewing.contributorName}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setAction("validate")}
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
+                  action === "validate"
+                    ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                    : "hover:bg-muted"
+                )}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Valider
+              </button>
+              <button
+                onClick={() => setAction("refuse")}
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
+                  action === "refuse"
+                    ? "border-red-500 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                    : "hover:bg-muted"
+                )}
+              >
+                <XCircle className="h-4 w-4" />
+                Refuser
+              </button>
+            </div>
+
+            {action === "refuse" && (
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Motif de refus <span className="text-destructive">*</span>
+                </label>
+                <Textarea
+                  placeholder="Expliquez pourquoi la situation est refusée…"
+                  value={refusalReason}
+                  onChange={(e) => setRefusalReason(e.target.value)}
+                  rows={3}
+                  className="resize-none text-sm"
+                  maxLength={500}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">
+                Commentaire <span className="text-muted-foreground font-normal">(optionnel)</span>
+              </label>
+              <Textarea
+                placeholder="Remarques transmises au prestataire…"
+                value={reviewerComment}
+                onChange={(e) => setReviewerComment(e.target.value)}
+                rows={2}
+                className="resize-none text-sm"
+                maxLength={1000}
+              />
+            </div>
+          </div>
+        )}
+      </ResponsiveDialog>
     </div>
   )
 }

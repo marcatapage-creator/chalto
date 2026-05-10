@@ -5,14 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Pencil } from "lucide-react"
 import { toast } from "sonner"
 
@@ -82,65 +75,66 @@ export function EditClientDialog({ projectId, client, onSave }: EditClientDialog
     setSaving(false)
   }
 
+  const footer = (
+    <>
+      <Button variant="outline" onClick={() => setOpen(false)}>
+        Annuler
+      </Button>
+      <Button onClick={handleSave} disabled={saving}>
+        {saving ? "Sauvegarde..." : "Enregistrer"}
+      </Button>
+    </>
+  )
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      trigger={
         <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
           <Pencil className="h-3.5 w-3.5" />
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Modifier le client</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Nom</Label>
-              <Input
-                placeholder="Jean Dupont"
-                value={form.client_name}
-                onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
-                type="email"
-                placeholder="jean@exemple.fr"
-                value={form.client_email}
-                onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-              />
-            </div>
-          </div>
+      }
+      title="Modifier le client"
+      footer={footer}
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Adresse du chantier</Label>
+            <Label>Nom</Label>
             <Input
-              placeholder="12 rue de la Paix, 75001 Paris"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              placeholder="Jean Dupont"
+              value={form.client_name}
+              onChange={(e) => setForm({ ...form, client_name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>Email</Label>
             <Input
-              placeholder="Notes sur le projet..."
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              type="email"
+              placeholder="jean@exemple.fr"
+              value={form.client_email}
+              onChange={(e) => setForm({ ...form, client_email: e.target.value })}
             />
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Sauvegarde..." : "Enregistrer"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-2">
+          <Label>Adresse du chantier</Label>
+          <Input
+            placeholder="12 rue de la Paix, 75001 Paris"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Description</Label>
+          <Input
+            placeholder="Notes sur le projet..."
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+        </div>
+      </div>
+    </ResponsiveDialog>
   )
 }
