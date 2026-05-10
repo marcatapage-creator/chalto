@@ -415,8 +415,8 @@ export default function NewProjectPage() {
         </AnimatePresence>
 
         {/* Actions — sticky mobile, inline desktop */}
-        <div className="sm:hidden h-20" />
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex gap-3 px-4 py-3 bg-background/95 backdrop-blur-sm border-t sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0">
+        <div className="xl:hidden h-20" />
+        <div className="fixed bottom-0 left-0 right-0 z-30 flex gap-3 px-4 py-3 bg-background/95 backdrop-blur-sm border-t xl:static xl:bg-transparent xl:backdrop-blur-none xl:border-0 xl:p-0">
           {step === 1 ? (
             <>
               <Button variant="outline" className="flex-1" asChild>

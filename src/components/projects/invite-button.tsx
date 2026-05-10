@@ -74,7 +74,7 @@ export function InviteButton({
       <Button
         variant="outline"
         size="sm"
-        className="h-7 text-xs"
+        className="xl:h-7 text-xs"
         onClick={handleNotify}
         loading={loading}
         disabled={!taskId}
@@ -96,7 +96,7 @@ export function InviteButton({
       <Button
         variant="outline"
         size="sm"
-        className="h-7 text-xs"
+        className="xl:h-7 text-xs"
         onClick={handleInvite}
         loading={loading}
       >

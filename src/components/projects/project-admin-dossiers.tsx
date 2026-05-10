@@ -540,7 +540,7 @@ function DossierCard({
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 text-xs h-7"
+                className="flex-1 text-xs xl:h-7"
                 onClick={() => onNextStatus(d)}
               >
                 {nextStep.label}
@@ -548,7 +548,12 @@ function DossierCard({
             )}
             <div className="flex items-center gap-1 ml-auto">
               {onEdit && (
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(d)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="xl:h-7 xl:w-7"
+                  onClick={() => onEdit(d)}
+                >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -556,7 +561,7 @@ function DossierCard({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
+                  className="xl:h-7 xl:w-7 text-destructive hover:text-destructive"
                   onClick={() => onDelete(d.id)}
                   disabled={isDeleting}
                 >

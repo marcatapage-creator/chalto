@@ -822,7 +822,7 @@ export function ProjectTasks({
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                                        className="w-full xl:h-7 text-xs text-muted-foreground hover:text-foreground"
                                         onClick={() =>
                                           handleStatusChange(
                                             task.id,
