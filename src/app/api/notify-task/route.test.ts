@@ -23,19 +23,17 @@ function req(body: unknown) {
   })
 }
 
-type Mode = "select" | "update" | "insert"
-
 function tableChain(selectResult: unknown) {
-  function chain(_mode: Mode): Record<string, unknown> {
+  function chain(): Record<string, unknown> {
     return {
-      select: () => chain("select"),
-      eq: () => chain("select"),
+      select: () => chain(),
+      eq: () => chain(),
       single: () => Promise.resolve(selectResult),
       then: (f?: ((v: unknown) => unknown) | null, r?: ((e: unknown) => unknown) | null) =>
         Promise.resolve(selectResult).then(f, r),
     }
   }
-  return chain("select")
+  return chain()
 }
 
 function makeServerClient(user: unknown = { id: "user-1" }) {
