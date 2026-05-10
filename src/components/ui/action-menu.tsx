@@ -48,6 +48,8 @@ export function ActionMenu({ trigger, items, align = "end" }: ActionMenuProps) {
     return () => media.removeEventListener("change", handler)
   }, [])
 
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   if (!isMobile) {
     return (
       <DropdownMenu>
@@ -72,7 +74,7 @@ export function ActionMenu({ trigger, items, align = "end" }: ActionMenuProps) {
   }
 
   return (
-    <Drawer>
+    <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent>
         <DrawerTitle className="sr-only">Actions</DrawerTitle>
