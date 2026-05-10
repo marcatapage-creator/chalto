@@ -29,6 +29,8 @@ interface ProjectDiscussionProps {
   onControlledOpenChange?: (v: boolean) => void
   onCountChange?: (count: number) => void
   onOpen?: () => void
+  onClose?: () => void
+  collapseSignal?: number
   unreadCount?: number
 }
 
@@ -44,6 +46,8 @@ export function ProjectDiscussion({
   onControlledOpenChange,
   onCountChange,
   onOpen,
+  onClose,
+  collapseSignal,
   unreadCount = 0,
 }: ProjectDiscussionProps) {
   const PAGE_SIZE = 50
@@ -61,6 +65,14 @@ export function ProjectDiscussion({
   const inputRef = useRef<HTMLDivElement>(null)
   const loadedCount = useRef(0)
   const supabase = useMemo(() => createClient(), [])
+  const prevCollapseSignal = useRef(collapseSignal ?? 0)
+  useEffect(() => {
+    if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
+    prevCollapseSignal.current = collapseSignal
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInternalOpen(false)
+    onControlledOpenChange?.(false)
+  }, [collapseSignal, onControlledOpenChange])
 
   const handleToggle = () => {
     const next = !open
@@ -70,6 +82,8 @@ export function ProjectDiscussion({
       setTimeout(() => {
         inputRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
       }, 280)
+    } else {
+      onClose?.()
     }
     setInternalOpen(next)
     onControlledOpenChange?.(next)

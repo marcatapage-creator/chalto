@@ -55,6 +55,8 @@ interface ProjectSituationsProps {
   highlightedSituationId?: string | null
   unreadCount?: number
   onOpen?: () => void
+  onClose?: () => void
+  collapseSignal?: number
 }
 
 interface ReviewState {
@@ -71,10 +73,18 @@ export function ProjectSituations({
   highlightedSituationId,
   unreadCount = 0,
   onOpen,
+  onClose,
+  collapseSignal,
 }: ProjectSituationsProps) {
   const [situations, setSituations] = useState<Situation[]>(initialSituations)
   const [localUnread, setLocalUnread] = useState(unreadCount)
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const prevCollapseSignal = useRef(collapseSignal ?? 0)
+  useEffect(() => {
+    if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
+    prevCollapseSignal.current = collapseSignal
+    setIsOpen(false)
+  }, [collapseSignal])
   const [reviewing, setReviewing] = useState<ReviewState | null>(null)
   const [action, setAction] = useState<"validate" | "refuse">("validate")
   const [reviewerComment, setReviewerComment] = useState("")
@@ -155,6 +165,8 @@ export function ProjectSituations({
           if (!isOpen) {
             onOpen?.()
             setLocalUnread(0)
+          } else {
+            onClose?.()
           }
           setIsOpen((v) => !v)
         }}

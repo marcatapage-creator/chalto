@@ -51,6 +51,8 @@ interface ProjectTasksProps {
   externalInvitedIds?: Set<string>
   defaultOpen?: boolean
   onOpen?: () => void
+  onClose?: () => void
+  collapseSignal?: number
   unreadCount?: number
   onNewPrestaComment?: () => void
 }
@@ -71,6 +73,8 @@ export function ProjectTasks({
   externalInvitedIds,
   defaultOpen = true,
   onOpen,
+  onClose,
+  collapseSignal,
   unreadCount = 0,
   onNewPrestaComment,
 }: ProjectTasksProps) {
@@ -79,6 +83,12 @@ export function ProjectTasks({
   const [loaded, setLoaded] = useState(false)
   const [localContacts, setLocalContacts] = useState(contacts)
   const [tasksOpen, setTasksOpen] = useState(defaultOpen)
+  const prevCollapseSignal = useRef(collapseSignal ?? 0)
+  useEffect(() => {
+    if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
+    prevCollapseSignal.current = collapseSignal
+    setTasksOpen(false)
+  }, [collapseSignal])
   const [open, setOpen] = useState(false)
   const [dialogView, setDialogView] = useState<"task" | "new-contact">("task")
   const [loading, setLoading] = useState(false)
@@ -423,6 +433,7 @@ export function ProjectTasks({
         className="flex items-center justify-between group cursor-pointer active:opacity-75"
         onClick={() => {
           if (!tasksOpen) onOpen?.()
+          else onClose?.()
           setTasksOpen((v) => !v)
         }}
       >

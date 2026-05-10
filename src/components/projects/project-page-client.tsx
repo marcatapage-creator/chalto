@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil } from "lucide-react"
+import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil, ArrowUp, Minus } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -282,6 +282,37 @@ export function ProjectPageClient({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const adminDossiersRef = useRef<HTMLDivElement>(null)
 
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const onScroll = () => setShowScrollTop(el.scrollTop > 150)
+    el.addEventListener("scroll", onScroll, { passive: true })
+    return () => el.removeEventListener("scroll", onScroll)
+  }, [])
+
+  const [openSectionIds, setOpenSectionIds] = useState<Set<string>>(new Set())
+  const [collapseSignal, setCollapseSignal] = useState(0)
+  const registerOpen = useCallback(
+    (id: string) => setOpenSectionIds((prev) => new Set([...prev, id])),
+    []
+  )
+  const registerClose = useCallback((id: string) => {
+    setOpenSectionIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }, [])
+  const openCount = (detailsOpen ? 1 : 0) + (docsOpen ? 1 : 0) + openSectionIds.size
+  const collapseAll = useCallback(() => {
+    setDetailsOpen(false)
+    setDocsOpen(false)
+    setCollapseSignal((s) => s + 1)
+    setOpenSectionIds(new Set())
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
   // Cleanup synchrone à l'unmount : restaure les styles body que Radix/Vaul ont pu
   // laisser en place si la navigation interrompt la fermeture d'un Dialog/Drawer
   // (React 18 concurrent mode peut différer les cleanup passifs)
@@ -538,8 +569,10 @@ export function ProjectPageClient({
                     initialDossiers={initialDossiers}
                     readOnly={phase === "cloture"}
                     highlightedDossierId={highlightedDossierId}
+                    collapseSignal={collapseSignal}
                     onOpen={() => {
                       if (!isDesktop) setDetailsOpen(false)
+                      registerOpen("admin-dossiers")
                       setTimeout(() => {
                         const container = scrollContainerRef.current
                         const el = adminDossiersRef.current
@@ -548,6 +581,7 @@ export function ProjectPageClient({
                         }
                       }, 50)
                     }}
+                    onClose={() => registerClose("admin-dossiers")}
                   />
                 </div>
               </>
@@ -582,9 +616,12 @@ export function ProjectPageClient({
                       onContributorsChange={setContributorContactIds}
                       readOnly={phase === "cloture"}
                       defaultOpen={!startCollapsed}
+                      collapseSignal={collapseSignal}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
+                        registerOpen("contributors")
                       }}
+                      onClose={() => registerClose("contributors")}
                     />
                   </div>
                   <GradientDivider index={3} />
@@ -599,10 +636,13 @@ export function ProjectPageClient({
                         highlightedId={highlightedTaskId}
                         externalInvitedIds={contributorContactIds}
                         defaultOpen={!startCollapsed}
+                        collapseSignal={collapseSignal}
                         onOpen={() => {
                           if (!isDesktop) setDetailsOpen(false)
                           setLocalUnreadTasks(0)
+                          registerOpen("tasks")
                         }}
+                        onClose={() => registerClose("tasks")}
                         unreadCount={localUnreadTasks}
                         onNewPrestaComment={() => setLocalUnreadTasks((n) => n + 1)}
                       />
@@ -617,9 +657,12 @@ export function ProjectPageClient({
                       readOnly={phase === "cloture"}
                       autoOpen={openDiscussion}
                       highlighted={openDiscussion}
+                      collapseSignal={collapseSignal}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
+                        registerOpen("discussion")
                       }}
+                      onClose={() => registerClose("discussion")}
                       unreadCount={unreadDiscussion}
                     />
                   </div>
@@ -637,10 +680,13 @@ export function ProjectPageClient({
                         )
                       }
                       highlightedSituationId={highlightedSituationId}
+                      collapseSignal={collapseSignal}
                       unreadCount={unreadSituations}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
+                        registerOpen("situations")
                       }}
+                      onClose={() => registerClose("situations")}
                     />
                   </div>
                 </div>
@@ -650,6 +696,42 @@ export function ProjectPageClient({
 
           {/* Fade directionnel bas */}
           <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
+        </div>
+
+        {/* FABs — collapse tout + remonter en haut */}
+        <div className="fixed bottom-6 right-4 z-40 flex items-center gap-2">
+          <AnimatePresence>
+            {openCount >= 2 && (
+              <motion.button
+                key="collapse-all"
+                initial={{ opacity: 0, scale: 0.75 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.75 }}
+                transition={{ duration: 0.18 }}
+                onClick={collapseAll}
+                className="h-10 w-10 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
+                aria-label="Tout refermer"
+              >
+                <Minus className="h-4 w-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {showScrollTop && (
+              <motion.button
+                key="scroll-top"
+                initial={{ opacity: 0, scale: 0.75 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.75 }}
+                transition={{ duration: 0.18 }}
+                onClick={() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+                className="h-10 w-10 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
+                aria-label="Remonter en haut"
+              >
+                <ArrowUp className="h-4 w-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

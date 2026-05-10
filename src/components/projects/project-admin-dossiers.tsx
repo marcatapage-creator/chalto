@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown, Plus, Pencil, Trash2, FolderOpen, CalendarDays, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -76,6 +76,8 @@ interface ProjectAdminDossiersProps {
   defaultOpen?: boolean
   highlightedDossierId?: string | null
   onOpen?: () => void
+  onClose?: () => void
+  collapseSignal?: number
 }
 
 interface FormState {
@@ -101,9 +103,17 @@ export function ProjectAdminDossiers({
   defaultOpen = false,
   highlightedDossierId,
   onOpen,
+  onClose,
+  collapseSignal,
 }: ProjectAdminDossiersProps) {
   const [dossiers, setDossiers] = useState<AdminDossier[]>(initialDossiers)
   const [isOpen, setIsOpen] = useState(defaultOpen || !!highlightedDossierId)
+  const prevCollapseSignal = useRef(collapseSignal ?? 0)
+  useEffect(() => {
+    if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
+    prevCollapseSignal.current = collapseSignal
+    setIsOpen(false)
+  }, [collapseSignal])
 
   useEffect(() => {
     if (!highlightedDossierId) return
@@ -248,6 +258,7 @@ export function ProjectAdminDossiers({
         className="flex items-center justify-between group cursor-pointer active:opacity-75"
         onClick={() => {
           if (!isOpen) onOpen?.()
+          else onClose?.()
           setIsOpen((v) => !v)
         }}
       >

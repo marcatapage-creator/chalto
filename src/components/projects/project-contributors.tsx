@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,8 @@ interface ProjectContributorsProps {
   readOnly?: boolean
   defaultOpen?: boolean
   onOpen?: () => void
+  onClose?: () => void
+  collapseSignal?: number
 }
 
 export function ProjectContributors({
@@ -42,6 +44,8 @@ export function ProjectContributors({
   readOnly = false,
   defaultOpen = true,
   onOpen,
+  onClose,
+  collapseSignal,
 }: ProjectContributorsProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [contributors, setContributors] = useState<Contributor[]>([])
@@ -54,6 +58,13 @@ export function ProjectContributors({
   const [addingContact, setAddingContact] = useState(false)
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const prevCollapseSignal = useRef(collapseSignal ?? 0)
+  useEffect(() => {
+    if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
+    prevCollapseSignal.current = collapseSignal
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsOpen(false)
+  }, [collapseSignal])
 
   const notifyChange = useCallback(
     (list: Contributor[]) => {
@@ -213,6 +224,7 @@ export function ProjectContributors({
         className="flex items-center justify-between group cursor-pointer active:opacity-75"
         onClick={() => {
           if (!isOpen) onOpen?.()
+          else onClose?.()
           setIsOpen((v) => !v)
         }}
       >
