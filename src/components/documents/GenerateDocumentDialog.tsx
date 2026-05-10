@@ -187,7 +187,7 @@ export function GenerateDocumentDialog({
           className="ai-btn-border rounded-md p-px inline-flex cursor-pointer shrink-0"
         >
           <div className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[5px] bg-background text-sm font-medium hover:bg-muted/60 transition-colors lg:h-8 lg:px-3">
-            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+            <Sparkles className="hidden sm:inline h-3.5 w-3.5 text-violet-500" />
             <span className="sm:hidden">IA</span>
             <span className="hidden sm:inline">Générer IA</span>
           </div>

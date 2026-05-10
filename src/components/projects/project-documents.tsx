@@ -86,11 +86,11 @@ function DocItem({
   const isDropbox = doc.source === "dropbox"
 
   return (
-    <div data-doc-id={doc.id}>
+    <motion.div data-doc-id={doc.id} whileTap={{ scale: 0.98 }} style={{ touchAction: "pan-y" }}>
       <Card
         onClick={() => onSelectDoc(doc)}
         className={cn(
-          "cursor-pointer transition-all duration-500 hover:shadow-sm hover:bg-muted/50 group",
+          "cursor-pointer transition-[background-color,box-shadow] duration-300 hover:shadow-sm hover:bg-muted/50 group",
           isSelected && "sm:border-primary sm:ring-2 sm:ring-primary/25",
           highlightedId === doc.id && "border-ring ring-3 ring-ring/50"
         )}
@@ -166,7 +166,7 @@ function DocItem({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
 

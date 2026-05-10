@@ -69,7 +69,8 @@ export const StaggerItem = ({
         visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
       }}
       style={pressable ? { touchAction: "pan-y" } : undefined}
-      className={pressable ? `${className ?? ""} active:opacity-75` : className}
+      whileTap={pressable ? { scale: 0.97 } : undefined}
+      className={className}
     >
       {children}
     </motion.div>

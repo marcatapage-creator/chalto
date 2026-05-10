@@ -11,6 +11,10 @@ const SUPPORT_EMAIL = "marc@chalto.fr"
 export default function SupportPage() {
   return (
     <div className="flex-1 overflow-auto">
+      <div
+        aria-hidden
+        className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/50 dark:from-background/50 to-transparent"
+      />
       <div className="p-6 md:p-8 max-w-2xl space-y-8">
         <div className="flex items-center gap-3">
           <LifeBuoy className="h-6 w-6 text-primary" />

@@ -159,6 +159,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative flex-1 overflow-auto overscroll-contain">
+      <div
+        aria-hidden
+        className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/50 dark:from-background/50 to-transparent"
+      />
       <div className="p-6 md:p-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>

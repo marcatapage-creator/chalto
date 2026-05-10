@@ -313,7 +313,9 @@ export function ProjectPageClient({
             </Button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight truncate">{project.name}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">
+                  {project.name}
+                </h1>
                 {project.status === "active" ? (
                   <span className="relative flex h-2.5 w-2.5 shrink-0 sm:hidden">
                     <span
@@ -376,9 +378,9 @@ export function ProjectPageClient({
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
                 className="overflow-hidden"
               >
-                <div className="border-t flex flex-col sm:flex-row">
-                  {/* Infos client */}
-                  <div className="shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-1.5">
+                <div className="border-t flex sm:flex-row">
+                  {/* Client info — desktop uniquement (mobile : dans la zone scrollable) */}
+                  <div className="hidden sm:block shrink-0 min-w-64.5 px-6 md:px-8 py-4 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
@@ -416,9 +418,9 @@ export function ProjectPageClient({
                       )}
                   </div>
 
-                  <div className="border-l" />
+                  <div className="hidden sm:block border-l" />
 
-                  {/* Stepper phase */}
+                  {/* Stepper phase — toujours dans le header (fixe = sticky sur mobile) */}
                   <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
                     <ProjectStepper
                       projectId={project.id}
@@ -441,6 +443,61 @@ export function ProjectPageClient({
 
         {/* Corps scrollable */}
         <div ref={scrollContainerRef} className="relative flex-1 overflow-auto overscroll-contain">
+          <div
+            aria-hidden
+            className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/50 dark:from-background/50 to-transparent"
+          />
+          {/* Mobile : infos client en tête de scroll — se scroll naturellement, stepper reste fixe */}
+          <AnimatePresence initial={false}>
+            {!isDesktop && detailsOpen && (
+              <motion.div
+                key="mobile-client-info"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                className="overflow-hidden sm:hidden"
+              >
+                <div className="border-b px-6 py-4 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Client
+                    </p>
+                    {phase !== "cloture" && (
+                      <ProjectDetailsDialog
+                        projectId={project.id}
+                        project={projectInfo}
+                        onSave={(updated) => setProjectInfo(updated)}
+                      />
+                    )}
+                  </div>
+                  {projectInfo.client_name && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>{projectInfo.client_name}</span>
+                    </div>
+                  )}
+                  {projectInfo.client_email && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="truncate">{projectInfo.client_email}</span>
+                    </div>
+                  )}
+                  {projectInfo.address && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>{projectInfo.address}</span>
+                    </div>
+                  )}
+                  {!projectInfo.client_name &&
+                    !projectInfo.client_email &&
+                    !projectInfo.address && (
+                      <p className="text-sm text-muted-foreground">Aucune information client</p>
+                    )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <div>
             {/* Documents */}
             <div className="px-6 md:px-8 py-6 md:py-8">

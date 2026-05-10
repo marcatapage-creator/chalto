@@ -217,13 +217,23 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (hover: none) and (pointer: coarse) {
-  /* Boutons, liens, items de menu : légère opacité au tap */
+  /* Feedback instantané au tap — pas de transition sur le press, seulement sur le release */
   button:active,
   a:active,
   [role="button"]:active,
   [role="tab"]:active,
-  [role="menuitem"]:active {
-    opacity: 0.7;
-    transition: opacity 0.08s ease !important;
+  [role="menuitem"]:active,
+  .cursor-pointer:active {
+    opacity: 0.6;
+    transition: none !important;
+  }
+
+  button:not(:active),
+  a:not(:active),
+  [role="button"]:not(:active),
+  [role="tab"]:not(:active),
+  [role="menuitem"]:not(:active),
+  .cursor-pointer:not(:active) {
+    transition: opacity 0.2s ease;
   }
 }

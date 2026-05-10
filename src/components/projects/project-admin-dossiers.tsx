@@ -251,7 +251,7 @@ export function ProjectAdminDossiers({
   return (
     <div className="space-y-3">
       <div
-        className="flex items-center justify-between group cursor-pointer"
+        className="flex items-center justify-between group cursor-pointer active:opacity-75"
         onClick={() => {
           if (!isOpen) onOpen?.()
           setIsOpen((v) => !v)

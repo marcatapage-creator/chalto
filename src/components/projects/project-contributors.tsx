@@ -222,7 +222,7 @@ export function ProjectContributors({
   return (
     <div className="space-y-2">
       <div
-        className="flex items-center justify-between group cursor-pointer"
+        className="flex items-center justify-between group cursor-pointer active:opacity-75"
         onClick={() => {
           if (!isOpen) onOpen?.()
           setIsOpen((v) => !v)
