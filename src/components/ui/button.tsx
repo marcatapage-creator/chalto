@@ -22,16 +22,16 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-11 gap-2 pl-3.5 pr-3.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 lg:h-8 lg:gap-1.5 lg:pl-2.5 lg:pr-2.5",
+          "h-11 gap-2 pl-3.5 pr-3.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 xl:h-8 lg:gap-1.5 lg:pl-2.5 lg:pr-2.5",
         xs: "h-8 gap-1.5 rounded-[min(var(--radius-md),10px)] pl-3 pr-3 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3 lg:h-6 lg:gap-1 lg:pl-2 lg:pr-2",
-        sm: "h-11 gap-1.5 rounded-[min(var(--radius-md),12px)] pl-3.5 pr-3.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 lg:h-8 lg:gap-1 lg:pl-2.5 lg:pr-2.5",
-        lg: "h-11 gap-2 pl-5 pr-5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 lg:h-8 lg:gap-1.5 lg:pl-3.5 lg:pr-3.5",
-        icon: "size-11 lg:size-8",
+        sm: "h-11 gap-1.5 rounded-[min(var(--radius-md),12px)] pl-3.5 pr-3.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 xl:h-8 lg:gap-1 lg:pl-2.5 lg:pr-2.5",
+        lg: "h-11 gap-2 pl-5 pr-5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 xl:h-8 lg:gap-1.5 lg:pl-3.5 lg:pr-3.5",
+        icon: "size-11 xl:size-8",
         "icon-xs":
           "size-8 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3 lg:size-6",
         "icon-sm":
-          "size-11 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg lg:size-8",
-        "icon-lg": "size-11 lg:size-8",
+          "size-11 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg xl:size-8",
+        "icon-lg": "size-11 xl:size-8",
       },
     },
     compoundVariants: [
