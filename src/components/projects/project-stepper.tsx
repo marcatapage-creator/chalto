@@ -332,7 +332,7 @@ export function ProjectStepper({
           const activePhase = phases[currentIndex]
           const ActiveIcon = activePhase?.icon
           return (
-            <div className="flex sm:hidden items-center justify-between">
+            <div className="flex sm:hidden items-center">
               <button
                 className={cn(
                   "h-11 w-11 flex items-center justify-center rounded-[min(var(--radius-md),12px)] border bg-background transition-colors",
@@ -353,6 +353,8 @@ export function ProjectStepper({
                 <ChevronLeft className="h-5 w-5" />
               </button>
 
+              <div className="flex-1 h-px mx-2 bg-linear-to-r from-transparent to-muted-foreground/20" />
+
               <div className="flex flex-col items-center gap-1.5">
                 <div className="relative">
                   <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
@@ -367,6 +369,8 @@ export function ProjectStepper({
                   {activePhase?.label}
                 </motion.p>
               </div>
+
+              <div className="flex-1 h-px mx-2 bg-linear-to-l from-transparent to-muted-foreground/20" />
 
               <button
                 className={cn(

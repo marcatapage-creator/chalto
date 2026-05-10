@@ -14,7 +14,6 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -75,8 +74,14 @@ export function ResponsiveDialog({
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
-        <div className="flex-1 overflow-y-auto px-6 pb-2">{children}</div>
-        {footer && <DrawerFooter>{footer}</DrawerFooter>}
+        <div className="flex-1 overflow-y-auto px-6 pb-2">
+          {children}
+          {footer && (
+            <div className="-mx-6 mt-4 border-t bg-muted/50 px-6 py-4 flex flex-col-reverse gap-2">
+              {footer}
+            </div>
+          )}
+        </div>
       </DrawerContent>
     </Drawer>
   )
