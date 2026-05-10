@@ -1,18 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
-
-  useEffect(() => {
-    const media = window.matchMedia(query)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMatches(media.matches)
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    media.addEventListener("change", handler)
-    return () => media.removeEventListener("change", handler)
-  }, [query])
-
-  return matches
+  return useSyncExternalStore(
+    (callback) => {
+      const media = window.matchMedia(query)
+      media.addEventListener("change", callback)
+      return () => media.removeEventListener("change", callback)
+    },
+    () => window.matchMedia(query).matches,
+    () => false
+  )
 }

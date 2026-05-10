@@ -79,7 +79,10 @@ test("8.2 — modifier le nom d'un contact persiste", async ({ page }) => {
 
   // Ouvrir le menu "..." de la carte puis cliquer "Modifier"
   await firstContact.getByRole("button").first().click()
-  const modifierItem = page.getByRole("menuitem", { name: /modifier/i }).first()
+  const modifierItem = page
+    .getByRole("menuitem", { name: /modifier/i })
+    .or(page.getByRole("button", { name: /modifier/i }))
+    .first()
   await expect(modifierItem).toBeVisible({ timeout: 5_000 })
   await modifierItem.click()
 
