@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useMediaQuery } from "@/hooks/use-media-query"
+import { useEffect, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,10 +34,21 @@ interface ActionMenuProps {
   align?: "start" | "end" | "center"
 }
 
+// Desktop-first: starts as DropdownMenu (SSR-safe, no hydration mismatch).
+// Switches to Drawer after mount only on mobile/tablet (< 1024px).
 export function ActionMenu({ trigger, items, align = "end" }: ActionMenuProps) {
-  const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const [isMobile, setIsMobile] = useState(false)
 
-  if (isDesktop) {
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)")
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobile(media.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    media.addEventListener("change", handler)
+    return () => media.removeEventListener("change", handler)
+  }, [])
+
+  if (!isMobile) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
