@@ -148,7 +148,7 @@ export function BrandingForm({ profile }: BrandingFormProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="space-y-3">
             <div className="h-20 w-40 border-2 border-dashed rounded-xl flex items-center justify-center bg-muted/30 overflow-hidden">
               {logoUrl ? (
                 <Image
