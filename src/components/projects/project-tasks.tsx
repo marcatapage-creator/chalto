@@ -799,40 +799,39 @@ export function ProjectTasks({
                                       )}
                                     </div>
 
-                                    {task.contacts && task.assigned_to && col.id !== "done" && (
-                                      <div className="pt-1">
-                                        <InviteButton
-                                          contactId={task.assigned_to}
-                                          projectId={projectId}
-                                          contactName={task.contacts.name}
-                                          taskId={task.id}
-                                          alreadyInvited={(
-                                            externalInvitedIds ?? invitedContactIds
-                                          ).has(task.assigned_to)}
-                                          onInvited={() =>
-                                            setInvitedContactIds(
-                                              (prev) => new Set([...prev, task.assigned_to!])
+                                    {col.id !== "done" && (
+                                      <div className="flex gap-2 pt-1">
+                                        {task.contacts && task.assigned_to && (
+                                          <InviteButton
+                                            contactId={task.assigned_to}
+                                            projectId={projectId}
+                                            contactName={task.contacts.name}
+                                            taskId={task.id}
+                                            alreadyInvited={(
+                                              externalInvitedIds ?? invitedContactIds
+                                            ).has(task.assigned_to)}
+                                            onInvited={() =>
+                                              setInvitedContactIds(
+                                                (prev) => new Set([...prev, task.assigned_to!])
+                                              )
+                                            }
+                                          />
+                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="flex-1 xl:h-7 text-xs text-muted-foreground hover:text-foreground"
+                                          onClick={() =>
+                                            handleStatusChange(
+                                              task.id,
+                                              col.id === "todo" ? "in_progress" : "done"
                                             )
                                           }
-                                        />
+                                        >
+                                          {col.id === "todo" ? "Démarrer" : "Terminer"}
+                                          <ArrowRight className="ml-1 h-3 w-3" />
+                                        </Button>
                                       </div>
-                                    )}
-
-                                    {col.id !== "done" && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full xl:h-7 text-xs text-muted-foreground hover:text-foreground"
-                                        onClick={() =>
-                                          handleStatusChange(
-                                            task.id,
-                                            col.id === "todo" ? "in_progress" : "done"
-                                          )
-                                        }
-                                      >
-                                        {col.id === "todo" ? "Démarrer" : "Terminer"}
-                                        <ArrowRight className="ml-1 h-3 w-3" />
-                                      </Button>
                                     )}
                                   </CardContent>
                                   <TaskComments
