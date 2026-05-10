@@ -65,7 +65,7 @@ export function ResponsiveDialog({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       {trigger && <DrawerTrigger asChild>{trigger}</DrawerTrigger>}
-      <DrawerContent>
+      <DrawerContent {...(!description && { "aria-describedby": undefined })}>
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}

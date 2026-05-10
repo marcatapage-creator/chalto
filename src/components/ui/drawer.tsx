@@ -37,6 +37,7 @@ function DrawerContent({
   className,
   children,
   onOverlayClick,
+  onOpenAutoFocus,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content> & { onOverlayClick?: () => void }) {
   return (
@@ -54,6 +55,10 @@ function DrawerContent({
           "max-h-[90dvh]",
           className
         )}
+        onOpenAutoFocus={(e) => {
+          onOpenAutoFocus?.(e)
+          if (!e.defaultPrevented) e.currentTarget.focus()
+        }}
         {...props}
       >
         <div className="mx-auto mt-3 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/20" />
