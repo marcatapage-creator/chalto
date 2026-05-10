@@ -76,7 +76,7 @@ export function ActionMenu({ trigger, items, align = "end" }: ActionMenuProps) {
   return (
     <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent onOverlayClick={() => setDrawerOpen(false)}>
         <DrawerTitle className="sr-only">Actions</DrawerTitle>
         <DrawerDescription className="sr-only">Choisissez une action</DrawerDescription>
         <div className="py-2 pb-6">
