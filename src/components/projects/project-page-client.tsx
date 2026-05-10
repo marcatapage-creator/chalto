@@ -699,7 +699,14 @@ export function ProjectPageClient({
         </div>
 
         {/* FABs — collapse tout + remonter en haut */}
-        <div className="fixed bottom-6 right-4 z-40 flex items-center gap-2">
+        <motion.div
+          className={cn(
+            "fixed bottom-6 z-40 flex items-center gap-2",
+            !isDesktop && selectedDoc && "invisible"
+          )}
+          animate={{ right: isDesktop && selectedDoc ? "calc(26.25rem + 1rem)" : "1rem" }}
+          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+        >
           <AnimatePresence>
             {openCount >= 2 && (
               <motion.button
@@ -732,7 +739,7 @@ export function ProjectPageClient({
               </motion.button>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
       </div>
 
       {/* Panel desktop — pousse le contenu, pas d'overlay */}

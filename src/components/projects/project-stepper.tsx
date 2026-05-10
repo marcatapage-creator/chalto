@@ -285,7 +285,7 @@ export function ProjectStepper({
                   onClick={() => isCompleted && handlePhaseClick(p.id, index)}
                 >
                   <div className="relative">
-                    {isActive && (
+                    {isActive && p.id !== "cloture" && (
                       <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
                     )}
                     <div
@@ -294,7 +294,9 @@ export function ProjectStepper({
                         isCompleted
                           ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                           : isActive
-                            ? "bg-primary text-primary-foreground shadow-sm"
+                            ? p.id === "cloture"
+                              ? "bg-muted text-muted-foreground"
+                              : "bg-primary text-primary-foreground shadow-sm"
                             : "bg-muted text-muted-foreground"
                       )}
                     >
@@ -357,15 +359,28 @@ export function ProjectStepper({
 
               <div className="flex flex-col items-center gap-1.5">
                 <div className="relative">
-                  <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
+                  {phase !== "cloture" && (
+                    <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
+                  )}
                   <motion.div
                     animate={pillControls}
-                    className="relative h-11 w-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
+                    className={cn(
+                      "relative h-11 w-11 rounded-full flex items-center justify-center shadow-sm",
+                      phase === "cloture"
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-primary text-primary-foreground"
+                    )}
                   >
                     {ActiveIcon && <ActiveIcon className="h-5 w-5" />}
                   </motion.div>
                 </div>
-                <motion.p animate={labelControls} className="text-xs font-medium text-primary">
+                <motion.p
+                  animate={labelControls}
+                  className={cn(
+                    "text-xs font-medium",
+                    phase === "cloture" ? "text-muted-foreground" : "text-primary"
+                  )}
+                >
                   {activePhase?.label}
                 </motion.p>
               </div>
