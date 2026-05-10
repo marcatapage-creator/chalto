@@ -178,15 +178,13 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
           <h1 className="text-2xl font-bold tracking-tight">Annuaire</h1>
           <p className="text-muted-foreground">Vos prestataires et partenaires</p>
         </div>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Ajouter un contact</span>
+        </Button>
         <ResponsiveDialog
           open={open}
           onOpenChange={setOpen}
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Ajouter un contact</span>
-            </Button>
-          }
           title="Nouveau contact"
           footer={
             <>
