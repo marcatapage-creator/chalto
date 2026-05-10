@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, useState } from "react"
+import { motion } from "framer-motion"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -336,11 +337,25 @@ export function ProjectStepper({
               <div className="flex flex-col items-center gap-1.5">
                 <div className="relative">
                   <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
-                  <div className="relative h-11 w-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+                  <motion.div
+                    key={phase}
+                    initial={{ scale: 0.55 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    className="relative h-11 w-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
+                  >
                     {ActiveIcon && <ActiveIcon className="h-5 w-5" />}
-                  </div>
+                  </motion.div>
                 </div>
-                <p className="text-xs font-medium text-primary">{activePhase?.label}</p>
+                <motion.p
+                  key={phase}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.08 }}
+                  className="text-xs font-medium text-primary"
+                >
+                  {activePhase?.label}
+                </motion.p>
               </div>
 
               <button

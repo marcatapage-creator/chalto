@@ -430,7 +430,6 @@ export function ProjectPageClient({
                         if (isChantierPhase(newPhase)) {
                           setDocsOpen(false)
                           setChantierRevealing(true)
-                          if (!isDesktop) setDetailsOpen(false)
                         }
                       }}
                     />
