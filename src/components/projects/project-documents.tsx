@@ -29,12 +29,7 @@ import {
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
 import { DropboxFolderPicker } from "@/components/projects/dropbox-folder-picker"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ActionMenu } from "@/components/ui/action-menu"
 import { Button } from "@/components/ui/button"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
@@ -264,26 +259,30 @@ export function ProjectDocuments({
               clientName={clientName}
               professionSlug={professionSlug}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <ActionMenu
+              trigger={
                 <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Ajouter</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setAddDocOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload un fichier
-                </DropdownMenuItem>
-                {hasDropboxConnected && (
-                  <DropdownMenuItem onClick={() => setPickerOpen(true)}>
-                    <DropboxIcon className="h-4 w-4 mr-2" />
-                    Lier Dropbox
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              }
+              items={[
+                {
+                  label: "Upload un fichier",
+                  icon: <Upload className="h-4 w-4" />,
+                  onClick: () => setAddDocOpen(true),
+                },
+                ...(hasDropboxConnected
+                  ? [
+                      {
+                        label: "Lier Dropbox",
+                        icon: <DropboxIcon className="h-4 w-4" />,
+                        onClick: () => setPickerOpen(true),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
             <AddDocumentDialog
               projectId={projectId}
               open={addDocOpen}

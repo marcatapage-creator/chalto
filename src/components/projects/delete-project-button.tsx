@@ -12,13 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ActionMenu } from "@/components/ui/action-menu"
 import { MoreHorizontal, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { toast } from "sonner"
 
@@ -69,40 +63,42 @@ export function DeleteProjectButton({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={archiving}>
+      <ActionMenu
+        trigger={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 max-lg:absolute max-lg:top-4 max-lg:right-4 max-lg:h-11 max-lg:w-11"
+            disabled={archiving}
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuItem onClick={() => router.push(`/projects/${projectId}/edit`)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Modifier
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleArchive}>
-            {isArchived ? (
-              <>
-                <ArchiveRestore className="mr-2 h-4 w-4" />
-                Désarchiver
-              </>
+        }
+        items={[
+          {
+            label: "Modifier",
+            icon: <Pencil className="h-4 w-4" />,
+            onClick: () => router.push(`/projects/${projectId}/edit`),
+          },
+          {
+            label: isArchived ? "Désarchiver" : "Archiver",
+            icon: isArchived ? (
+              <ArchiveRestore className="h-4 w-4" />
             ) : (
-              <>
-                <Archive className="mr-2 h-4 w-4" />
-                Archiver
-              </>
-            )}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setConfirmOpen(true)}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Supprimer
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <Archive className="h-4 w-4" />
+            ),
+            onClick: handleArchive,
+          },
+          {
+            label: "Supprimer",
+            icon: <Trash2 className="h-4 w-4" />,
+            onClick: () => setConfirmOpen(true),
+            destructive: true,
+            separator: true,
+          },
+        ]}
+      />
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent onClick={(e) => e.stopPropagation()}>

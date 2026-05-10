@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ActionMenu } from "@/components/ui/action-menu"
 import {
   Users,
   ChevronDown,
@@ -428,38 +422,42 @@ export function ProjectContributors({
                           )}
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                      <ActionMenu
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 max-lg:h-11 max-lg:w-11 shrink-0"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleCopy(contributor)}>
-                            {copied === contributor.id ? (
-                              <Check className="h-4 w-4 mr-2 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4 mr-2" />
-                            )}
-                            {copied === contributor.id ? "Copié !" : "Copier le lien"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={loading === contributor.id}
-                            onClick={() => void handleRenew(contributor)}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Renouveler le lien
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => void handleDelete(contributor.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        }
+                        items={[
+                          {
+                            label: copied === contributor.id ? "Copié !" : "Copier le lien",
+                            icon:
+                              copied === contributor.id ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              ),
+                            onClick: () => handleCopy(contributor),
+                          },
+                          {
+                            label: "Renouveler le lien",
+                            icon: <RefreshCw className="h-4 w-4" />,
+                            onClick: () => void handleRenew(contributor),
+                            disabled: loading === contributor.id,
+                          },
+                          {
+                            label: "Supprimer",
+                            icon: <Trash2 className="h-4 w-4" />,
+                            onClick: () => void handleDelete(contributor.id),
+                            destructive: true,
+                            separator: true,
+                          },
+                        ]}
+                      />
                     </div>
                   ))}
                 </div>

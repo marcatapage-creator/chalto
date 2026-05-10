@@ -23,13 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ActionMenu } from "@/components/ui/action-menu"
 import { toast } from "sonner"
 import {
   Plus,
@@ -713,71 +707,73 @@ export function ProjectTasks({
                                 <Card
                                   data-task-id={task.id}
                                   className={cn(
-                                    "transition-all duration-500 hover:shadow-sm",
+                                    "relative transition-all duration-500 hover:shadow-sm",
                                     localHighlightedId === task.id &&
                                       "border-ring ring-3 ring-ring/50"
                                   )}
                                 >
                                   <CardContent className="p-3 space-y-2">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <p className="text-sm font-medium leading-tight">
+                                    <div className="flex items-start gap-2">
+                                      <p className="text-sm font-medium leading-tight flex-1 max-lg:pr-8">
                                         {task.title}
                                       </p>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
+                                      <ActionMenu
+                                        trigger={
                                           <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-6 w-6 shrink-0"
+                                            className="h-6 w-6 shrink-0 max-lg:absolute max-lg:top-3 max-lg:right-3 max-lg:h-11 max-lg:w-11"
                                           >
                                             <MoreHorizontal className="h-3.5 w-3.5" />
                                           </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          {col.id === "in_progress" && (
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(task.id, "todo")}
-                                            >
-                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
-                                              Mettre en pause
-                                            </DropdownMenuItem>
-                                          )}
-                                          {col.id === "done" && (
-                                            <DropdownMenuItem
-                                              onClick={() =>
-                                                handleStatusChange(task.id, "in_progress")
-                                              }
-                                            >
-                                              <ArrowLeft className="mr-2 h-3.5 w-3.5" />
-                                              Rouvrir
-                                            </DropdownMenuItem>
-                                          )}
-                                          {(col.id === "in_progress" || col.id === "done") && (
-                                            <DropdownMenuSeparator />
-                                          )}
-                                          {task.assigned_to &&
-                                            contributorTokens[task.assigned_to] && (
-                                              <DropdownMenuItem
-                                                onClick={() => {
-                                                  const token = contributorTokens[task.assigned_to!]
-                                                  const url = `${window.location.origin}/invite/${token}`
-                                                  navigator.clipboard.writeText(url)
-                                                  toast.success("Lien prestataire copié")
-                                                }}
-                                              >
-                                                <Link className="mr-2 h-3.5 w-3.5" />
-                                                Copier le lien prestataire
-                                              </DropdownMenuItem>
-                                            )}
-                                          <DropdownMenuItem
-                                            onClick={() => handleDelete(task.id)}
-                                            className="text-destructive focus:text-destructive"
-                                          >
-                                            <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                            Supprimer
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
+                                        }
+                                        items={[
+                                          ...(col.id === "in_progress"
+                                            ? [
+                                                {
+                                                  label: "Mettre en pause",
+                                                  icon: <ArrowLeft className="h-4 w-4" />,
+                                                  onClick: () =>
+                                                    handleStatusChange(task.id, "todo"),
+                                                },
+                                              ]
+                                            : []),
+                                          ...(col.id === "done"
+                                            ? [
+                                                {
+                                                  label: "Rouvrir",
+                                                  icon: <ArrowLeft className="h-4 w-4" />,
+                                                  onClick: () =>
+                                                    handleStatusChange(task.id, "in_progress"),
+                                                },
+                                              ]
+                                            : []),
+                                          ...(task.assigned_to &&
+                                          contributorTokens[task.assigned_to]
+                                            ? [
+                                                {
+                                                  label: "Copier le lien prestataire",
+                                                  icon: <Link className="h-4 w-4" />,
+                                                  onClick: () => {
+                                                    navigator.clipboard.writeText(
+                                                      `${window.location.origin}/invite/${contributorTokens[task.assigned_to!]}`
+                                                    )
+                                                    toast.success("Lien prestataire copié")
+                                                  },
+                                                  separator:
+                                                    col.id === "in_progress" || col.id === "done",
+                                                },
+                                              ]
+                                            : []),
+                                          {
+                                            label: "Supprimer",
+                                            icon: <Trash2 className="h-4 w-4" />,
+                                            onClick: () => handleDelete(task.id),
+                                            destructive: true,
+                                            separator: true,
+                                          },
+                                        ]}
+                                      />
                                     </div>
 
                                     {task.description && (

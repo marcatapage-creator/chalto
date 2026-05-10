@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const TRIGGER_THRESHOLD = 130
-const SHOW_THRESHOLD = 15
+const TRIGGER_THRESHOLD = 220
+const SHOW_THRESHOLD = 60
 const HEADER_HEIGHT = 74
 const INDICATOR_SIZE = 36
 const SNAP_Y = HEADER_HEIGHT - INDICATOR_SIZE / 2

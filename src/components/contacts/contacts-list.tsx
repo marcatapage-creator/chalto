@@ -23,12 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ActionMenu } from "@/components/ui/action-menu"
 import { toast } from "sonner"
 import { Plus, Users, Phone, Mail, MoreHorizontal, Pencil, Trash2, Building2 } from "lucide-react"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
@@ -308,26 +303,31 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
                         )}
                       </div>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <ActionMenu
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 max-lg:h-11 max-lg:w-11"
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEdit(contact)}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(contact.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      }
+                      items={[
+                        {
+                          label: "Modifier",
+                          icon: <Pencil className="h-4 w-4" />,
+                          onClick: () => openEdit(contact),
+                        },
+                        {
+                          label: "Supprimer",
+                          icon: <Trash2 className="h-4 w-4" />,
+                          onClick: () => handleDelete(contact.id),
+                          destructive: true,
+                          separator: true,
+                        },
+                      ]}
+                    />
                   </div>
 
                   <div className="mt-3 space-y-1.5">

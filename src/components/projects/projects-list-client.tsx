@@ -104,11 +104,11 @@ export function ProjectCard({
 
   return (
     <Card
-      className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+      className="relative cursor-pointer transition-colors duration-150 hover:bg-muted/50"
       onClick={navigate}
     >
       <CardContent className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className={cn("flex items-center gap-3 min-w-0 flex-1", !compact && "max-lg:pr-14")}>
           <div className="hidden sm:block bg-muted p-2 rounded-lg shrink-0">
             <FolderOpen className="h-4 w-4 text-muted-foreground" />
           </div>
@@ -200,7 +200,7 @@ export function ProjectCard({
               <Indicator icon={Users} value={c.contributors} title="Prestataires" />
             </div>
             <div
-              className="flex items-center gap-6 shrink-0 pl-6"
+              className="max-lg:contents flex items-center gap-6 shrink-0 pl-6"
               onClick={(e) => e.stopPropagation()}
             >
               <p className="text-xs text-muted-foreground hidden xl:block">
