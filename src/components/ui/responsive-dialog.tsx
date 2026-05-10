@@ -56,7 +56,9 @@ export function ResponsiveDialog({
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 pb-4">{children}</div>
-          {footer && <DialogFooter className="shrink-0 border-t px-6 py-4">{footer}</DialogFooter>}
+          {footer && (
+            <DialogFooter className="shrink-0 mx-0 mb-0 border-t px-6 py-4">{footer}</DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     )
@@ -65,7 +67,10 @@ export function ResponsiveDialog({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       {trigger && <DrawerTrigger asChild>{trigger}</DrawerTrigger>}
-      <DrawerContent {...(!description && { "aria-describedby": undefined })}>
+      <DrawerContent
+        {...(!description && { "aria-describedby": undefined })}
+        onOverlayClick={() => onOpenChange(false)}
+      >
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}
