@@ -8,12 +8,19 @@ function daysSince(dateStr: string) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24))
 }
 
-export async function DashboardUrgences({ projectIds }: { projectIds: string[] }) {
+export async function DashboardUrgences({ userId }: { userId: string }) {
+  const supabase = await createClient()
+  const { data: userProjects } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "active")
+  const projectIds = userProjects?.map((p) => p.id) ?? []
   if (projectIds.length === 0) return null
 
-  const supabase = await createClient()
   // eslint-disable-next-line react-hooks/purity
   const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+
   const today = new Date().toISOString().split("T")[0]
 
   const [{ data: pendingDocs }, { data: overdueTasks }] = await Promise.all([

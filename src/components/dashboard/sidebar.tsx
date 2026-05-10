@@ -193,19 +193,38 @@ export function Sidebar({
   userId: string
 }) {
   const [open, setOpen] = useState(false)
-  const [localDeadlines, setLocalDeadlines] = useState(counts.deadlines)
+  const [localCounts, setLocalCounts] = useState(counts)
   const notifProps = useNotifications(userId)
   const supabase = useMemo(() => createClient(), [])
 
+  useEffect(() => {
+    void (async () => {
+      const [{ count: projects }, { count: contacts }, { count: deadlines }] = await Promise.all([
+        supabase.from("projects").select("*", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("contacts").select("*", { count: "exact", head: true }).eq("user_id", userId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any)
+          .from("admin_dossiers")
+          .select("id", { count: "exact", head: true })
+          .not("status", "in", "(obtenu,refuse)")
+          .not("deadline", "is", null),
+      ])
+      setLocalCounts({
+        projects: projects ?? 0,
+        contacts: contacts ?? 0,
+        deadlines: deadlines ?? 0,
+      })
+    })()
+  }, [userId, supabase])
+
   const refreshDeadlines = useCallback(async () => {
-    // admin_dossiers absent des types générés — cast nécessaire
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { count } = await (supabase as any)
       .from("admin_dossiers")
       .select("id", { count: "exact", head: true })
       .not("status", "in", "(obtenu,refuse)")
       .not("deadline", "is", null)
-    if (count !== null) setLocalDeadlines(count as number)
+    if (count !== null) setLocalCounts((prev) => ({ ...prev, deadlines: count as number }))
   }, [supabase])
 
   useEffect(() => {
@@ -216,15 +235,13 @@ export function Sidebar({
     return () => channel.close()
   }, [refreshDeadlines])
 
-  const liveCounts = { ...counts, deadlines: localDeadlines }
-
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden xl:flex w-64 border-r bg-card flex-col h-full">
         <SidebarContent
           profile={profile}
-          counts={liveCounts}
+          counts={localCounts}
           notifProps={notifProps}
           instanceId="desktop"
         />
@@ -289,7 +306,7 @@ export function Sidebar({
             >
               <SidebarContent
                 profile={profile}
-                counts={liveCounts}
+                counts={localCounts}
                 notifProps={notifProps}
                 showBell={false}
                 onNavigate={() => setOpen(false)}

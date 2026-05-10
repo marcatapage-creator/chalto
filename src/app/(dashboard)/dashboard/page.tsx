@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
 import { DOCUMENT_STATUS } from "@/types"
@@ -109,22 +110,14 @@ export default async function DashboardPage() {
   })
 
   const projectIds = projects?.map((p) => p.id) ?? []
-  const [{ data: documents }, { data: unreadRows }] = await Promise.all([
+  const { data: documents } =
     projectIds.length > 0
-      ? supabase.from("documents").select("project_id, status").in("project_id", projectIds)
-      : Promise.resolve({ data: [] as { project_id: string; status: string }[] }),
-    supabase.rpc("get_projects_unread_counts"),
-  ])
+      ? await supabase.from("documents").select("project_id, status").in("project_id", projectIds)
+      : { data: [] as { project_id: string; status: string }[] }
+
   const documentSentCount = (documents ?? []).filter((d) =>
     ["sent", "approved", "rejected"].includes(d.status)
   ).length
-
-  const unreadMap = new Map<string, number>(
-    (unreadRows ?? []).map((r: { project_id: string; unread_count: number }) => [
-      r.project_id,
-      r.unread_count,
-    ])
-  )
 
   const projectsWithCounts: ProjectWithCounts[] = (projects ?? []).map((p) => {
     const prof = p.professions as unknown as { slug: string; label: string } | null
@@ -138,7 +131,7 @@ export default async function DashboardPage() {
       created_at: p.created_at,
       professionSlug: prof?.slug ?? null,
       professionLabel: prof?.label ?? null,
-      unreadCount: unreadMap.get(p.id) ?? 0,
+      unreadCount: 0,
       counts: {
         docs: docs.length,
         pending: docs.filter((d) => d.status === DOCUMENT_STATUS.SENT).length,
@@ -179,7 +172,9 @@ export default async function DashboardPage() {
 
         <DashboardStats userId={user.id} initialCounts={initialCounts} />
 
-        <DashboardUrgences projectIds={projectIds} />
+        <Suspense fallback={null}>
+          <DashboardUrgences userId={user.id} />
+        </Suspense>
 
         {!profile?.onboarding_completed && (
           <OnboardingChecklist
