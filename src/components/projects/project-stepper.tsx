@@ -1,7 +1,7 @@
 "use client"
 
-import { Fragment, useState } from "react"
-import { motion } from "framer-motion"
+import { Fragment, useState, useEffect, useRef } from "react"
+import { motion, useAnimation } from "framer-motion"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,25 @@ export function ProjectStepper({
   const [dontShowClotureAgain, setDontShowClotureAgain] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const pillControls = useAnimation()
+  const labelControls = useAnimation()
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    void pillControls.start({
+      scale: [1, 1.22, 0.88, 1.06, 1],
+      transition: { duration: 0.48, ease: "easeOut" },
+    })
+    void labelControls.start({
+      opacity: [1, 0.45, 1],
+      y: [0, -4, 0],
+      transition: { duration: 0.32, delay: 0.06 },
+    })
+  }, [phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const config = getProfessionConfig(professionSlug)
   const { phases, chantierDialog, chantierBlockedToast, stepperTooltip } = config
@@ -338,22 +357,13 @@ export function ProjectStepper({
                 <div className="relative">
                   <span className="animate-ping-sm absolute inline-flex h-full w-full rounded-full bg-primary opacity-25 dark:opacity-50" />
                   <motion.div
-                    key={phase}
-                    initial={{ scale: 0.55 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    animate={pillControls}
                     className="relative h-11 w-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
                   >
                     {ActiveIcon && <ActiveIcon className="h-5 w-5" />}
                   </motion.div>
                 </div>
-                <motion.p
-                  key={phase}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22, delay: 0.08 }}
-                  className="text-xs font-medium text-primary"
-                >
+                <motion.p animate={labelControls} className="text-xs font-medium text-primary">
                   {activePhase?.label}
                 </motion.p>
               </div>
