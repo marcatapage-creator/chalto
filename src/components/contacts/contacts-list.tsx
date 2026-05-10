@@ -13,9 +13,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import {
   Select,
   SelectContent,
@@ -178,97 +178,98 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
           <h1 className="text-2xl font-bold tracking-tight">Annuaire</h1>
           <p className="text-muted-foreground">Vos prestataires et partenaires</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        <ResponsiveDialog
+          open={open}
+          onOpenChange={setOpen}
+          trigger={
             <Button>
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Ajouter un contact</span>
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nouveau contact</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nom *</Label>
-                  <Input
-                    name="name"
-                    placeholder="Marc Dupuis"
-                    value={form.name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Entreprise</Label>
-                  <Input
-                    name="company_name"
-                    placeholder="Dupuis Plomberie"
-                    value={form.company_name}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Métier</Label>
-                <Select
-                  value={form.profession_id}
-                  onValueChange={(v) => setForm({ ...form, profession_id: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un métier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {professions.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="marc@exemple.fr"
-                    value={form.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Téléphone</Label>
-                  <Input
-                    name="phone"
-                    placeholder="06 00 00 00 00"
-                    value={form.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Notes</Label>
-                <Input
-                  name="notes"
-                  placeholder="Disponible le matin, spécialiste rénovation..."
-                  value={form.notes}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            <DialogFooter>
+          }
+          title="Nouveau contact"
+          footer={
+            <>
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Annuler
               </Button>
               <Button onClick={handleSubmit} loading={loading}>
                 {loading ? "Ajout..." : "Ajouter"}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </>
+          }
+        >
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nom *</Label>
+                <Input
+                  name="name"
+                  placeholder="Marc Dupuis"
+                  value={form.name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Entreprise</Label>
+                <Input
+                  name="company_name"
+                  placeholder="Dupuis Plomberie"
+                  value={form.company_name}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Métier</Label>
+              <Select
+                value={form.profession_id}
+                onValueChange={(v) => setForm({ ...form, profession_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un métier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {professions.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="marc@exemple.fr"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Téléphone</Label>
+                <Input
+                  name="phone"
+                  placeholder="06 00 00 00 00"
+                  value={form.phone}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Input
+                name="notes"
+                placeholder="Disponible le matin, spécialiste rénovation..."
+                value={form.notes}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </ResponsiveDialog>
       </div>
 
       {/* Recherche */}

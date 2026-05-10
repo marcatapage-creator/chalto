@@ -143,6 +143,9 @@ export default async function DashboardPage() {
     }
   })
 
+  const demoProjectId =
+    profile?.demo_project_id ?? projects?.find((p) => p.name?.includes("Projet démo"))?.id ?? null
+
   const initialCounts = {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
     totalDocs: documents?.length ?? 0,
@@ -179,7 +182,7 @@ export default async function DashboardPage() {
         {!profile?.onboarding_completed && (
           <OnboardingChecklist
             userId={user.id}
-            demoProjectId={profile?.demo_project_id}
+            demoProjectId={demoProjectId}
             documentSentCount={documentSentCount ?? 0}
             onboardingCompleted={profile?.onboarding_completed ?? false}
           />

@@ -20,7 +20,6 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerFooter,
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import { toast } from "sonner"
@@ -113,7 +112,18 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
     </Button>
   )
 
-  const formBody = (
+  const footerActions = (
+    <>
+      <Button variant="outline" onClick={() => setOpen(false)}>
+        Annuler
+      </Button>
+      <Button onClick={handleSave} disabled={saving}>
+        {saving ? "Sauvegarde..." : "Enregistrer"}
+      </Button>
+    </>
+  )
+
+  const renderFormBody = (withFooter = false) => (
     <div className="flex-1 overflow-y-auto px-6 pb-2 space-y-5">
       <div className="space-y-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -173,7 +183,7 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
                 type="button"
                 onClick={() => setForm({ ...form, work_type: form.work_type === type ? "" : type })}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150",
+                  "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 max-sm:h-11 max-sm:py-0",
                   form.work_type === type
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border hover:border-primary/50 hover:bg-muted"
@@ -196,7 +206,7 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
                   setForm({ ...form, budget_range: form.budget_range === range ? "" : range })
                 }
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150",
+                  "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 max-sm:h-11 max-sm:py-0",
                   form.budget_range === range
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border hover:border-primary/50 hover:bg-muted"
@@ -226,18 +236,12 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
           />
         </div>
       </div>
+      {withFooter && (
+        <div className="-mx-6 mt-4 border-t bg-muted/50 px-6 py-4 flex flex-col-reverse gap-2">
+          {footerActions}
+        </div>
+      )}
     </div>
-  )
-
-  const footerActions = (
-    <>
-      <Button variant="outline" onClick={() => setOpen(false)}>
-        Annuler
-      </Button>
-      <Button onClick={handleSave} disabled={saving}>
-        {saving ? "Sauvegarde..." : "Enregistrer"}
-      </Button>
-    </>
   )
 
   if (isDesktop) {
@@ -248,7 +252,7 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
           <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <DialogTitle>Détails du projet</DialogTitle>
           </DialogHeader>
-          {formBody}
+          {renderFormBody()}
           <DialogFooter className="mx-0! mb-0! shrink-0">{footerActions}</DialogFooter>
         </DialogContent>
       </Dialog>
@@ -258,12 +262,11 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent onOverlayClick={() => setOpen(false)}>
         <DrawerHeader>
           <DrawerTitle>Détails du projet</DrawerTitle>
         </DrawerHeader>
-        {formBody}
-        <DrawerFooter>{footerActions}</DrawerFooter>
+        {renderFormBody(true)}
       </DrawerContent>
     </Drawer>
   )

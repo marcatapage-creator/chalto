@@ -303,10 +303,10 @@ export function GenerateDocumentDialog({
                     key={piece}
                     onClick={() => toggleItem("pieces", piece)}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                      "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 max-sm:h-11 max-sm:py-0",
                       answers.pieces.includes(piece)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/50 hover:bg-muted"
                     )}
                   >
                     {piece}
@@ -348,7 +348,7 @@ export function GenerateDocumentDialog({
 
             <div className="space-y-2">
               <Label className="text-sm font-medium">Niveau de prestation</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {NIVEAUX.map(({ value, label, description }) => (
                   <button
                     key={value}
@@ -394,10 +394,10 @@ export function GenerateDocumentDialog({
                     key={lot}
                     onClick={() => toggleItem("lots", lot)}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                      "px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 max-sm:h-11 max-sm:py-0",
                       answers.lots.includes(lot)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/50 hover:bg-muted"
                     )}
                   >
                     {lot}
@@ -439,7 +439,7 @@ export function GenerateDocumentDialog({
 
             <div className="space-y-2">
               <Label className="text-sm font-medium">Niveau de prestation</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {NIVEAUX.map(({ value, label, description }) => (
                   <button
                     key={value}

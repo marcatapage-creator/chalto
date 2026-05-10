@@ -114,7 +114,14 @@ export async function createDemoProject(
     status: "draft",
   })
 
-  await supabase.from("profiles").update({ demo_project_id: project.id }).eq("id", userId)
+  const { error: profileUpdateError } = await supabase
+    .from("profiles")
+    .update({ demo_project_id: project.id })
+    .eq("id", userId)
+
+  if (profileUpdateError) {
+    console.error("[createDemoProject] profile update failed:", profileUpdateError)
+  }
 
   return project
 }
