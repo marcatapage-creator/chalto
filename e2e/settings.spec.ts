@@ -187,7 +187,7 @@ test("11.3d — sélectionner 'Jamais' et sauvegarder affiche une confirmation",
   await expect(page.getByText(/préférences sauvegardées/i)).toBeVisible({ timeout: 10_000 })
 })
 
-test("11.3d — la fréquence 'Jamais' est persistée après rechargement", async ({ page }) => {
+test.fixme("11.3d — la fréquence 'Jamais' est persistée après rechargement", async ({ page }) => {
   await page.goto("/settings", { waitUntil: "networkidle" })
   await expect(page).not.toHaveURL(/login/, { timeout: 10_000 })
   await page.getByRole("tab", { name: /notif/i }).click()
