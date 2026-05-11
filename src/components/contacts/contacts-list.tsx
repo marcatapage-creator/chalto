@@ -372,7 +372,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
         </Card>
       )}
       {/* Fade directionnel bas */}
-      <div className="pointer-events-none sticky bottom-0 h-47 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
+      <div className="pointer-events-none sticky bottom-0 h-47 bg-linear-to-t from-neutral-50/80 dark:from-background/80 to-transparent" />
 
       {/* Dialog édition */}
       <Dialog open={!!editContact} onOpenChange={(v) => !v && setEditContact(null)}>

@@ -13,7 +13,7 @@ export default function SupportPage() {
     <div className="flex-1 overflow-auto">
       <div
         aria-hidden
-        className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/50 dark:from-background/50 to-transparent"
+        className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/40 dark:from-background/40 to-transparent"
       />
       <div className="p-6 md:p-8 max-w-2xl space-y-8">
         <div className="flex items-center gap-3">
@@ -49,7 +49,7 @@ export default function SupportPage() {
           <FaqSection />
         </FadeIn>
       </div>
-      <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
+      <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50/80 dark:from-background/80 to-transparent" />
     </div>
   )
 }

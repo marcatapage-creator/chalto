@@ -150,7 +150,7 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
       <div className="flex-1 overflow-auto overscroll-contain">
         <div
           aria-hidden
-          className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/50 dark:from-background/50 to-transparent"
+          className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/40 dark:from-background/40 to-transparent"
         />
         <div className="px-6 md:px-8 pt-4 pb-8">
           {empty ? (
@@ -198,7 +198,7 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
             </StaggerList>
           )}
         </div>
-        <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50 dark:from-background to-transparent" />
+        <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50/80 dark:from-background/80 to-transparent" />
       </div>
     </div>
   )

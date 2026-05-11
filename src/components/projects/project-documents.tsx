@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,6 +26,7 @@ import {
   Upload,
   Plus,
   X,
+  Camera,
 } from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
@@ -184,9 +186,66 @@ export function ProjectDocuments({
   hasDropboxConnected = false,
 }: ProjectDocumentsProps) {
   const router = useRouter()
+  const supabase = createClient()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [addDocOpen, setAddDocOpen] = useState(false)
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  async function handlePhotoCapture(file: File) {
+    setPhotoUploading(true)
+    const toastId = toast.loading("Envoi de la photo...")
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error("Non authentifié")
+
+      const date = new Date().toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+      const { data: docId, error: insertError } = await supabase.rpc(
+        "create_document_with_contributors",
+        {
+          p_project_id: projectId,
+          p_name: `Photo du ${date}`,
+          p_type: "Photo",
+          p_audience: "client",
+          p_contributor_ids: [],
+        }
+      )
+      if (insertError || !docId) throw new Error("Création document échouée")
+
+      const ext = file.name.split(".").pop() ?? "jpg"
+      const path = `${user.id}/${docId}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from("documents").getPublicUrl(path)
+      await supabase
+        .from("documents")
+        .update({
+          file_url: urlData.publicUrl,
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+        })
+        .eq("id", docId)
+
+      toast.success("Photo ajoutée", { id: toastId })
+      router.refresh()
+    } catch {
+      toast.error("Erreur lors de l'envoi de la photo", { id: toastId })
+    } finally {
+      setPhotoUploading(false)
+      if (photoInputRef.current) photoInputRef.current.value = ""
+    }
+  }
 
   async function handleUnlink(linkId: string) {
     setUnlinkingId(linkId)
@@ -272,6 +331,11 @@ export function ProjectDocuments({
                   icon: <Upload className="h-4 w-4" />,
                   onClick: () => setAddDocOpen(true),
                 },
+                {
+                  label: photoUploading ? "Envoi en cours..." : "Prendre une photo",
+                  icon: <Camera className="h-4 w-4" />,
+                  onClick: () => !photoUploading && photoInputRef.current?.click(),
+                },
                 ...(hasDropboxConnected
                   ? [
                       {
@@ -287,6 +351,17 @@ export function ProjectDocuments({
               projectId={projectId}
               open={addDocOpen}
               onOpenChange={setAddDocOpen}
+            />
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handlePhotoCapture(file)
+              }}
             />
           </div>
         )}
