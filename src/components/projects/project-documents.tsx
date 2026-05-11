@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
@@ -187,6 +188,7 @@ export function ProjectDocuments({
 }: ProjectDocumentsProps) {
   const router = useRouter()
   const supabase = createClient()
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const [pickerOpen, setPickerOpen] = useState(false)
   const [addDocOpen, setAddDocOpen] = useState(false)
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null)
@@ -331,11 +333,15 @@ export function ProjectDocuments({
                   icon: <Upload className="h-4 w-4" />,
                   onClick: () => setAddDocOpen(true),
                 },
-                {
-                  label: photoUploading ? "Envoi en cours..." : "Prendre une photo",
-                  icon: <Camera className="h-4 w-4" />,
-                  onClick: () => !photoUploading && photoInputRef.current?.click(),
-                },
+                ...(!isDesktop
+                  ? [
+                      {
+                        label: photoUploading ? "Envoi en cours..." : "Prendre une photo",
+                        icon: <Camera className="h-4 w-4" />,
+                        onClick: () => !photoUploading && photoInputRef.current?.click(),
+                      },
+                    ]
+                  : []),
                 ...(hasDropboxConnected
                   ? [
                       {
