@@ -57,6 +57,7 @@ interface ProjectSituationsProps {
   onOpen?: () => void
   onClose?: () => void
   collapseSignal?: number
+  expandSignal?: number
 }
 
 interface ReviewState {
@@ -75,6 +76,7 @@ export function ProjectSituations({
   onOpen,
   onClose,
   collapseSignal,
+  expandSignal,
 }: ProjectSituationsProps) {
   const [situations, setSituations] = useState<Situation[]>(initialSituations)
   const [localUnread, setLocalUnread] = useState(unreadCount)
@@ -85,6 +87,12 @@ export function ProjectSituations({
     prevCollapseSignal.current = collapseSignal
     setIsOpen(false)
   }, [collapseSignal])
+  const prevExpandSignal = useRef(expandSignal ?? 0)
+  useEffect(() => {
+    if (expandSignal === undefined || expandSignal === prevExpandSignal.current) return
+    prevExpandSignal.current = expandSignal
+    setIsOpen(true)
+  }, [expandSignal])
   const [reviewing, setReviewing] = useState<ReviewState | null>(null)
   const [action, setAction] = useState<"validate" | "refuse">("validate")
   const [reviewerComment, setReviewerComment] = useState("")

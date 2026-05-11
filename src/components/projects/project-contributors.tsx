@@ -35,6 +35,7 @@ interface ProjectContributorsProps {
   onOpen?: () => void
   onClose?: () => void
   collapseSignal?: number
+  expandSignal?: number
 }
 
 export function ProjectContributors({
@@ -46,6 +47,7 @@ export function ProjectContributors({
   onOpen,
   onClose,
   collapseSignal,
+  expandSignal,
 }: ProjectContributorsProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [contributors, setContributors] = useState<Contributor[]>([])
@@ -65,6 +67,13 @@ export function ProjectContributors({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(false)
   }, [collapseSignal])
+  const prevExpandSignal = useRef(expandSignal ?? 0)
+  useEffect(() => {
+    if (expandSignal === undefined || expandSignal === prevExpandSignal.current) return
+    prevExpandSignal.current = expandSignal
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsOpen(true)
+  }, [expandSignal])
 
   const notifyChange = useCallback(
     (list: Contributor[]) => {

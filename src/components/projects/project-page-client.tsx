@@ -6,7 +6,17 @@ import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, MapPin, Mail, ChevronDown, Pencil, ArrowUp, Minus } from "lucide-react"
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Mail,
+  ChevronDown,
+  Pencil,
+  ArrowUp,
+  Minus,
+  Plus,
+} from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -293,6 +303,7 @@ export function ProjectPageClient({
 
   const [openSectionIds, setOpenSectionIds] = useState<Set<string>>(new Set())
   const [collapseSignal, setCollapseSignal] = useState(0)
+  const [expandSignal, setExpandSignal] = useState(0)
   const registerOpen = useCallback(
     (id: string) => setOpenSectionIds((prev) => new Set([...prev, id])),
     []
@@ -311,6 +322,11 @@ export function ProjectPageClient({
     setCollapseSignal((s) => s + 1)
     setOpenSectionIds(new Set())
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+  const expandAll = useCallback(() => {
+    setDetailsOpen(true)
+    setDocsOpen(true)
+    setExpandSignal((s) => s + 1)
   }, [])
 
   // Cleanup synchrone à l'unmount : restaure les styles body que Radix/Vaul ont pu
@@ -570,6 +586,7 @@ export function ProjectPageClient({
                     readOnly={phase === "cloture"}
                     highlightedDossierId={highlightedDossierId}
                     collapseSignal={collapseSignal}
+                    expandSignal={expandSignal}
                     onOpen={() => {
                       if (!isDesktop) setDetailsOpen(false)
                       registerOpen("admin-dossiers")
@@ -617,6 +634,7 @@ export function ProjectPageClient({
                       readOnly={phase === "cloture"}
                       defaultOpen={!startCollapsed}
                       collapseSignal={collapseSignal}
+                      expandSignal={expandSignal}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
                         registerOpen("contributors")
@@ -637,6 +655,7 @@ export function ProjectPageClient({
                         externalInvitedIds={contributorContactIds}
                         defaultOpen={!startCollapsed}
                         collapseSignal={collapseSignal}
+                        expandSignal={expandSignal}
                         onOpen={() => {
                           if (!isDesktop) setDetailsOpen(false)
                           setLocalUnreadTasks(0)
@@ -658,6 +677,7 @@ export function ProjectPageClient({
                       autoOpen={openDiscussion}
                       highlighted={openDiscussion}
                       collapseSignal={collapseSignal}
+                      expandSignal={expandSignal}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
                         registerOpen("discussion")
@@ -681,6 +701,7 @@ export function ProjectPageClient({
                       }
                       highlightedSituationId={highlightedSituationId}
                       collapseSignal={collapseSignal}
+                      expandSignal={expandSignal}
                       unreadCount={unreadSituations}
                       onOpen={() => {
                         if (!isDesktop) setDetailsOpen(false)
@@ -708,6 +729,22 @@ export function ProjectPageClient({
           transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
         >
           <AnimatePresence>
+            {!docsOpen && openSectionIds.size === 0 && (
+              <motion.button
+                key="expand-all"
+                initial={{ opacity: 0, scale: 0.75 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.75 }}
+                transition={{ duration: 0.18 }}
+                onClick={expandAll}
+                className="h-10 w-10 max-xl:h-11 max-xl:w-11 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
+                aria-label="Tout ouvrir"
+              >
+                <Plus className="h-4 w-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
             {openCount >= 2 && (
               <motion.button
                 key="collapse-all"
@@ -716,7 +753,7 @@ export function ProjectPageClient({
                 exit={{ opacity: 0, scale: 0.75 }}
                 transition={{ duration: 0.18 }}
                 onClick={collapseAll}
-                className="h-10 w-10 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
+                className="h-10 w-10 max-xl:h-11 max-xl:w-11 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
                 aria-label="Tout refermer"
               >
                 <Minus className="h-4 w-4" />
@@ -732,7 +769,7 @@ export function ProjectPageClient({
                 exit={{ opacity: 0, scale: 0.75 }}
                 transition={{ duration: 0.18 }}
                 onClick={() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
-                className="h-10 w-10 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
+                className="h-10 w-10 max-xl:h-11 max-xl:w-11 rounded-full bg-background border shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-shadow"
                 aria-label="Remonter en haut"
               >
                 <ArrowUp className="h-4 w-4" />

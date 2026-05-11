@@ -53,6 +53,7 @@ interface ProjectTasksProps {
   onOpen?: () => void
   onClose?: () => void
   collapseSignal?: number
+  expandSignal?: number
   unreadCount?: number
   onNewPrestaComment?: () => void
 }
@@ -75,6 +76,7 @@ export function ProjectTasks({
   onOpen,
   onClose,
   collapseSignal,
+  expandSignal,
   unreadCount = 0,
   onNewPrestaComment,
 }: ProjectTasksProps) {
@@ -89,6 +91,12 @@ export function ProjectTasks({
     prevCollapseSignal.current = collapseSignal
     setTasksOpen(false)
   }, [collapseSignal])
+  const prevExpandSignal = useRef(expandSignal ?? 0)
+  useEffect(() => {
+    if (expandSignal === undefined || expandSignal === prevExpandSignal.current) return
+    prevExpandSignal.current = expandSignal
+    setTasksOpen(true)
+  }, [expandSignal])
   const [open, setOpen] = useState(false)
   const [dialogView, setDialogView] = useState<"task" | "new-contact">("task")
   const [loading, setLoading] = useState(false)

@@ -31,6 +31,7 @@ interface ProjectDiscussionProps {
   onOpen?: () => void
   onClose?: () => void
   collapseSignal?: number
+  expandSignal?: number
   unreadCount?: number
 }
 
@@ -48,6 +49,7 @@ export function ProjectDiscussion({
   onOpen,
   onClose,
   collapseSignal,
+  expandSignal,
   unreadCount = 0,
 }: ProjectDiscussionProps) {
   const PAGE_SIZE = 50
@@ -73,6 +75,14 @@ export function ProjectDiscussion({
     setInternalOpen(false)
     onControlledOpenChange?.(false)
   }, [collapseSignal, onControlledOpenChange])
+  const prevExpandSignal = useRef(expandSignal ?? 0)
+  useEffect(() => {
+    if (expandSignal === undefined || expandSignal === prevExpandSignal.current) return
+    prevExpandSignal.current = expandSignal
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInternalOpen(true)
+    onControlledOpenChange?.(true)
+  }, [expandSignal, onControlledOpenChange])
 
   const handleToggle = () => {
     const next = !open
