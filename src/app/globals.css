@@ -191,12 +191,12 @@ input[type="date"]::-webkit-date-and-time-value {
   scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
 }
 
-/* Smooth dark/light mode transition */
+/* Smooth dark/light mode transition via View Transitions API */
 @media (prefers-reduced-motion: no-preference) {
-  *, *::before, *::after {
-    transition-property: color, background-color, border-color, box-shadow;
-    transition-duration: 250ms;
-    transition-timing-function: ease;
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 350ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

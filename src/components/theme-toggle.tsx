@@ -13,6 +13,14 @@ import {
 export function ThemeToggle() {
   const { setTheme } = useTheme()
 
+  const applyTheme = (theme: string) => {
+    if (typeof document !== "undefined" && document.startViewTransition) {
+      document.startViewTransition(() => setTheme(theme))
+    } else {
+      setTheme(theme)
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,15 +31,15 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => applyTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
           Clair
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => applyTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Sombre
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => applyTheme("system")}>
           <Monitor className="mr-2 h-4 w-4" />
           Système
         </DropdownMenuItem>
