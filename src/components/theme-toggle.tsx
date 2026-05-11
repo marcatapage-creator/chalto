@@ -1,7 +1,7 @@
 "use client"
 
 import { Moon, Sun, Monitor } from "lucide-react"
-import { useTheme } from "@/components/theme-provider"
+import { useTheme, type Theme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
 export function ThemeToggle() {
   const { setTheme } = useTheme()
 
-  const applyTheme = (theme: string) => {
+  const applyTheme = (theme: Theme) => {
     if (typeof document !== "undefined" && document.startViewTransition) {
       document.startViewTransition(() => setTheme(theme))
     } else {
