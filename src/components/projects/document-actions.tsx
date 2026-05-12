@@ -22,6 +22,7 @@ import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
+import type { AudienceInfo } from "./document-panel-types"
 
 interface Contributor {
   id: string
@@ -38,7 +39,7 @@ interface DocumentActionsProps {
   fileUrl?: string | null
   isChantier?: boolean
   className?: string
-  onSent?: () => void
+  onSent?: (info?: AudienceInfo) => void
 }
 
 const REQUEST_TYPE_OPTIONS = [
@@ -147,7 +148,15 @@ export function DocumentActions({
     setOpen(false)
     setMessage("")
     setLoading(true)
-    onSent?.()
+
+    if (audience === "contributor" && selectedContributors.length > 0) {
+      const selectedNames = contributors
+        .filter((c) => selectedContributors.includes(c.id))
+        .map((c) => c.name)
+      onSent?.({ requestType, names: selectedNames, inviteTokens: [] })
+    } else {
+      onSent?.()
+    }
 
     try {
       if (audience === "client") {
@@ -188,7 +197,7 @@ export function DocumentActions({
 
         await supabase.from("documents").update({ audience: "contributor" }).eq("id", documentId)
 
-        await supabase.from("document_contributors").upsert(
+        const { error: upsertError } = await supabase.from("document_contributors").upsert(
           selectedContributors.map((contributorId) => ({
             document_id: documentId,
             contributor_id: contributorId,
@@ -197,6 +206,7 @@ export function DocumentActions({
           })),
           { onConflict: "document_id,contributor_id" }
         )
+        if (upsertError) console.error("[document_contributors upsert]", upsertError)
 
         const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",

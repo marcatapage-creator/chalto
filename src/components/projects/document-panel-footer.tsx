@@ -3,6 +3,8 @@ import { DocumentActions } from "@/components/projects/document-actions"
 import { Clock, Link2, RotateCcw } from "lucide-react"
 import type { AudienceInfo } from "./document-panel-types"
 
+type OnSentCallback = (info?: AudienceInfo) => void
+
 interface DocumentPanelFooterProps {
   localStatus: string
   isChantier: boolean
@@ -14,7 +16,7 @@ interface DocumentPanelFooterProps {
   clientName?: string
   localVersion: number
   audienceInfo: AudienceInfo
-  onSent: () => void
+  onSent: OnSentCallback
   onProposeV2: () => void
   onCopyLink: () => void
 }
