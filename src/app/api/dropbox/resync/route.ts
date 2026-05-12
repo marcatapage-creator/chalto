@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: `id:${doc.cloud_file_id}` }),
+      "Dropbox-API-Arg": JSON.stringify({ path: doc.cloud_file_id }),
     },
   })
 

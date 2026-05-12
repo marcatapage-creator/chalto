@@ -61,7 +61,7 @@ async function resyncDocument(
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: `id:${doc.cloud_file_id}` }),
+      "Dropbox-API-Arg": JSON.stringify({ path: doc.cloud_file_id }),
     },
   })
   if (!dlRes.ok) return
