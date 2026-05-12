@@ -93,6 +93,7 @@ export async function proxy(request: NextRequest) {
     "/api/task-comment",
     "/api/project-message",
     "/api/cron",
+    "/api/dropbox/webhook",
   ]
   const isPublic = publicRoutes.some((r) => (r === "/" ? pathname === "/" : pathname.startsWith(r)))
 

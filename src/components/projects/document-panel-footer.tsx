@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { DocumentActions } from "@/components/projects/document-actions"
-import { Clock, Link2, RotateCcw } from "lucide-react"
+import { Clock, Link2, RotateCcw, RefreshCw } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 import type { AudienceInfo } from "./document-panel-types"
 
 type OnSentCallback = (info?: AudienceInfo) => void
@@ -16,9 +18,11 @@ interface DocumentPanelFooterProps {
   clientName?: string
   localVersion: number
   audienceInfo: AudienceInfo
+  cloudFileId?: string | null
   onSent: OnSentCallback
   onProposeV2: () => void
   onCopyLink: () => void
+  onResynced?: (version: number, fileUrl: string) => void
 }
 
 export function DocumentPanelFooter({
@@ -32,10 +36,35 @@ export function DocumentPanelFooter({
   clientName,
   localVersion,
   audienceInfo,
+  cloudFileId,
   onSent,
   onProposeV2,
   onCopyLink,
+  onResynced,
 }: DocumentPanelFooterProps) {
+  const [resyncing, setResyncing] = useState(false)
+
+  const handleResync = async () => {
+    setResyncing(true)
+    try {
+      const res = await fetch("/api/dropbox/resync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId }),
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        toast.error(data.error ?? "Erreur lors de la resynchronisation")
+        return
+      }
+      const data = (await res.json()) as { version: number; fileUrl: string }
+      toast.success(`V${data.version} synchronisée depuis Dropbox`)
+      onResynced?.(data.version, data.fileUrl)
+    } finally {
+      setResyncing(false)
+    }
+  }
+
   if (localStatus === "draft") {
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
@@ -129,10 +158,17 @@ export function DocumentPanelFooter({
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Suite à donner
         </p>
-        <Button variant="outline" className="w-full" onClick={onProposeV2} loading={proposing}>
-          <RotateCcw className="h-4 w-4 mr-2" />
-          {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
-        </Button>
+        {cloudFileId ? (
+          <Button variant="outline" className="w-full" onClick={handleResync} loading={resyncing}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {resyncing ? "Synchronisation..." : "Resynchroniser depuis Dropbox"}
+          </Button>
+        ) : (
+          <Button variant="outline" className="w-full" onClick={onProposeV2} loading={proposing}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            {proposing ? "Création..." : `Proposer une V${localVersion + 1}`}
+          </Button>
+        )}
       </div>
     )
   }

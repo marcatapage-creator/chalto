@@ -166,3 +166,8 @@ export const updateAdminDossierSchema = z.object({
   deadline: dateString,
   notes: z.string().max(1000).nullable().optional(),
 })
+
+// POST /api/dropbox/resync
+export const dropboxResyncSchema = z.object({
+  documentId: uuid,
+})

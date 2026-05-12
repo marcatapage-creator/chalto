@@ -490,6 +490,7 @@ export function DocumentPanel({
         clientName={clientName}
         localVersion={localVersion}
         audienceInfo={audienceInfo}
+        cloudFileId={document.cloud_file_id}
         onSent={(info) => {
           setLocalStatus("sent")
           if (info) setAudienceInfo(info)
@@ -497,6 +498,13 @@ export function DocumentPanel({
         }}
         onProposeV2={handleProposeV2}
         onCopyLink={handleCopyLink}
+        onResynced={(version, newFileUrl) => {
+          setLocalVersion(version)
+          setLocalStatus("draft")
+          setLocalFileUrl(newFileUrl)
+          handleVersionTabChange(null)
+          onStatusChange?.(document.id, "draft", version)
+        }}
       />
     </div>
   )
