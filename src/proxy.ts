@@ -94,6 +94,7 @@ export async function proxy(request: NextRequest) {
     "/api/project-message",
     "/api/cron",
     "/api/dropbox/webhook",
+    "/api/situations",
   ]
   const isPublic = publicRoutes.some((r) => (r === "/" ? pathname === "/" : pathname.startsWith(r)))
 
