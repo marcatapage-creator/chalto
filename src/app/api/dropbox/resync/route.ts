@@ -75,8 +75,14 @@ export async function POST(request: NextRequest) {
   })
 
   if (!dlRes.ok) {
+    const dropboxError = await dlRes.text().catch(() => "")
+    console.error("[resync] Dropbox download failed", {
+      status: dlRes.status,
+      cloud_file_id: doc.cloud_file_id,
+      error: dropboxError,
+    })
     return NextResponse.json(
-      { error: "Impossible de télécharger le fichier depuis Dropbox" },
+      { error: `Dropbox ${dlRes.status}: ${dropboxError.slice(0, 200)}` },
       { status: 502 }
     )
   }
