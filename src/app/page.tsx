@@ -133,21 +133,7 @@ function AIFeatureCard({
 }) {
   return (
     <>
-      <style>{`
-        @property --ai-angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes ai-border-spin {
-          to { --ai-angle: 360deg; }
-        }
-        .ai-card-border {
-          background: conic-gradient(from var(--ai-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, #ec489960, hsl(224 79% 65% / 0.45), transparent 75%);
-          animation: ai-border-spin 7s linear infinite;
-        }
-      `}</style>
-      <div className="ai-card-border h-full rounded-xl p-px">
+      <div className="animated-border h-full rounded-xl p-px">
         <Card className="h-full rounded-[11px] border-0 relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.05] pointer-events-none"
@@ -321,21 +307,7 @@ export default function LandingPage() {
               </div>
 
               {/* Hero feature — Validation client */}
-              <style>{`
-                @property --hero-angle {
-                  syntax: '<angle>';
-                  initial-value: 0deg;
-                  inherits: false;
-                }
-                @keyframes hero-border-spin {
-                  to { --hero-angle: 360deg; }
-                }
-                .hero-card-border {
-                  background: conic-gradient(from var(--hero-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, hsl(224 79% 65% / 0.45), transparent 75%);
-                  animation: hero-border-spin 7s linear infinite;
-                }
-              `}</style>
-              <div className="hero-card-border rounded-xl p-px mb-6">
+              <div className="animated-border-simple rounded-xl p-px mb-6">
                 <Card className="rounded-[11px] border-0 relative overflow-hidden">
                   <div
                     className="absolute inset-0 opacity-[0.05] pointer-events-none"

@@ -30,6 +30,8 @@ function ScreenshotContent({ device }: { device: DeviceType }) {
         alt={`Chalto sur ${DEVICES[device].label}`}
         className="w-full h-full object-cover object-top"
         draggable={false}
+        loading="lazy"
+        decoding="async"
       />
     )
   }
@@ -42,6 +44,8 @@ function ScreenshotContent({ device }: { device: DeviceType }) {
         alt={`Chalto sur ${DEVICES[device].label}`}
         className="w-full h-auto rounded-sm"
         draggable={false}
+        loading="lazy"
+        decoding="async"
       />
     </div>
   )

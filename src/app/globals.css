@@ -200,6 +200,24 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* Spinning conic-gradient border (landing AI cards) */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes border-spin {
+  to { --border-angle: 360deg; }
+}
+.animated-border {
+  background: conic-gradient(from var(--border-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, #ec489960, hsl(224 79% 65% / 0.45), transparent 75%);
+  animation: border-spin 7s linear infinite;
+}
+.animated-border-simple {
+  background: conic-gradient(from var(--border-angle), transparent 25%, hsl(224 79% 65% / 0.45), #a78bfa80, hsl(224 79% 65% / 0.45), transparent 75%);
+  animation: border-spin 7s linear infinite;
+}
+
 @keyframes ping-sm {
   75%, 100% {
     transform: scale(1.5);
