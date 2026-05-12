@@ -675,6 +675,7 @@ export type Database = {
           document_id: string
           id: string
           status: string | null
+          version: number | null
         }
         Insert: {
           approved_at?: string | null
@@ -686,6 +687,7 @@ export type Database = {
           document_id: string
           id?: string
           status?: string | null
+          version?: number | null
         }
         Update: {
           approved_at?: string | null
@@ -697,6 +699,7 @@ export type Database = {
           document_id?: string
           id?: string
           status?: string | null
+          version?: number | null
         }
         Relationships: [
           {

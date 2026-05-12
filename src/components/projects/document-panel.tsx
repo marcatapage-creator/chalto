@@ -110,7 +110,7 @@ export function DocumentPanel({
   const fetchAllValidations = useCallback(async () => {
     const { data, error } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
@@ -125,7 +125,7 @@ export function DocumentPanel({
   const fetchValidation = useCallback(async () => {
     const { data, error } = await supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -147,7 +147,7 @@ export function DocumentPanel({
   useEffect(() => {
     supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -171,7 +171,7 @@ export function DocumentPanel({
       })
     supabase
       .from("validations")
-      .select("status, comment, approved_at, client_name, contributor_id")
+      .select("status, comment, approved_at, client_name, contributor_id, version")
       .eq("document_id", document.id)
       .order("created_at", { ascending: true })
       .limit(50)
@@ -380,6 +380,22 @@ export function DocumentPanel({
       ? (prevVersions.find((p) => p.version === activeVersionTab) ?? null)
       : null
 
+  const isViewingArchive = activeVersionTab !== null
+  const activeVersion = activeVersionTab ?? localVersion
+
+  // Dernière validation pour la version affichée (banner + status)
+  const bannerValidation = useMemo(() => {
+    if (allValidations.length > 0) {
+      const forVersion = allValidations.filter((v) => (v.version ?? 1) === activeVersion)
+      return forVersion.length > 0 ? forVersion[forVersion.length - 1] : null
+    }
+    // Avant que allValidations charge, on repart sur validationEntry (version courante seulement)
+    return !isViewingArchive ? validation : null
+  }, [allValidations, activeVersion, isViewingArchive, validation])
+
+  // Pour une version archivée on affiche toujours le résultat (pas de "sent"/"draft")
+  const bannerStatus = isViewingArchive ? (bannerValidation?.status ?? "draft") : localStatus
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
@@ -407,7 +423,10 @@ export function DocumentPanel({
         </div>
       </div>
 
-      <ValidationResultBanner validation={validation} localStatus={localStatus} />
+      <ValidationResultBanner
+        validation={bannerValidation as ValidationData | null}
+        localStatus={bannerStatus}
+      />
 
       {/* Contenu scrollable */}
       <div className="flex-1 overflow-y-auto min-h-0">
@@ -471,8 +490,9 @@ export function DocumentPanel({
         clientName={clientName}
         localVersion={localVersion}
         audienceInfo={audienceInfo}
-        onSent={() => {
+        onSent={(info) => {
           setLocalStatus("sent")
+          if (info) setAudienceInfo(info)
           onStatusChange?.(document.id, "sent")
         }}
         onProposeV2={handleProposeV2}
