@@ -124,13 +124,20 @@ export function ProjectTasks({
       const el = document.querySelector(`[data-task-id="${localHighlightedId}"]`)
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" })
-      } else if (attempts++ < 10) {
+      } else if (attempts++ < 25) {
         setTimeout(tryScroll, 200)
       }
     }
     const t = setTimeout(tryScroll, 100)
     return () => clearTimeout(t)
   }, [localHighlightedId])
+
+  // Re-tente le scroll quand les tâches finissent de charger (fetchTasks async)
+  useEffect(() => {
+    if (!loaded || !localHighlightedId) return
+    const el = document.querySelector(`[data-task-id="${localHighlightedId}"]`)
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [loaded, localHighlightedId])
   const [form, setForm] = useState({
     title: "",
     description: "",

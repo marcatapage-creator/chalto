@@ -423,6 +423,30 @@ export function ContributorSpace({
                   if (!doc) return null
                   const reqType = dc.request_type ?? "validation"
                   const decision = docDecision[doc.id]
+
+                  // Une fois l'action effectuée, afficher un état condensé fermé
+                  if (decision || transmissionCommentSent[doc.id]) {
+                    const isTransmission = reqType === "transmission"
+                    return (
+                      <Card key={doc.id}>
+                        <CardContent className="p-3 flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium truncate">{doc.name}</p>
+                          {isTransmission ? (
+                            <Badge variant="secondary" className="shrink-0">
+                              Lu
+                            </Badge>
+                          ) : decision === "approved" ? (
+                            <Badge className="shrink-0">Approuvé</Badge>
+                          ) : (
+                            <Badge variant="destructive" className="shrink-0">
+                              Refusé
+                            </Badge>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+
                   return (
                     <Card key={doc.id}>
                       <CardContent className="p-4 space-y-3">
@@ -443,11 +467,6 @@ export function ContributorSpace({
                               </Badge>
                             </div>
                           </div>
-                          {decision && (
-                            <Badge variant={decision === "approved" ? "default" : "destructive"}>
-                              {decision === "approved" ? "Approuvé" : "Refusé"}
-                            </Badge>
-                          )}
                         </div>
 
                         {dc.pro_message && (

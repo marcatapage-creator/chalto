@@ -229,11 +229,38 @@ export function Sidebar({
 
   useEffect(() => {
     const channel = new BroadcastChannel("chalto:deadlines")
-    channel.onmessage = () => {
-      void refreshDeadlines()
-    }
+    channel.onmessage = () => void refreshDeadlines()
     return () => channel.close()
   }, [refreshDeadlines])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`sidebar-counts:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
+        () => setLocalCounts((prev) => ({ ...prev, projects: prev.projects + 1 }))
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
+        () => setLocalCounts((prev) => ({ ...prev, projects: Math.max(0, prev.projects - 1) }))
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
+        () => setLocalCounts((prev) => ({ ...prev, contacts: prev.contacts + 1 }))
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
+        () => setLocalCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts - 1) }))
+      )
+      .subscribe()
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [supabase, userId])
 
   return (
     <>
