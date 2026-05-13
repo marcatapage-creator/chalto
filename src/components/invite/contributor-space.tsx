@@ -103,7 +103,18 @@ export function ContributorSpace({
   const supabase = useMemo(() => createClient(), [])
 
   const docs = initialDocs
-  const [docDecision, setDocDecision] = useState<Record<string, "approved" | "rejected" | null>>({})
+  const [docDecision, setDocDecision] = useState<Record<string, "approved" | "rejected" | null>>(
+    () => {
+      const initial: Record<string, "approved" | "rejected" | null> = {}
+      for (const dc of initialDocs) {
+        const d = dc.documents as { id?: string; status?: string } | null
+        if (d?.id && (d.status === "approved" || d.status === "rejected")) {
+          initial[d.id] = d.status
+        }
+      }
+      return initial
+    }
+  )
   const [docComment, setDocComment] = useState<Record<string, string>>({})
   const [docLoading, setDocLoading] = useState<Record<string, boolean>>({})
 
@@ -424,28 +435,7 @@ export function ContributorSpace({
                   const reqType = dc.request_type ?? "validation"
                   const decision = docDecision[doc.id]
 
-                  // Une fois l'action effectuée, afficher un état condensé fermé
-                  if (decision || transmissionCommentSent[doc.id]) {
-                    const isTransmission = reqType === "transmission"
-                    return (
-                      <Card key={doc.id}>
-                        <CardContent className="p-3 flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium truncate">{doc.name}</p>
-                          {isTransmission ? (
-                            <Badge variant="secondary" className="shrink-0">
-                              Lu
-                            </Badge>
-                          ) : decision === "approved" ? (
-                            <Badge className="shrink-0">Approuvé</Badge>
-                          ) : (
-                            <Badge variant="destructive" className="shrink-0">
-                              Refusé
-                            </Badge>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  }
+                  const actionDone = !!(decision || transmissionCommentSent[doc.id])
 
                   return (
                     <Card key={doc.id}>
@@ -462,9 +452,23 @@ export function ContributorSpace({
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <p className="text-xs text-muted-foreground">{doc.type}</p>
-                              <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">
-                                {reqType === "transmission" ? "Pour information" : "À valider"}
-                              </Badge>
+                              {actionDone ? (
+                                reqType === "transmission" ? (
+                                  <Badge variant="secondary" className="text-xs px-1.5 py-0 h-4">
+                                    Lu
+                                  </Badge>
+                                ) : decision === "approved" ? (
+                                  <Badge className="text-xs px-1.5 py-0 h-4">Approuvé</Badge>
+                                ) : (
+                                  <Badge variant="destructive" className="text-xs px-1.5 py-0 h-4">
+                                    Refusé
+                                  </Badge>
+                                )
+                              ) : (
+                                <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">
+                                  {reqType === "transmission" ? "Pour information" : "À valider"}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
