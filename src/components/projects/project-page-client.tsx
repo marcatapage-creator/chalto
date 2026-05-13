@@ -822,7 +822,7 @@ export function ProjectPageClient({
           if (!open) setSelectedDocId(null)
         }}
       >
-        <DrawerContent className="h-[85dvh] p-0">
+        <DrawerContent className="h-[calc(var(--vvh)*0.85)] p-0">
           <DrawerTitle className="sr-only">Document</DrawerTitle>
           {selectedDoc && (
             <ErrorBoundary>

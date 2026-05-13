@@ -77,8 +77,9 @@ export const viewport: Viewport = {
   themeColor: "#2260E8",
 }
 
-// Runs before React hydration to apply stored theme and prevent FOUC
-const themeScript = `(function(){try{var t=localStorage.getItem('theme'),d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t||t==='system')&&d)document.documentElement.classList.add('dark')}catch(e){}})();`
+// Runs before React hydration to apply stored theme and prevent FOUC.
+// Also syncs --vvh (visual viewport height) so drawers/sheets resize correctly when the mobile keyboard opens.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme'),d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t||t==='system')&&d)document.documentElement.classList.add('dark')}catch(e){}var r=document.documentElement;function v(){r.style.setProperty('--vvh',(window.visualViewport?window.visualViewport.height:window.innerHeight)+'px');}v();(window.visualViewport||window).addEventListener('resize',v);})();`
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = (await headers()).get("x-nonce") ?? undefined

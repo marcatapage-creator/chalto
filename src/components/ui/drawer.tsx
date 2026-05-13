@@ -51,7 +51,9 @@ function DrawerContent({
         data-slot="drawer-content"
         className={cn(
           "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-popover ring-1 ring-foreground/10 outline-none",
-          "max-h-[90dvh]",
+          // Use --vvh (visual viewport height, synced with window.visualViewport) so the drawer
+          // never extends behind the soft keyboard on iOS/Android.
+          "max-h-[calc(var(--vvh)*0.9)]",
           className
         )}
         {...props}

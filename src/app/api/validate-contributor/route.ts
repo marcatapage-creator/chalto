@@ -57,6 +57,13 @@ export async function POST(request: Request) {
           .single(),
       ])
 
+    // profiles.email can be null if the trigger didn't run at signup — fall back to auth.users
+    let resolvedEmail = proProfile?.email ?? null
+    if (!resolvedEmail) {
+      const { data: authUser } = await admin.auth.admin.getUserById(userId)
+      resolvedEmail = authUser?.user?.email ?? null
+    }
+
     if (docUpdateError) {
       console.error("[validate-contributor] documents update error:", docUpdateError)
       return NextResponse.json({ error: "Erreur mise à jour statut document" }, { status: 500 })
@@ -82,10 +89,10 @@ export async function POST(request: Request) {
         console.error("[validate-contributor] createNotification lu:", err)
       )
 
-      if (proProfile?.email && proProfile?.notif_email_frequency !== "never") {
+      if (resolvedEmail && proProfile?.notif_email_frequency !== "never") {
         void sendTransmissionAckEmail({
-          proEmail: proProfile.email,
-          proName: proProfile.full_name ?? "Professionnel",
+          proEmail: resolvedEmail,
+          proName: proProfile?.full_name ?? "Professionnel",
           contributorName: contributorName ?? "Un prestataire",
           projectName: document.projects?.name ?? "Projet",
           documentName: document.name,
@@ -114,10 +121,10 @@ export async function POST(request: Request) {
         inAppEnabled: proProfile?.notif_inapp_enabled,
       }).catch((err: unknown) => console.error("[validate-contributor] createNotification:", err))
 
-      if (proProfile?.email && shouldSendEmail) {
+      if (resolvedEmail && shouldSendEmail) {
         void sendApprovalEmail({
-          proEmail: proProfile.email,
-          proName: proProfile.full_name ?? "Professionnel",
+          proEmail: resolvedEmail,
+          proName: proProfile?.full_name ?? "Professionnel",
           clientName: contributorName ?? "Un prestataire",
           projectName: document.projects?.name ?? "Projet",
           documentName: document.name,

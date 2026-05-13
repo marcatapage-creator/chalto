@@ -58,10 +58,12 @@ function SheetContent({
         className={cn(
           // Layout & base
           "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg",
-          // Positionnement par côté
+          // Positionnement par côté.
+          // Les sheets latéraux utilisent --vvh (visual viewport height) plutôt que h-full (100vh)
+          // pour que la hauteur se recalcule quand le clavier mobile s'ouvre.
           "data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t",
-          "data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:sm:max-w-sm",
-          "data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:sm:max-w-sm",
+          "data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-(--vvh) data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:sm:max-w-sm",
+          "data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-(--vvh) data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:sm:max-w-sm",
           "data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b",
           // Animation — autres côtés (left/right/top)
           "data-[side=left]:data-[state=open]:animate-in data-[side=left]:data-[state=open]:slide-in-from-left-[100%] data-[side=left]:data-[state=open]:duration-500 data-[side=left]:data-[state=open]:[animation-timing-function:cubic-bezier(0.32,0.72,0,1)]",
