@@ -233,6 +233,7 @@ export function GenerateDocumentDialog({
           </span>
         }
         contentClassName="sm:max-w-lg"
+        drawerClassName="h-[85svh]"
       >
         {progressDots}
 

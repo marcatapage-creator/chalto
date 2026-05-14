@@ -319,7 +319,7 @@ export function ProjectDetailsDialog({ projectId, project, onSave }: ProjectDeta
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent onOverlayClick={() => setOpen(false)}>
+      <DrawerContent onOverlayClick={() => setOpen(false)} className="h-[85svh]">
         <DrawerHeader>
           <DrawerTitle>Détails du projet</DrawerTitle>
         </DrawerHeader>

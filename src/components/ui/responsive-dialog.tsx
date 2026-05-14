@@ -29,6 +29,7 @@ interface ResponsiveDialogProps {
   footer?: React.ReactNode
   children: React.ReactNode
   contentClassName?: string
+  drawerClassName?: string
 }
 
 export function ResponsiveDialog({
@@ -40,6 +41,7 @@ export function ResponsiveDialog({
   footer,
   children,
   contentClassName,
+  drawerClassName,
 }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 1280px)")
 
@@ -69,12 +71,18 @@ export function ResponsiveDialog({
       <DrawerContent
         {...(!description && { "aria-describedby": undefined })}
         onOverlayClick={() => onOpenChange(false)}
+        className={drawerClassName}
       >
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
-        <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-2">
+        <div
+          className={cn(
+            "overflow-y-auto overscroll-contain px-6 pb-2",
+            drawerClassName ? "flex-1 min-h-0" : ""
+          )}
+        >
           {children}
           {footer && (
             <div className="-mx-6 mt-4 border-t bg-muted/50 px-6 py-4 flex flex-col-reverse gap-2">
