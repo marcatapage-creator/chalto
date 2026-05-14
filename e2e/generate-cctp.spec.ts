@@ -78,7 +78,7 @@ test("6.1 — cliquer sur CCTP affiche le formulaire de lots", async ({ page }) 
 
   await expect(page.getByText("Lots concernés")).toBeVisible({ timeout: 5_000 })
   await expect(page.getByRole("button", { name: "Gros œuvre" })).toBeVisible()
-  await expect(page.getByRole("button", { name: "Générer" })).toBeDisabled()
+  await expect(page.getByRole("button", { name: "Suivant" })).toBeDisabled()
 })
 
 test("6.1 — sélectionner un lot active le bouton Générer", async ({ page }) => {
@@ -96,7 +96,7 @@ test("6.1 — sélectionner un lot active le bouton Générer", async ({ page })
   await page.getByText("CCTP").click()
 
   await page.getByRole("button", { name: "Gros œuvre" }).click()
-  await expect(page.getByRole("button", { name: "Générer" })).toBeEnabled()
+  await expect(page.getByRole("button", { name: "Suivant" })).toBeEnabled()
 })
 
 // ─── 6.1 & 6.2 : Flux complet ─────────────────────────────────────────────────
@@ -117,6 +117,7 @@ test("6.2 — la génération CCTP aboutit et confirme l'ajout en brouillon", as
   await page.getByText("CCTP").click()
 
   await page.getByRole("button", { name: "Gros œuvre" }).click()
+  await page.getByRole("button", { name: "Suivant" }).click()
   await page.getByRole("button", { name: "Générer" }).click()
 
   await expect(page.getByText(/génération en cours|rédaction/i).first()).toBeVisible({
@@ -150,6 +151,7 @@ test("6.3 — aucune erreur console fatale pendant la génération", async ({ pa
   await page.getByText("CCTP").click()
 
   await page.getByRole("button", { name: "Gros œuvre" }).click()
+  await page.getByRole("button", { name: "Suivant" }).click()
   await page.getByRole("button", { name: "Générer" }).click()
 
   await expect(page.getByText(/document généré/i).first()).toBeVisible({
