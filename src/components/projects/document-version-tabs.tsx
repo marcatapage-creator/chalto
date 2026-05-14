@@ -27,9 +27,9 @@ export function DocumentVersionTabs({
       >
         V{localVersion} · En cours
       </button>
-      {prevVersions.map((pv) => (
+      {prevVersions.map((pv, i) => (
         <button
-          key={pv.version}
+          key={`${pv.version}-${i}`}
           onClick={() => onVersionChange(pv.version)}
           className={cn(
             "flex-1 px-3 py-1.5 transition-colors border-l",

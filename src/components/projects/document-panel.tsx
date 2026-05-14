@@ -103,7 +103,12 @@ export function DocumentPanel({
       .eq("document_id", document.id)
       .order("version", { ascending: false })
       .then(({ data }) => {
-        if (data) setPrevVersions(data as unknown as PrevVersion[])
+        if (data) {
+          const typed = data as unknown as PrevVersion[]
+          setPrevVersions(
+            typed.filter((v, i, arr) => arr.findIndex((x) => x.version === v.version) === i)
+          )
+        }
       })
   }, [document.id, supabase])
 
@@ -352,7 +357,7 @@ export function DocumentPanel({
           file_name: document.file_name,
           file_type: document.file_type,
         },
-        ...prev,
+        ...prev.filter((p) => p.version !== localVersion),
       ].slice(0, 3)
     )
     setLocalVersion(newVersion)

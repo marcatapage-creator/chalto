@@ -617,6 +617,11 @@ export function ProjectPageClient({
                       }, 50)
                     }}
                     onClose={() => registerClose("admin-dossiers")}
+                    onOpenAdd={
+                      !isDesktop
+                        ? () => router.push(`/projects/${project.id}/admin-dossier/new`)
+                        : undefined
+                    }
                   />
                 </div>
               </>
@@ -682,6 +687,11 @@ export function ProjectPageClient({
                         onClose={() => registerClose("tasks")}
                         unreadCount={localUnreadTasks}
                         onNewPrestaComment={() => setLocalUnreadTasks((n) => n + 1)}
+                        onOpenCreate={
+                          !isDesktop
+                            ? () => router.push(`/projects/${project.id}/tasks/new`)
+                            : undefined
+                        }
                       />
                     </ErrorBoundary>
                   </div>

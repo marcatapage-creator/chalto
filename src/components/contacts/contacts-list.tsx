@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -68,6 +69,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
   const [editLoading, setEditLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const isMobile = !useMediaQuery("(min-width: 1280px)")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -171,7 +173,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
           <h1 className="text-2xl font-bold tracking-tight">Annuaire</h1>
           <p className="text-muted-foreground">Vos prestataires et partenaires</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={() => (isMobile ? router.push("/contacts/new") : setOpen(true))}>
           <Plus className="h-4 w-4 sm:mr-2" />
           <span className="hidden sm:inline">Ajouter un contact</span>
         </Button>
@@ -309,7 +311,10 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
                         {
                           label: "Modifier",
                           icon: <Pencil className="h-4 w-4" />,
-                          onClick: () => setTimeout(() => openEdit(contact), 300),
+                          onClick: () =>
+                            isMobile
+                              ? router.push(`/contacts/${contact.id}/edit`)
+                              : setTimeout(() => openEdit(contact), 300),
                         },
                         {
                           label: "Supprimer",

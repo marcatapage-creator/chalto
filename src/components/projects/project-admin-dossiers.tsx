@@ -79,6 +79,7 @@ interface ProjectAdminDossiersProps {
   onClose?: () => void
   collapseSignal?: number
   expandSignal?: number
+  onOpenAdd?: () => void
 }
 
 interface FormState {
@@ -107,6 +108,7 @@ export function ProjectAdminDossiers({
   onClose,
   collapseSignal,
   expandSignal,
+  onOpenAdd,
 }: ProjectAdminDossiersProps) {
   const [dossiers, setDossiers] = useState<AdminDossier[]>(initialDossiers)
   const [isOpen, setIsOpen] = useState(defaultOpen || !!highlightedDossierId)
@@ -295,6 +297,10 @@ export function ProjectAdminDossiers({
             className="gap-1.5 shrink-0"
             onClick={(e) => {
               e.stopPropagation()
+              if (onOpenAdd) {
+                onOpenAdd()
+                return
+              }
               if (!isOpen) {
                 setIsOpen(true)
                 onOpen?.()
