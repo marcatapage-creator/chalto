@@ -130,6 +130,7 @@ export function AddDocumentDialog({
     setName("")
     setType("")
     setFile(null)
+    router.push(`/projects/${projectId}?highlight=doc_${doc}`)
     router.refresh()
     setLoading(false)
   }

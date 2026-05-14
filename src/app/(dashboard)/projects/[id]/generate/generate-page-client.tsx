@@ -102,6 +102,7 @@ export function GeneratePageClient({
   const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS)
   const [generating, setGenerating] = useState(false)
   const [done, setDone] = useState(false)
+  const [generatedDocId, setGeneratedDocId] = useState<string | null>(null)
 
   const goForward = (nextStep: Step) => {
     setStepDir(1)
@@ -150,6 +151,8 @@ export function GeneratePageClient({
         return
       }
 
+      const data = (await res.json().catch(() => ({}))) as { documentId?: string }
+      setGeneratedDocId(data.documentId ?? null)
       setDone(true)
       router.refresh()
     } catch {
@@ -479,10 +482,16 @@ export function GeneratePageClient({
                         </p>
                       </div>
                       <Button
-                        onClick={() => router.push(`/projects/${projectId}`)}
+                        onClick={() =>
+                          router.push(
+                            generatedDocId
+                              ? `/projects/${projectId}?highlight=doc_${generatedDocId}`
+                              : `/projects/${projectId}`
+                          )
+                        }
                         className="mt-2"
                       >
-                        Voir les documents
+                        Voir le document
                       </Button>
                     </>
                   ) : null}

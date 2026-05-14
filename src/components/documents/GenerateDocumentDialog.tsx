@@ -102,6 +102,7 @@ export function GenerateDocumentDialog({
   const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS)
   const [generating, setGenerating] = useState(false)
   const [done, setDone] = useState(false)
+  const [generatedDocId, setGeneratedDocId] = useState<string | null>(null)
   const router = useRouter()
 
   const goForward = (nextStep: Step) => {
@@ -151,6 +152,8 @@ export function GenerateDocumentDialog({
         return
       }
 
+      const data = (await res.json().catch(() => ({}))) as { documentId?: string }
+      setGeneratedDocId(data.documentId ?? null)
       setDone(true)
       router.refresh()
     } catch {
@@ -171,6 +174,7 @@ export function GenerateDocumentDialog({
         setAnswers(EMPTY_ANSWERS)
         setGenerating(false)
         setDone(false)
+        setGeneratedDocId(null)
       }, 200)
     }
   }
@@ -528,8 +532,24 @@ export function GenerateDocumentDialog({
                         L&apos;{docLabel} a été ajouté à vos documents en brouillon.
                       </p>
                     </div>
-                    <Button onClick={() => handleOpenChange(false)} className="mt-2">
-                      Fermer
+                    <Button
+                      onClick={() => {
+                        handleOpenChange(false)
+                        if (generatedDocId) {
+                          setTimeout(
+                            () =>
+                              window.dispatchEvent(
+                                new CustomEvent("chalto:highlight", {
+                                  detail: `doc_${generatedDocId}`,
+                                })
+                              ),
+                            300
+                          )
+                        }
+                      }}
+                      className="mt-2"
+                    >
+                      Voir le document
                     </Button>
                   </>
                 ) : null}
