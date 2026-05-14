@@ -176,7 +176,7 @@ export function GeneratePageClient({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => (step > 1 && step < 4 ? goBack((step - 1) as Step) : router.back())}
           disabled={step === 4 && generating}
         >
