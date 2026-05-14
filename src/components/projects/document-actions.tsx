@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -136,6 +136,7 @@ export function DocumentSendForm({
   const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+  const sendBtnRef = useRef<HTMLButtonElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
@@ -365,12 +366,19 @@ export function DocumentSendForm({
           const el = e.currentTarget
           setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300)
         }}
+        onBlur={() => {
+          setTimeout(
+            () => sendBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+            350
+          )
+        }}
         rows={2}
         className="resize-none text-sm"
       />
 
       {/* Bouton envoyer */}
       <Button
+        ref={sendBtnRef}
         className="w-full"
         onClick={handleSend}
         disabled={
