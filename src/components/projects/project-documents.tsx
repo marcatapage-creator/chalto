@@ -331,7 +331,7 @@ export function ProjectDocuments({
                 {
                   label: "Upload un fichier",
                   icon: <Upload className="h-4 w-4" />,
-                  onClick: () => setAddDocOpen(true),
+                  onClick: () => setTimeout(() => setAddDocOpen(true), 300),
                 },
                 ...(!isDesktop
                   ? [
@@ -347,7 +347,7 @@ export function ProjectDocuments({
                       {
                         label: "Lier Dropbox",
                         icon: <DropboxIcon className="h-4 w-4" />,
-                        onClick: () => setPickerOpen(true),
+                        onClick: () => setTimeout(() => setPickerOpen(true), 300),
                       },
                     ]
                   : []),

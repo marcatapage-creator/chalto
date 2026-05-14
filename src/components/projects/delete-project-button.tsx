@@ -93,7 +93,7 @@ export function DeleteProjectButton({
           {
             label: "Supprimer",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: () => setConfirmOpen(true),
+            onClick: () => setTimeout(() => setConfirmOpen(true), 300),
             destructive: true,
             separator: true,
           },

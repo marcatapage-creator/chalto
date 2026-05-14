@@ -244,6 +244,10 @@ export function TaskComments({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={(e) => {
+                const el = e.currentTarget
+                setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300)
+              }}
               rows={1}
               className="resize-none text-xs min-h-8"
             />

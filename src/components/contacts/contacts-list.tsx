@@ -8,13 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import {
   Select,
@@ -316,7 +309,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
                         {
                           label: "Modifier",
                           icon: <Pencil className="h-4 w-4" />,
-                          onClick: () => openEdit(contact),
+                          onClick: () => setTimeout(() => openEdit(contact), 300),
                         },
                         {
                           label: "Supprimer",
@@ -374,92 +367,98 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
       {/* Fade directionnel bas */}
       <div className="pointer-events-none sticky bottom-0 h-47 bg-linear-to-t from-neutral-50/80 dark:from-background/80 to-transparent" />
 
-      {/* Dialog édition */}
-      <Dialog open={!!editContact} onOpenChange={(v) => !v && setEditContact(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifier le contact</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nom *</Label>
-                <Input
-                  name="name"
-                  placeholder="Marc Dupuis"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Entreprise</Label>
-                <Input
-                  name="company_name"
-                  placeholder="Dupuis Plomberie"
-                  value={editForm.company_name}
-                  onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
-                />
-              </div>
-            </div>
+      {/* Édition contact */}
+      <ResponsiveDialog
+        open={!!editContact}
+        onOpenChange={(v) => !v && setEditContact(null)}
+        title="Modifier le contact"
+        contentClassName="sm:max-w-md"
+        footer={
+          <>
+            <Button onClick={handleUpdate} loading={editLoading} className="w-full sm:w-auto">
+              {editLoading ? "Sauvegarde..." : "Enregistrer"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setEditContact(null)}
+              className="w-full sm:w-auto"
+            >
+              Annuler
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 py-2">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Métier</Label>
-              <Select
-                value={editForm.profession_id}
-                onValueChange={(v) => setEditForm({ ...editForm, profession_id: v })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner un métier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {professions.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="marc@exemple.fr"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Téléphone</Label>
-                <Input
-                  name="phone"
-                  placeholder="06 00 00 00 00"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>Nom *</Label>
               <Input
-                name="notes"
-                placeholder="Disponible le matin, spécialiste rénovation..."
-                value={editForm.notes}
-                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                name="name"
+                placeholder="Marc Dupuis"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Entreprise</Label>
+              <Input
+                name="company_name"
+                placeholder="Dupuis Plomberie"
+                value={editForm.company_name}
+                onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditContact(null)}>
-              Annuler
-            </Button>
-            <Button onClick={handleUpdate} loading={editLoading}>
-              {editLoading ? "Sauvegarde..." : "Enregistrer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-2">
+            <Label>Métier</Label>
+            <Select
+              value={editForm.profession_id}
+              onValueChange={(v) => setEditForm({ ...editForm, profession_id: v })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionner un métier" />
+              </SelectTrigger>
+              <SelectContent>
+                {professions.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                name="email"
+                type="email"
+                placeholder="marc@exemple.fr"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Téléphone</Label>
+              <Input
+                name="phone"
+                placeholder="06 00 00 00 00"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Notes</Label>
+            <Input
+              name="notes"
+              placeholder="Disponible le matin, spécialiste rénovation..."
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+            />
+          </div>
+        </div>
+      </ResponsiveDialog>
     </div>
   )
 }

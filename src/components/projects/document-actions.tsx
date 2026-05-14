@@ -30,6 +30,18 @@ interface Contributor {
   professions?: { label: string } | null
 }
 
+interface DocumentSendFormProps {
+  documentId: string
+  documentName: string
+  projectId: string
+  clientName?: string
+  status: string
+  fileUrl?: string | null
+  isChantier?: boolean
+  onSent?: (info?: AudienceInfo) => void
+  onClose: () => void
+}
+
 interface DocumentActionsProps {
   documentId: string
   documentName: string
@@ -40,6 +52,8 @@ interface DocumentActionsProps {
   isChantier?: boolean
   className?: string
   onSent?: (info?: AudienceInfo) => void
+  /** When provided (mobile inline mode), button calls this instead of opening a dialog. */
+  onOpenSend?: () => void
 }
 
 const REQUEST_TYPE_OPTIONS = [
@@ -98,7 +112,12 @@ function RequestTypeSelector({
   )
 }
 
-export function DocumentActions({
+/**
+ * Form content for sending/sharing a document.
+ * Rendered either inside a ResponsiveDialog (desktop) or inline in the
+ * document panel drawer (mobile) — no dialog wrapper here.
+ */
+export function DocumentSendForm({
   documentId,
   documentName,
   projectId,
@@ -106,10 +125,9 @@ export function DocumentActions({
   status,
   fileUrl,
   isChantier = false,
-  className,
   onSent,
-}: DocumentActionsProps) {
-  const [open, setOpen] = useState(false)
+  onClose,
+}: DocumentSendFormProps) {
   const [audience, setAudience] = useState<"client" | "contributor">(
     status === "approved" ? "contributor" : "client"
   )
@@ -121,7 +139,6 @@ export function DocumentActions({
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    if (!open) return
     supabase
       .from("contributors")
       .select("id, name, professions(label)")
@@ -129,7 +146,7 @@ export function DocumentActions({
       .then(({ data }) => {
         if (data) setContributors(data)
       })
-  }, [open, projectId, supabase])
+  }, [projectId, supabase])
 
   const toggleContributor = (id: string) => {
     setSelectedContributors((prev) =>
@@ -143,10 +160,8 @@ export function DocumentActions({
       return
     }
 
-    // Optimistic: fermer le dialog et passer en "envoyé" immédiatement.
-    // Les closures capturent message/selectedContributors/requestType avant les resets.
-    setOpen(false)
-    setMessage("")
+    // Optimistic: fermer et signaler "envoyé" immédiatement.
+    onClose()
     setLoading(true)
 
     if (audience === "contributor" && selectedContributors.length > 0) {
@@ -239,6 +254,159 @@ export function DocumentActions({
   }
 
   return (
+    <div className="space-y-4">
+      {/* Choix audience — uniquement en phase chantier */}
+      {isChantier && status !== "approved" && (
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setAudience("client")}
+            className={cn(
+              "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+              status === "approved"
+                ? "border-border opacity-40 cursor-not-allowed"
+                : audience === "client"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+            )}
+          >
+            <User
+              className={cn(
+                "h-6 w-6",
+                audience === "client" && status !== "approved"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}
+            />
+            <span className="text-sm font-medium">Mon client</span>
+            {status === "approved" ? (
+              <span className="text-xs text-muted-foreground">Déjà approuvé</span>
+            ) : (
+              clientName && <span className="text-xs text-muted-foreground">{clientName}</span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setAudience("contributor")}
+            className={cn(
+              "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+              audience === "contributor"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <Users
+              className={cn(
+                "h-6 w-6",
+                audience === "contributor" ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+            <span className="text-sm font-medium">Prestataires</span>
+            <span className="text-xs text-muted-foreground">
+              {contributors.length} sur le projet
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Sélection prestataires */}
+      {audience === "contributor" && (
+        <div className="space-y-2">
+          {contributors.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Aucun prestataire sur ce projet
+            </p>
+          ) : (
+            contributors.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => toggleContributor(c.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
+                  selectedContributors.includes(c.id)
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <div
+                  className={cn(
+                    "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                    selectedContributors.includes(c.id)
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground"
+                  )}
+                >
+                  {selectedContributors.includes(c.id) && (
+                    <Check className="h-3 w-3 text-primary-foreground" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.professions?.label}</p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Type de demande */}
+      <RequestTypeSelector value={requestType} onChange={setRequestType} />
+
+      {/* Message facultatif */}
+      <Textarea
+        placeholder={
+          audience === "client"
+            ? "Ajouter un mot pour le client (facultatif)..."
+            : "Ajouter un mot pour le(s) prestataire(s) (facultatif)..."
+        }
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onFocus={(e) => {
+          const el = e.currentTarget
+          setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300)
+        }}
+        rows={2}
+        className="resize-none text-sm"
+      />
+
+      {/* Bouton envoyer */}
+      <Button
+        className="w-full"
+        onClick={handleSend}
+        disabled={
+          loading ||
+          (audience === "client" && requestType === "validation" && !fileUrl) ||
+          (audience === "contributor" && selectedContributors.length === 0)
+        }
+      >
+        <Send className="h-4 w-4 mr-2" />
+        {loading
+          ? "Envoi en cours..."
+          : audience === "client" && requestType === "validation" && !fileUrl
+            ? "Uploadez un fichier d'abord"
+            : audience === "client"
+              ? "Envoyer au client"
+              : `Envoyer à ${selectedContributors.length} prestataire(s)`}
+      </Button>
+    </div>
+  )
+}
+
+export function DocumentActions({
+  documentId,
+  documentName,
+  projectId,
+  clientName,
+  status,
+  fileUrl,
+  isChantier = false,
+  className,
+  onSent,
+  onOpenSend,
+}: DocumentActionsProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
     <>
       {status === "approved" && (
         <Badge variant="outline" className="text-primary border-primary shrink-0">
@@ -257,7 +425,7 @@ export function DocumentActions({
         <Button
           size="sm"
           variant={status === "approved" ? "outline" : "default"}
-          onClick={() => setOpen(true)}
+          onClick={() => (onOpenSend ? onOpenSend() : setOpen(true))}
           disabled={status === "sent"}
           className={cn(className)}
         >
@@ -266,146 +434,28 @@ export function DocumentActions({
         </Button>
       </OnboardingTooltip>
 
-      <ResponsiveDialog
-        open={open}
-        onOpenChange={setOpen}
-        title={status === "approved" ? "Partager avec un prestataire" : "Envoyer ce document"}
-        description="Choisissez le type de requête"
-        contentClassName="sm:max-w-md"
-      >
-        <div className="space-y-4">
-          {/* Choix audience — uniquement en phase chantier */}
-          {isChantier && status !== "approved" && (
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setAudience("client")}
-                disabled={false}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                  status === "approved"
-                    ? "border-border opacity-40 cursor-not-allowed"
-                    : audience === "client"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                )}
-              >
-                <User
-                  className={cn(
-                    "h-6 w-6",
-                    audience === "client" && status !== "approved"
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                />
-                <span className="text-sm font-medium">Mon client</span>
-                {status === "approved" ? (
-                  <span className="text-xs text-muted-foreground">Déjà approuvé</span>
-                ) : (
-                  clientName && <span className="text-xs text-muted-foreground">{clientName}</span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setAudience("contributor")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                  audience === "contributor"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <Users
-                  className={cn(
-                    "h-6 w-6",
-                    audience === "contributor" ? "text-primary" : "text-muted-foreground"
-                  )}
-                />
-                <span className="text-sm font-medium">Prestataires</span>
-                <span className="text-xs text-muted-foreground">
-                  {contributors.length} sur le projet
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* Sélection prestataires */}
-          {audience === "contributor" && (
-            <div className="space-y-2">
-              {contributors.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun prestataire sur ce projet
-                </p>
-              ) : (
-                contributors.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => toggleContributor(c.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
-                      selectedContributors.includes(c.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                        selectedContributors.includes(c.id)
-                          ? "border-primary bg-primary"
-                          : "border-muted-foreground"
-                      )}
-                    >
-                      {selectedContributors.includes(c.id) && (
-                        <Check className="h-3 w-3 text-primary-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.professions?.label}</p>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Type de demande (client + prestataires) */}
-          <RequestTypeSelector value={requestType} onChange={setRequestType} />
-
-          {/* Message facultatif */}
-          <Textarea
-            placeholder={
-              audience === "client"
-                ? "Ajouter un mot pour le client (facultatif)..."
-                : "Ajouter un mot pour le(s) prestataire(s) (facultatif)..."
-            }
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={2}
-            className="resize-none text-sm"
+      {/* Dialog uniquement en mode desktop (onOpenSend absent) */}
+      {!onOpenSend && (
+        <ResponsiveDialog
+          open={open}
+          onOpenChange={setOpen}
+          title={status === "approved" ? "Partager avec un prestataire" : "Envoyer ce document"}
+          description="Choisissez le type de requête"
+          contentClassName="sm:max-w-md"
+        >
+          <DocumentSendForm
+            documentId={documentId}
+            documentName={documentName}
+            projectId={projectId}
+            clientName={clientName}
+            status={status}
+            fileUrl={fileUrl}
+            isChantier={isChantier}
+            onSent={onSent}
+            onClose={() => setOpen(false)}
           />
-
-          {/* Bouton envoyer */}
-          <Button
-            className="w-full"
-            onClick={handleSend}
-            disabled={
-              loading ||
-              (audience === "client" && requestType === "validation" && !fileUrl) ||
-              (audience === "contributor" && selectedContributors.length === 0)
-            }
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {loading
-              ? "Envoi en cours..."
-              : audience === "client" && requestType === "validation" && !fileUrl
-                ? "Uploadez un fichier d'abord"
-                : audience === "client"
-                  ? "Envoyer au client"
-                  : `Envoyer à ${selectedContributors.length} prestataire(s)`}
-          </Button>
-        </div>
-      </ResponsiveDialog>
+        </ResponsiveDialog>
+      )}
     </>
   )
 }
