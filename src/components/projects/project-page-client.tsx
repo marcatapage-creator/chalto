@@ -329,6 +329,20 @@ export function ProjectPageClient({
     setExpandSignal((s) => s + 1)
   }, [])
 
+  const detailsEditButton =
+    phase !== "cloture" &&
+    (isDesktop ? (
+      <ProjectDetailsDialog
+        projectId={project.id}
+        project={projectInfo}
+        onSave={(updated) => setProjectInfo(updated)}
+      />
+    ) : (
+      <Button variant="ghost" size="sm" className="text-muted-foreground h-7 px-2 text-xs" asChild>
+        <Link href={`/projects/${project.id}/details`}>Détails</Link>
+      </Button>
+    ))
+
   // Cleanup synchrone à l'unmount : restaure les styles body que Radix/Vaul ont pu
   // laisser en place si la navigation interrompt la fermeture d'un Dialog/Drawer
   // (React 18 concurrent mode peut différer les cleanup passifs)
@@ -432,13 +446,7 @@ export function ProjectPageClient({
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Client
                       </p>
-                      {phase !== "cloture" && (
-                        <ProjectDetailsDialog
-                          projectId={project.id}
-                          project={projectInfo}
-                          onSave={(updated) => setProjectInfo(updated)}
-                        />
-                      )}
+                      {detailsEditButton}
                     </div>
                     {projectInfo.client_name && (
                       <div className="flex items-center gap-2 text-sm">
@@ -509,13 +517,23 @@ export function ProjectPageClient({
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Client
                     </p>
-                    {phase !== "cloture" && (
-                      <ProjectDetailsDialog
-                        projectId={project.id}
-                        project={projectInfo}
-                        onSave={(updated) => setProjectInfo(updated)}
-                      />
-                    )}
+                    {phase !== "cloture" &&
+                      (isDesktop ? (
+                        <ProjectDetailsDialog
+                          projectId={project.id}
+                          project={projectInfo}
+                          onSave={(updated) => setProjectInfo(updated)}
+                        />
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground h-7 px-2 text-xs"
+                          asChild
+                        >
+                          <Link href={`/projects/${project.id}/details`}>Détails</Link>
+                        </Button>
+                      ))}
                   </div>
                   {projectInfo.client_name && (
                     <div className="flex items-center gap-2 text-sm">

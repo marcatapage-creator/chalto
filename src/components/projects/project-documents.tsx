@@ -28,6 +28,7 @@ import {
   Plus,
   X,
   Camera,
+  Sparkles,
 } from "lucide-react"
 import { AddDocumentDialog } from "@/components/projects/add-document-dialog"
 import { GenerateDocumentDialog } from "@/components/documents/GenerateDocumentDialog"
@@ -313,13 +314,29 @@ export function ProjectDocuments({
         </div>
         {!readOnly && (
           <div className="flex items-center gap-4.5 pl-3" onClick={(e) => e.stopPropagation()}>
-            <GenerateDocumentDialog
-              projectId={projectId}
-              projectName={projectName}
-              workType={workType ?? ""}
-              clientName={clientName}
-              professionSlug={professionSlug}
-            />
+            {isDesktop ? (
+              <GenerateDocumentDialog
+                projectId={projectId}
+                projectName={projectName}
+                workType={workType ?? ""}
+                clientName={clientName}
+                professionSlug={professionSlug}
+              />
+            ) : (
+              <>
+                <div
+                  role="button"
+                  className="ai-btn-border rounded-md p-px inline-flex cursor-pointer shrink-0"
+                  onClick={() => router.push(`/projects/${projectId}/generate`)}
+                >
+                  <div className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[5px] bg-background text-sm font-medium hover:bg-muted/60 transition-colors lg:h-8 lg:px-3">
+                    <Sparkles className="hidden sm:inline h-3.5 w-3.5 text-violet-500" />
+                    <span className="sm:hidden">IA</span>
+                    <span className="hidden sm:inline">Générer IA</span>
+                  </div>
+                </div>
+              </>
+            )}
             <ActionMenu
               trigger={
                 <Button size="sm" className="gap-1.5">

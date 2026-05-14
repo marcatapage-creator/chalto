@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -22,6 +22,7 @@ import { OnboardingTooltip } from "@/components/ui/onboarding-tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
+import { scrollOnFocus } from "@/hooks/use-scroll-on-focus"
 import type { AudienceInfo } from "./document-panel-types"
 
 interface Contributor {
@@ -32,27 +33,22 @@ interface Contributor {
 
 interface DocumentSendFormProps {
   documentId: string
-  documentName: string
   projectId: string
   clientName?: string
   status: string
   fileUrl?: string | null
-  isChantier?: boolean
   onSent?: (info?: AudienceInfo) => void
   onClose: () => void
 }
 
 interface DocumentActionsProps {
   documentId: string
-  documentName: string
   projectId: string
   clientName?: string
   status: string
   fileUrl?: string | null
-  isChantier?: boolean
   className?: string
   onSent?: (info?: AudienceInfo) => void
-  /** When provided (mobile inline mode), button calls this instead of opening a dialog. */
   onOpenSend?: () => void
 }
 
@@ -70,7 +66,6 @@ function RequestTypeSelector({
 }) {
   return (
     <>
-      {/* Mobile : Select dropdown */}
       <div className="sm:hidden">
         <Select value={value} onValueChange={(v) => onChange(v as "validation" | "transmission")}>
           <SelectTrigger className="w-full">
@@ -86,7 +81,6 @@ function RequestTypeSelector({
         </Select>
       </div>
 
-      {/* Desktop : boutons radio stylisés */}
       <RadioGroup
         value={value}
         onValueChange={(v) => onChange(v as "validation" | "transmission")}
@@ -113,18 +107,15 @@ function RequestTypeSelector({
 }
 
 /**
- * Form content for sending/sharing a document.
- * Rendered either inside a ResponsiveDialog (desktop) or inline in the
- * document panel drawer (mobile) — no dialog wrapper here.
+ * Formulaire d'envoi — utilisé dans la dialog desktop.
+ * Sur mobile, l'envoi passe par la page dédiée /send.
  */
 export function DocumentSendForm({
   documentId,
-  documentName,
   projectId,
   clientName,
   status,
   fileUrl,
-  isChantier = false,
   onSent,
   onClose,
 }: DocumentSendFormProps) {
@@ -136,7 +127,6 @@ export function DocumentSendForm({
   const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
-  const sendBtnRef = useRef<HTMLButtonElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
@@ -161,7 +151,6 @@ export function DocumentSendForm({
       return
     }
 
-    // Optimistic: fermer et signaler "envoyé" immédiatement.
     onClose()
     setLoading(true)
 
@@ -224,128 +213,105 @@ export function DocumentSendForm({
         )
         if (upsertError) console.error("[document_contributors upsert]", upsertError)
 
-        const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
+        await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            documentId,
             contributorIds: selectedContributors,
-            documentName,
-            projectId,
             message: message || undefined,
             requestType,
           }),
         })
 
-        if (!emailRes.ok) {
-          console.error("[send-document-contributor]", emailRes.status)
-          toast.error("Erreur lors de l'envoi de l'email — réessayez")
-          setLoading(false)
-          return
-        }
-
         haptics.success()
-        toast.success(`Document partagé avec ${selectedContributors.length} prestataire(s) ✅`)
+        toast.success("Document envoyé aux prestataires ✅")
       }
-    } catch (error) {
-      console.error(error)
-      toast.error("Une erreur est survenue")
+    } catch {
+      toast.error("Erreur réseau — réessayez")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
     <div className="space-y-4">
-      {/* Choix audience — uniquement en phase chantier */}
-      {isChantier && status !== "approved" && (
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setAudience("client")}
-            className={cn(
-              "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-              status === "approved"
-                ? "border-border opacity-40 cursor-not-allowed"
-                : audience === "client"
+      {/* Audience */}
+      {status !== "approved" && (
+        <div className="grid grid-cols-2 gap-2">
+          {(["client", "contributor"] as const).map((a) => (
+            <button
+              key={a}
+              onClick={() => setAudience(a)}
+              className={cn(
+                "flex items-center gap-2 p-3 rounded-lg border-2 text-left transition-all",
+                audience === a
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-            )}
-          >
-            <User
-              className={cn(
-                "h-6 w-6",
-                audience === "client" && status !== "approved"
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                  : "border-border hover:border-primary/40"
               )}
-            />
-            <span className="text-sm font-medium">Mon client</span>
-            {status === "approved" ? (
-              <span className="text-xs text-muted-foreground">Déjà approuvé</span>
-            ) : (
-              clientName && <span className="text-xs text-muted-foreground">{clientName}</span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setAudience("contributor")}
-            className={cn(
-              "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-              audience === "contributor"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <Users
-              className={cn(
-                "h-6 w-6",
-                audience === "contributor" ? "text-primary" : "text-muted-foreground"
+            >
+              {a === "client" ? (
+                <User className="h-4 w-4 text-primary" />
+              ) : (
+                <Users className="h-4 w-4 text-primary" />
               )}
-            />
-            <span className="text-sm font-medium">Prestataires</span>
-            <span className="text-xs text-muted-foreground">
-              {contributors.length} sur le projet
-            </span>
-          </button>
+              <div>
+                <p className="text-sm font-medium">
+                  {a === "client" ? "Client" : "Prestataire(s)"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {a === "client" ? (clientName ?? "Lien de validation") : "Équipe projet"}
+                </p>
+              </div>
+              {audience === a && <Check className="h-3.5 w-3.5 text-primary ml-auto shrink-0" />}
+            </button>
+          ))}
         </div>
       )}
 
       {/* Sélection prestataires */}
       {audience === "contributor" && (
         <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Prestataires
+          </p>
           {contributors.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Aucun prestataire sur ce projet
-            </p>
+            <p className="text-sm text-muted-foreground py-2">Aucun prestataire sur ce projet</p>
           ) : (
-            contributors.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => toggleContributor(c.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
-                  selectedContributors.includes(c.id)
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <div
-                  className={cn(
-                    "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                    selectedContributors.includes(c.id)
-                      ? "border-primary bg-primary"
-                      : "border-muted-foreground"
-                  )}
-                >
-                  {selectedContributors.includes(c.id) && (
-                    <Check className="h-3 w-3 text-primary-foreground" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.professions?.label}</p>
-                </div>
-              </button>
-            ))
+            <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto">
+              {contributors.map((c) => {
+                const selected = selectedContributors.includes(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => toggleContributor(c.id)}
+                    className={cn(
+                      "flex items-center gap-3 p-2.5 rounded-lg border-2 text-left transition-all",
+                      selected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/30"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                        selected ? "border-primary bg-primary" : "border-muted-foreground/40"
+                      )}
+                    >
+                      {selected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{c.name}</p>
+                      {c.professions?.label && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {c.professions.label}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           )}
         </div>
       )}
@@ -362,23 +328,13 @@ export function DocumentSendForm({
         }
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        onFocus={(e) => {
-          const el = e.currentTarget
-          setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300)
-        }}
-        onBlur={() => {
-          setTimeout(
-            () => sendBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
-            350
-          )
-        }}
+        onFocus={scrollOnFocus}
         rows={2}
         className="resize-none text-sm"
       />
 
       {/* Bouton envoyer */}
       <Button
-        ref={sendBtnRef}
         className="w-full"
         onClick={handleSend}
         disabled={
@@ -386,15 +342,10 @@ export function DocumentSendForm({
           (audience === "client" && requestType === "validation" && !fileUrl) ||
           (audience === "contributor" && selectedContributors.length === 0)
         }
+        loading={loading}
       >
         <Send className="h-4 w-4 mr-2" />
-        {loading
-          ? "Envoi en cours..."
-          : audience === "client" && requestType === "validation" && !fileUrl
-            ? "Uploadez un fichier d'abord"
-            : audience === "client"
-              ? "Envoyer au client"
-              : `Envoyer à ${selectedContributors.length} prestataire(s)`}
+        {status === "approved" ? "Partager" : "Envoyer"}
       </Button>
     </div>
   )
@@ -402,12 +353,10 @@ export function DocumentSendForm({
 
 export function DocumentActions({
   documentId,
-  documentName,
   projectId,
   clientName,
   status,
   fileUrl,
-  isChantier = false,
   className,
   onSent,
   onOpenSend,
@@ -442,7 +391,6 @@ export function DocumentActions({
         </Button>
       </OnboardingTooltip>
 
-      {/* Dialog uniquement en mode desktop (onOpenSend absent) */}
       {!onOpenSend && (
         <ResponsiveDialog
           open={open}
@@ -453,12 +401,10 @@ export function DocumentActions({
         >
           <DocumentSendForm
             documentId={documentId}
-            documentName={documentName}
             projectId={projectId}
             clientName={clientName}
             status={status}
             fileUrl={fileUrl}
-            isChantier={isChantier}
             onSent={onSent}
             onClose={() => setOpen(false)}
           />

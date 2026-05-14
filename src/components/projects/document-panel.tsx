@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FileUpload } from "@/components/projects/file-upload"
 import { FileViewer } from "@/components/projects/file-viewer"
 import { createClient } from "@/lib/supabase/client"
-import { ArrowLeft, FileText, X } from "lucide-react"
+import { FileText, X } from "lucide-react"
 import { cn, isChantierPhase } from "@/lib/utils"
 import { toast } from "sonner"
 import { docStatusMap } from "@/lib/doc-status"
@@ -17,7 +17,6 @@ import { ValidationResultBanner } from "./document-validation-banner"
 import { ValidationsSection } from "./document-validations-section"
 import { DocumentVersionTabs } from "./document-version-tabs"
 import { DocumentPanelFooter } from "./document-panel-footer"
-import { DocumentSendForm } from "./document-actions"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import type {
   ValidationData,
@@ -28,12 +27,6 @@ import type {
 } from "./document-panel-types"
 
 import type { ProjectDocument } from "@/types/domain"
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: `${dir * 30}%`, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: `${dir * -20}%`, opacity: 0 }),
-}
 
 export interface DocumentPanelProps {
   document: ProjectDocument
@@ -60,13 +53,7 @@ export function DocumentPanel({
 }: DocumentPanelProps) {
   const isChantier = isChantierPhase(phase)
   const isMobile = useMediaQuery("(max-width: 1279px)")
-  const [panelView, setPanelView] = useState<"doc" | "send">("doc")
-  const [direction, setDirection] = useState(1)
-
-  const navigateTo = useCallback((view: "doc" | "send") => {
-    setDirection(view === "send" ? 1 : -1)
-    setPanelView(view)
-  }, [])
+  const router = useRouter()
   const [localStatus, setLocalStatus] = useState(document.status)
   const [localVersion, setLocalVersion] = useState(document.version ?? 1)
   // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
@@ -81,13 +68,6 @@ export function DocumentPanel({
   useEffect(() => {
     onStatusChangeRef.current = onStatusChange
   }, [onStatusChange])
-
-  const [prevDocId, setPrevDocId] = useState(document.id)
-  if (document.id !== prevDocId) {
-    setPrevDocId(document.id)
-    setDirection(-1)
-    setPanelView("doc")
-  }
 
   const [validationEntry, setValidationEntry] = useState<{
     docId: string
@@ -421,177 +401,114 @@ export function DocumentPanel({
   const bannerStatus = isViewingArchive ? (bannerValidation?.status ?? "draft") : localStatus
 
   return (
-    <div className="relative flex flex-col h-full min-h-0 overflow-hidden">
-      <AnimatePresence initial={false} custom={direction}>
-        {isMobile && panelView === "send" ? (
-          <motion.div
-            key="send"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 flex flex-col"
-          >
-            {/* Back header — send view */}
-            <div className="px-4 py-3 border-b flex items-center gap-3 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                onClick={() => navigateTo("doc")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <p className="text-sm font-medium truncate">
-                {localStatus === "approved"
-                  ? "Partager avec un prestataire"
-                  : "Envoyer ce document"}
-              </p>
-            </div>
-            {/* Send form inline */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
-              <DocumentSendForm
-                documentId={document.id}
-                documentName={document.name}
-                projectId={document.project_id}
-                clientName={clientName}
-                status={localStatus}
-                fileUrl={fileUrl}
-                isChantier={isChantier}
-                onSent={(info) => {
-                  setLocalStatus("sent")
-                  if (info) setAudienceInfo(info)
-                  onStatusChange?.(document.id, "sent")
-                }}
-                onClose={() => navigateTo("doc")}
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 xl:py-0 border-b flex items-center justify-between gap-3 shrink-0 xl:min-h-25.25">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="bg-muted p-1.5 rounded-md shrink-0">
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{document.name}</p>
+            <p className="text-xs text-muted-foreground">{document.type}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge variant={docStatus.variant} className={cn("text-xs", docStatus.className)}>
+            {localVersion > 1
+              ? `V${localVersion} ${docStatus.label.toLowerCase()}`
+              : docStatus.label}
+          </Badge>
+          {showClose && (
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <ValidationResultBanner
+        validation={bannerValidation as ValidationData | null}
+        localStatus={bannerStatus}
+      />
+
+      {/* Contenu scrollable */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="px-4 py-4 space-y-3">
+          <ValidationsSection
+            allValidations={allValidations}
+            validatorContributors={validatorContributors}
+            clientName={clientName}
+            activeVersion={activeVersionTab ?? localVersion}
+            isCurrentVersion={activeVersionTab === null}
+          />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Fichier
+          </p>
+
+          <DocumentVersionTabs
+            prevVersions={prevVersions}
+            localVersion={localVersion}
+            activeVersionTab={activeVersionTab}
+            onVersionChange={handleVersionTabChange}
+          />
+
+          {activePrev ? (
+            activePrev.file_url ? (
+              <FileViewer
+                fileUrl={activePrev.file_url}
+                fileName={activePrev.file_name ?? document.name}
+                fileType={activePrev.file_type ?? "application/pdf"}
               />
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="doc"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 flex flex-col"
-          >
-            {/* Header */}
-            <div className="px-4 py-3 xl:py-0 border-b flex items-center justify-between gap-3 shrink-0 xl:min-h-25.25">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="bg-muted p-1.5 rounded-md shrink-0">
-                  <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{document.name}</p>
-                  <p className="text-xs text-muted-foreground">{document.type}</p>
-                </div>
+            ) : (
+              <div className="flex items-center justify-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
+                Aucun fichier pour la V{activeVersionTab}
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Badge variant={docStatus.variant} className={cn("text-xs", docStatus.className)}>
-                  {localVersion > 1
-                    ? `V${localVersion} ${docStatus.label.toLowerCase()}`
-                    : docStatus.label}
-                </Badge>
-                {showClose && (
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <ValidationResultBanner
-              validation={bannerValidation as ValidationData | null}
-              localStatus={bannerStatus}
-            />
-
-            {/* Contenu scrollable */}
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="px-4 py-4 space-y-3">
-                <ValidationsSection
-                  allValidations={allValidations}
-                  validatorContributors={validatorContributors}
-                  clientName={clientName}
-                  activeVersion={activeVersionTab ?? localVersion}
-                  isCurrentVersion={activeVersionTab === null}
-                />
-
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Fichier
-                </p>
-
-                <DocumentVersionTabs
-                  prevVersions={prevVersions}
-                  localVersion={localVersion}
-                  activeVersionTab={activeVersionTab}
-                  onVersionChange={handleVersionTabChange}
-                />
-
-                {activePrev ? (
-                  activePrev.file_url ? (
-                    <FileViewer
-                      fileUrl={activePrev.file_url}
-                      fileName={activePrev.file_name ?? document.name}
-                      fileType={activePrev.file_type ?? "application/pdf"}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
-                      Aucun fichier pour la V{activeVersionTab}
-                    </div>
-                  )
-                ) : fileUrl ? (
-                  <FileViewer
-                    fileUrl={fileUrl}
-                    fileName={document.file_name ?? document.name}
-                    fileType={document.file_type ?? "application/pdf"}
-                    onRemove={localStatus === "draft" ? handleRemoveFile : undefined}
-                  />
-                ) : (
-                  <FileUpload
-                    documentId={document.id}
-                    userId={userId}
-                    onSuccess={(url) => setLocalFileUrl(url)}
-                  />
-                )}
-              </div>
-            </div>
-
-            <DocumentPanelFooter
-              localStatus={localStatus}
-              isChantier={isChantier}
+            )
+          ) : fileUrl ? (
+            <FileViewer
               fileUrl={fileUrl}
-              proposing={proposing}
-              documentId={document.id}
-              documentName={document.name}
-              projectId={document.project_id}
-              clientName={clientName}
-              localVersion={localVersion}
-              audienceInfo={audienceInfo}
-              cloudFileId={document.cloud_file_id}
-              onSent={(info) => {
-                setLocalStatus("sent")
-                if (info) setAudienceInfo(info)
-                onStatusChange?.(document.id, "sent")
-              }}
-              onProposeV2={handleProposeV2}
-              onCopyLink={handleCopyLink}
-              onOpenSend={isMobile ? () => navigateTo("send") : undefined}
-              onResynced={(version, newFileUrl) => {
-                setLocalVersion(version)
-                setLocalStatus("draft")
-                setLocalFileUrl(newFileUrl)
-                handleVersionTabChange(null)
-                onStatusChange?.(document.id, "draft", version)
-              }}
+              fileName={document.file_name ?? document.name}
+              fileType={document.file_type ?? "application/pdf"}
+              onRemove={localStatus === "draft" ? handleRemoveFile : undefined}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ) : (
+            <FileUpload
+              documentId={document.id}
+              userId={userId}
+              onSuccess={(url) => setLocalFileUrl(url)}
+            />
+          )}
+        </div>
+      </div>
+
+      <DocumentPanelFooter
+        localStatus={localStatus}
+        isChantier={isChantier}
+        fileUrl={fileUrl}
+        proposing={proposing}
+        documentId={document.id}
+        projectId={document.project_id}
+        clientName={clientName}
+        localVersion={localVersion}
+        audienceInfo={audienceInfo}
+        cloudFileId={document.cloud_file_id}
+        onProposeV2={handleProposeV2}
+        onCopyLink={handleCopyLink}
+        onOpenSend={
+          isMobile
+            ? () => router.push(`/projects/${document.project_id}/document/${document.id}/send`)
+            : undefined
+        }
+        onResynced={(version, newFileUrl) => {
+          setLocalVersion(version)
+          setLocalStatus("draft")
+          setLocalFileUrl(newFileUrl)
+          handleVersionTabChange(null)
+          onStatusChange?.(document.id, "draft", version)
+        }}
+      />
     </div>
   )
 }

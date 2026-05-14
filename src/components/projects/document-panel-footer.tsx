@@ -5,21 +5,17 @@ import { useState } from "react"
 import { toast } from "sonner"
 import type { AudienceInfo } from "./document-panel-types"
 
-type OnSentCallback = (info?: AudienceInfo) => void
-
 interface DocumentPanelFooterProps {
   localStatus: string
   isChantier: boolean
   fileUrl?: string | null
   proposing: boolean
   documentId: string
-  documentName: string
   projectId: string
   clientName?: string
   localVersion: number
   audienceInfo: AudienceInfo
   cloudFileId?: string | null
-  onSent: OnSentCallback
   onProposeV2: () => void
   onCopyLink: () => void
   onResynced?: (version: number, fileUrl: string) => void
@@ -32,13 +28,11 @@ export function DocumentPanelFooter({
   fileUrl,
   proposing,
   documentId,
-  documentName,
   projectId,
   clientName,
   localVersion,
   audienceInfo,
   cloudFileId,
-  onSent,
   onProposeV2,
   onCopyLink,
   onResynced,
@@ -75,14 +69,10 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
-          documentName={documentName}
           projectId={projectId}
-          clientName={clientName}
           status={localStatus}
           fileUrl={fileUrl}
-          isChantier={isChantier}
           className="w-full"
-          onSent={onSent}
           onOpenSend={onOpenSend}
         />
       </div>
@@ -97,14 +87,10 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
-          documentName={documentName}
           projectId={projectId}
-          clientName={clientName}
           status={localStatus}
           fileUrl={fileUrl}
-          isChantier={isChantier}
           className="w-full"
-          onSent={onSent}
           onOpenSend={onOpenSend}
         />
       </div>
@@ -119,14 +105,10 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
-          documentName={documentName}
           projectId={projectId}
-          clientName={clientName}
           status={localStatus}
           fileUrl={fileUrl}
-          isChantier={isChantier}
           className="w-full"
-          onSent={onSent}
           onOpenSend={onOpenSend}
         />
       </div>

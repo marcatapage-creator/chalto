@@ -207,21 +207,6 @@ export function GenerateDocumentDialog({
 
   return (
     <>
-      <style>{`
-        @property --ai-btn-angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes ai-btn-spin {
-          to { --ai-btn-angle: 360deg; }
-        }
-        .ai-btn-border {
-          background: conic-gradient(from var(--ai-btn-angle), hsl(var(--border)) 25%, hsl(224 79% 65% / 0.45), #a78bfa70, hsl(224 79% 65% / 0.45), hsl(var(--border)) 75%);
-          animation: ai-btn-spin 7s linear infinite;
-        }
-      `}</style>
-
       <ResponsiveDialog
         open={open}
         onOpenChange={handleOpenChange}
