@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,6 +21,7 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { toast } from "sonner"
 import { Plus, Users, Phone, Mail, MoreHorizontal, Pencil, Trash2, Building2 } from "lucide-react"
 import { StaggerList, StaggerItem } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface Profession {
   id: string
@@ -68,8 +69,21 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
   })
   const [editLoading, setEditLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const isMobile = !useMediaQuery("(min-width: 1280px)")
+
+  const [highlightedId, setHighlightedId] = useState<string | null>(() => {
+    const h = searchParams.get("highlight")
+    return h?.startsWith("contact_") ? h.slice("contact_".length) : null
+  })
+
+  useEffect(() => {
+    if (!highlightedId) return
+    const t = setTimeout(() => setHighlightedId(null), 2500)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -82,22 +96,27 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
     }
     setLoading(true)
 
-    const { error } = await supabase.from("contacts").insert({
-      user_id: userId,
-      name: form.name,
-      email: form.email || null,
-      phone: form.phone || null,
-      company_name: form.company_name || null,
-      profession_id: form.profession_id || null,
-      notes: form.notes || null,
-    })
+    const { data, error } = await supabase
+      .from("contacts")
+      .insert({
+        user_id: userId,
+        name: form.name,
+        email: form.email || null,
+        phone: form.phone || null,
+        company_name: form.company_name || null,
+        profession_id: form.profession_id || null,
+        notes: form.notes || null,
+      })
+      .select("id")
+      .single()
 
-    if (error) {
+    if (error || !data) {
       toast.error("Erreur lors de la création")
     } else {
       toast.success("Contact ajouté ✅")
       setOpen(false)
       setForm({ name: "", email: "", phone: "", company_name: "", profession_id: "", notes: "" })
+      router.push(`/contacts?highlight=contact_${data.id}`)
       router.refresh()
     }
     setLoading(false)
@@ -278,7 +297,12 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
         <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((contact) => (
             <StaggerItem key={contact.id}>
-              <Card className="transition-all duration-150 hover:shadow-sm hover:bg-muted/50">
+              <Card
+                className={cn(
+                  "transition-all duration-150 hover:shadow-sm hover:bg-muted/50",
+                  highlightedId === contact.id && "ring-2 ring-primary ring-offset-1 bg-primary/5"
+                )}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">

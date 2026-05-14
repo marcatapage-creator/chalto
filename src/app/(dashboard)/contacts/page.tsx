@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthUser } from "@/lib/supabase/queries"
@@ -25,7 +26,9 @@ export default async function ContactsPage() {
         className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/40 dark:from-background/40 to-transparent"
       />
       <div className="p-6 md:p-8">
-        <ContactsList contacts={contacts ?? []} professions={professions} userId={user.id} />
+        <Suspense>
+          <ContactsList contacts={contacts ?? []} professions={professions} userId={user.id} />
+        </Suspense>
       </div>
       <div
         aria-hidden

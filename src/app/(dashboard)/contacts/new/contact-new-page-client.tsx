@@ -51,20 +51,24 @@ export function ContactNewPageClient({ professions, userId }: ContactNewPageClie
       return
     }
     setLoading(true)
-    const { error } = await supabase.from("contacts").insert({
-      user_id: userId,
-      name: form.name,
-      email: form.email || null,
-      phone: form.phone || null,
-      company_name: form.company_name || null,
-      profession_id: form.profession_id || null,
-      notes: form.notes || null,
-    })
-    if (error) {
+    const { data, error } = await supabase
+      .from("contacts")
+      .insert({
+        user_id: userId,
+        name: form.name,
+        email: form.email || null,
+        phone: form.phone || null,
+        company_name: form.company_name || null,
+        profession_id: form.profession_id || null,
+        notes: form.notes || null,
+      })
+      .select("id")
+      .single()
+    if (error || !data) {
       toast.error("Erreur lors de la création")
     } else {
       toast.success("Contact ajouté ✅")
-      router.push("/contacts")
+      router.push(`/contacts?highlight=contact_${data.id}`)
       router.refresh()
     }
     setLoading(false)
