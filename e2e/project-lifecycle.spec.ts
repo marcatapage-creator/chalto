@@ -8,9 +8,10 @@
  *   E2E_PROJECT_ID                     — UUID d'un projet existant
  */
 import { test, expect } from "@playwright/test"
+import { e2eEnv } from "./helpers/env"
 
 test.beforeEach(({}, testInfo) => {
-  if (!process.env.E2E_USER_EMAIL) {
+  if (!e2eEnv("E2E_USER_EMAIL")) {
     testInfo.skip(true, "E2E_USER_EMAIL non défini")
   }
 })
@@ -42,7 +43,7 @@ test("2.1 — créer un projet redirige vers sa fiche", async ({ page }) => {
 // ─── 2.2 : Modification projet ───────────────────────────────────────────────
 
 test("2.2 — /projects/[id]/edit se charge", async ({ page }) => {
-  const projectId = process.env.E2E_PROJECT_ID
+  const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
     return
@@ -56,7 +57,7 @@ test("2.2 — /projects/[id]/edit se charge", async ({ page }) => {
 })
 
 test("2.2 — modifier le nom du projet persiste", async ({ page }) => {
-  const projectId = process.env.E2E_PROJECT_ID
+  const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
     return
@@ -90,7 +91,7 @@ test("2.2 — modifier le nom du projet persiste", async ({ page }) => {
 // ─── 2.3 : Badge de phase ─────────────────────────────────────────────────────
 
 test("2.3 — la fiche projet affiche le badge de phase courante", async ({ page }) => {
-  const projectId = process.env.E2E_PROJECT_ID
+  const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
     return
@@ -106,7 +107,7 @@ test("2.3 — la fiche projet affiche le badge de phase courante", async ({ page
 })
 
 test("2.3 — changer la phase met à jour le badge sans erreur console", async ({ page }) => {
-  const projectId = process.env.E2E_PROJECT_ID
+  const projectId = e2eEnv("E2E_PROJECT_ID")
   if (!projectId) {
     test.skip(true, "E2E_PROJECT_ID non défini")
     return
