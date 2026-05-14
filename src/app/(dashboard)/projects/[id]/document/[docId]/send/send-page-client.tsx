@@ -187,7 +187,7 @@ export function SendPageClient({ document, projectId, clientName }: SendPageClie
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => (step === 2 ? goToStep1() : router.back())}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -429,7 +429,7 @@ export function SendPageClient({ document, projectId, clientName }: SendPageClie
             </Button>
           ) : (
             <div className="flex gap-3">
-              <Button variant="outline" onClick={goToStep1} className="flex-1">
+              <Button variant="outline" onClick={goToStep1} className="flex-1 h-11">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour
               </Button>

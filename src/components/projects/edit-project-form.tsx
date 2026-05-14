@@ -106,7 +106,7 @@ export function EditProjectForm({
       <div className="p-6 md:p-8 max-w-2xl space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" className="h-11 w-11" asChild>
             <Link href={`/projects/${project.id}`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>

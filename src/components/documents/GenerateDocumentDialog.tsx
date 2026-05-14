@@ -380,10 +380,14 @@ export function GenerateDocumentDialog({
                 </div>
 
                 <div className="flex gap-2 pt-1">
-                  <Button variant="outline" onClick={() => goBack(1)} className="flex-1">
+                  <Button variant="outline" onClick={() => goBack(1)} className="flex-1 h-11">
                     Retour
                   </Button>
-                  <Button onClick={() => goForward(3)} disabled={!canProceed} className="flex-1">
+                  <Button
+                    onClick={() => goForward(3)}
+                    disabled={!canProceed}
+                    className="flex-1 h-11"
+                  >
                     Suivant
                   </Button>
                 </div>
@@ -448,10 +452,14 @@ export function GenerateDocumentDialog({
                 </div>
 
                 <div className="flex gap-2 pt-1">
-                  <Button variant="outline" onClick={() => goBack(1)} className="flex-1">
+                  <Button variant="outline" onClick={() => goBack(1)} className="flex-1 h-11">
                     Retour
                   </Button>
-                  <Button onClick={() => goForward(3)} disabled={!canProceed} className="flex-1">
+                  <Button
+                    onClick={() => goForward(3)}
+                    disabled={!canProceed}
+                    className="flex-1 h-11"
+                  >
                     Suivant
                   </Button>
                 </div>
@@ -485,10 +493,10 @@ export function GenerateDocumentDialog({
                 </div>
 
                 <div className="flex gap-2 pt-1">
-                  <Button variant="outline" onClick={() => goBack(2)} className="flex-1">
+                  <Button variant="outline" onClick={() => goBack(2)} className="flex-1 h-11">
                     Retour
                   </Button>
-                  <Button onClick={handleGenerate} className="flex-1">
+                  <Button onClick={handleGenerate} className="flex-1 h-11">
                     <Sparkles className="h-4 w-4 mr-2" />
                     Générer
                   </Button>
