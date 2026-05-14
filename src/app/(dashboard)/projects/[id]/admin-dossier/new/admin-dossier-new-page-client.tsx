@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -71,9 +72,10 @@ export function AdminDossierNewPageClient({ project }: AdminDossierNewPageClient
         toast.error((data as { error?: string }).error ?? "Erreur lors de la création")
         return
       }
+      const { dossier } = await res.json()
       new BroadcastChannel("chalto:deadlines").postMessage({ type: "refresh" })
       toast.success("Dossier ajouté")
-      router.push(`/projects/${project.id}`)
+      router.push(`/projects/${project.id}?highlight=dossier_${dossier.id}`)
       router.refresh()
     } catch {
       toast.error("Erreur réseau — réessayez")
@@ -83,12 +85,17 @@ export function AdminDossierNewPageClient({ project }: AdminDossierNewPageClient
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <motion.div
+      className="flex-1 flex flex-col overflow-hidden"
+      initial={{ x: 20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+    >
       <div className="shrink-0 border-b px-4 py-3 flex items-center gap-3 bg-popover">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -191,6 +198,6 @@ export function AdminDossierNewPageClient({ project }: AdminDossierNewPageClient
           {submitting ? "Ajout..." : "Ajouter"}
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }

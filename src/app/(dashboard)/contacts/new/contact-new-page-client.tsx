@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -70,12 +71,17 @@ export function ContactNewPageClient({ professions, userId }: ContactNewPageClie
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <motion.div
+      className="flex-1 flex flex-col overflow-hidden"
+      initial={{ x: 20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+    >
       <div className="shrink-0 border-b px-4 py-3 flex items-center gap-3 bg-popover">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -172,6 +178,6 @@ export function ContactNewPageClient({ professions, userId }: ContactNewPageClie
           {loading ? "Ajout..." : "Ajouter"}
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }
