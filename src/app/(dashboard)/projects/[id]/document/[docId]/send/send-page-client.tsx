@@ -53,14 +53,19 @@ const slideVariants = {
   exit: (dir: number) => ({ x: `${dir * -20}%`, opacity: 0 }),
 }
 
-export function SendPageClient({ document, projectId, clientName }: SendPageClientProps) {
+export function SendPageClient({
+  document,
+  projectId,
+  clientName,
+  isChantier,
+}: SendPageClientProps) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
   const [step, setStep] = useState<1 | 2>(1)
   const [stepDir, setStepDir] = useState(1)
   const [audience, setAudience] = useState<"client" | "contributor">(
-    document.status === "approved" ? "contributor" : "client"
+    document.status === "approved" && isChantier ? "contributor" : "client"
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
@@ -233,11 +238,12 @@ export function SendPageClient({ document, projectId, clientName }: SendPageClie
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {!isApproved && (
+                    {(!isApproved || !isChantier) && (
                       <button
                         onClick={() => setAudience("client")}
                         className={cn(
                           "flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all",
+                          !isChantier ? "col-span-2" : "",
                           audience === "client"
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/40"
@@ -255,29 +261,31 @@ export function SendPageClient({ document, projectId, clientName }: SendPageClie
                         </div>
                       </button>
                     )}
-                    <button
-                      onClick={() => setAudience("contributor")}
-                      className={cn(
-                        "flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all",
-                        isApproved ? "col-span-2" : "",
-                        audience === "contributor"
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/40"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-primary" />
-                        {audience === "contributor" && (
-                          <Check className="h-3.5 w-3.5 text-primary" />
+                    {isChantier && (
+                      <button
+                        onClick={() => setAudience("contributor")}
+                        className={cn(
+                          "flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all",
+                          isApproved ? "col-span-2" : "",
+                          audience === "contributor"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
                         )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Prestataire(s)</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Partager avec l&apos;équipe
-                        </p>
-                      </div>
-                    </button>
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          {audience === "contributor" && (
+                            <Check className="h-3.5 w-3.5 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Prestataire(s)</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Partager avec l&apos;équipe
+                          </p>
+                        </div>
+                      </button>
+                    )}
                   </div>
 
                   {audience === "contributor" && (
