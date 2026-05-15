@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       )
 
       if (resolvedEmail && proProfile?.notif_email_frequency !== "never") {
-        void sendTransmissionAckEmail({
+        await sendTransmissionAckEmail({
           proEmail: resolvedEmail,
           proName: proProfile?.full_name ?? "Professionnel",
           contributorName: contributorName ?? "Un prestataire",
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
       }).catch((err: unknown) => console.error("[validate-contributor] createNotification:", err))
 
       if (resolvedEmail && shouldSendEmail) {
-        void sendApprovalEmail({
+        await sendApprovalEmail({
           proEmail: resolvedEmail,
           proName: proProfile?.full_name ?? "Professionnel",
           clientName: contributorName ?? "Un prestataire",
@@ -132,6 +132,15 @@ export async function POST(request: Request) {
           comment: comment ?? undefined,
           projectUrl,
         }).catch((err: unknown) => console.error("[validate-contributor] sendApprovalEmail:", err))
+      } else {
+        console.warn("[validate-contributor] email non envoyé", {
+          hasEmail: !!resolvedEmail,
+          shouldSendEmail,
+          frequency: proProfile?.notif_email_frequency,
+          notifApproved: proProfile?.notif_email_approved,
+          notifRejected: proProfile?.notif_email_rejected,
+          status,
+        })
       }
     }
 

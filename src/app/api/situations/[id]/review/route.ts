@@ -86,7 +86,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       if (contact?.email && contributor.invite_token) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"
-        void sendSituationReviewedEmail({
+        await sendSituationReviewedEmail({
           contributorEmail: contact.email,
           contributorName: contributor.name,
           projectName: project.name,

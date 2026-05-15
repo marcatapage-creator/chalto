@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       }).catch((err: unknown) => console.error("[validate] createNotification lu:", err))
 
       if (proProfile?.email && proProfile?.notif_email_frequency !== "never") {
-        void sendTransmissionAckEmail({
+        await sendTransmissionAckEmail({
           proEmail: proProfile.email,
           proName: proProfile.full_name ?? "Professionnel",
           contributorName: clientName,
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       }).catch((err: unknown) => console.error("[validate] createNotification:", err))
 
       if (proProfile?.email && shouldSendEmail) {
-        void sendApprovalEmail({
+        await sendApprovalEmail({
           proEmail: proProfile.email,
           proName: proProfile.full_name ?? "Professionnel",
           clientName,

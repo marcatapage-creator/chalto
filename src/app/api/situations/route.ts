@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     if (profile?.email) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"
-      void sendSituationSubmittedEmail({
+      await sendSituationSubmittedEmail({
         architectEmail: profile.email,
         architectName: profile.full_name ?? "Architecte",
         contributorName: contributor.name,
