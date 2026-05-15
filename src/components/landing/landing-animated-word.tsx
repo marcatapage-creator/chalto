@@ -12,7 +12,7 @@ function useIsClient() {
   )
 }
 
-export function LandingAnimatedWord({ words }: { words: string[] }) {
+export function LandingAnimatedWord({ words, className }: { words: string[]; className?: string }) {
   const [index, setIndex] = useState(0)
   const isClient = useIsClient()
 
@@ -23,12 +23,14 @@ export function LandingAnimatedWord({ words }: { words: string[] }) {
     return () => clearInterval(interval)
   }, [words])
 
+  const baseClass = `inline-block relative ${className ?? "text-primary text-4xl md:text-6xl"}`
+
   if (!isClient) {
-    return <span className="text-primary inline-block text-4xl md:text-6xl">{words[0]}</span>
+    return <span className={baseClass}>{words[0]}</span>
   }
 
   return (
-    <span className="text-primary inline-block text-4xl md:text-6xl relative">
+    <span className={baseClass}>
       <AnimatePresence mode="wait">
         <motion.span
           key={words[index]}

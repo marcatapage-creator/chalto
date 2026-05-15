@@ -30,12 +30,7 @@ function scrollToSection(id: string) {
   requestAnimationFrame(step)
 }
 
-interface LandingNavProps {
-  showPricing: boolean
-  showTestimonials: boolean
-}
-
-export function LandingNav({ showPricing, showTestimonials }: LandingNavProps) {
+export function LandingNav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -51,19 +46,12 @@ export function LandingNav({ showPricing, showTestimonials }: LandingNavProps) {
           <span className="font-bold">Chalto</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">
-            Fonctionnalités
+          <a href="#screenshots" className="hover:text-foreground transition-colors">
+            Comment ça marche
           </a>
-          {showPricing && (
-            <a href="#pricing" className="hover:text-foreground transition-colors">
-              Tarifs
-            </a>
-          )}
-          {showTestimonials && (
-            <a href="#testimonials" className="hover:text-foreground transition-colors">
-              Témoignages
-            </a>
-          )}
+          <a href="#faq" className="hover:text-foreground transition-colors">
+            FAQ
+          </a>
           <Link href="/blog" className="hover:text-foreground transition-colors">
             Blog
           </Link>
@@ -122,28 +110,21 @@ export function LandingNav({ showPricing, showTestimonials }: LandingNavProps) {
           >
             <nav className="flex flex-col px-6 py-4 gap-1">
               {[
-                { label: "Fonctionnalités", id: "features" },
-                { label: "Tarifs", id: "pricing" },
-                { label: "Témoignages", id: "testimonials" },
+                { label: "Comment ça marche", id: "screenshots" },
+                { label: "FAQ", id: "faq" },
                 { label: "Rejoindre la bêta", id: "waitlist" },
-              ]
-                .filter((item) => {
-                  if (item.id === "pricing" && !showPricing) return false
-                  if (item.id === "testimonials" && !showTestimonials) return false
-                  return true
-                })
-                .map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      scrollToSection(item.id)
-                      setMenuOpen(false)
-                    }}
-                    className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
-                  >
-                    {item.label}
-                  </button>
-                ))}
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    scrollToSection(item.id)
+                    setMenuOpen(false)
+                  }}
+                  className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
+                >
+                  {item.label}
+                </button>
+              ))}
               <Link
                 href="/blog"
                 onClick={() => setMenuOpen(false)}

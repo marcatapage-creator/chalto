@@ -11,16 +11,27 @@ import {
   Shield,
   FolderOpen,
   Sparkles,
+  MessageSquare,
+  CalendarX2,
 } from "lucide-react"
-import { WaitlistForm } from "@/components/waitlist-form"
+import { LandingBetaSection } from "@/components/landing/landing-beta-section"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { LandingNav } from "@/components/landing/landing-nav"
 import { LandingAnimatedWord } from "@/components/landing/landing-animated-word"
 import { LandingProfessionSection } from "@/components/landing/landing-profession-section"
 import { LandingDeviceShowcase } from "@/components/landing/landing-device-showcase"
+import { LandingSolutionSection } from "@/components/landing/landing-solution-section"
+import { LandingScreenshotsSection } from "@/components/landing/landing-screenshots-section"
+import { LandingArchitectSection } from "@/components/landing/landing-architect-section"
+import { LandingFounderSection } from "@/components/landing/landing-founder-section"
+import { LandingFaqSection } from "@/components/landing/landing-faq-section"
 
 const SHOW_TESTIMONIALS = false
 const SHOW_PRICING = false
+const SHOW_FEATURES = false
+const SHOW_ARCHITECT_SECTION = true
+const SHOW_DEVICE_SHOWCASE = false
+const SHOW_PROFESSION_SECTION = false
 
 const features = [
   {
@@ -232,7 +243,7 @@ export default function LandingPage() {
       />
 
       <div className="min-h-screen bg-background overflow-x-hidden">
-        <LandingNav showPricing={SHOW_PRICING} showTestimonials={SHOW_TESTIMONIALS} />
+        <LandingNav />
 
         <main>
           {/* Hero — statique, pas de motion.h1, texte visible immédiatement */}
@@ -244,130 +255,223 @@ export default function LandingPage() {
             </div>
             <div className="max-w-4xl mx-auto text-center space-y-6 relative">
               {/* Logo flottant — client island, pas LCP */}
-              <div className="flex justify-center mb-6">
-                <AnimatedLogo width={88} height={88} className="md:hidden" />
-                <AnimatedLogo width={112} height={112} className="hidden md:block" />
-              </div>
-              <div>
-                <Badge variant="outline" className="mb-4 hidden md:inline-flex">
-                  Pour tous les pros du bâtiment
-                </Badge>
+              <div className="flex justify-center mb-10">
+                <AnimatedLogo width={75} height={75} className="md:hidden" />
+                <AnimatedLogo width={95} height={95} className="hidden md:block" />
               </div>
               {/* H1 — SERVER RENDERED, texte visible au premier paint = LCP element */}
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight uppercase">
-                <LandingAnimatedWord words={["Piloter", "Organiser", "Maîtriser"]} />
-                <br />
-                {/* Mobile + tablette : 2 lignes */}
-                <span className="xl:hidden">
-                  <span className="block text-foreground text-4xl md:text-5xl">
-                    votre activité,
-                  </span>
-                  <span className="block text-foreground text-4xl md:text-5xl">simplement</span>
+              <h1 className="font-bold tracking-tight leading-tight">
+                <span className="block text-primary text-3xl md:text-4xl xl:text-5xl">
+                  Votre client n&apos;a
+                  <br />
+                  toujours pas validé
                 </span>
-                {/* Desktop : 1 ligne */}
-                <span className="hidden xl:inline text-foreground whitespace-nowrap">
-                  votre activité, simplement
-                </span>
+                <LandingAnimatedWord
+                  words={[
+                    "le plan masse",
+                    "l'estimation APD",
+                    "la notice",
+                    "le CCTP",
+                    "le PV de réception",
+                  ]}
+                  className="text-[22px] md:text-[32px] font-semibold text-foreground mt-6"
+                />
               </h1>
               {/* Subtitle — SERVER RENDERED */}
               <p
                 className="text-lg md:text-xl text-muted-foreground mx-auto"
-                style={{ maxWidth: "512px" }}
+                style={{ maxWidth: "560px" }}
               >
-                Ne perdez plus de temps avec les emails, les WhatsApp et les appels de relance.
-                <br />
-                Chalto centralise tous vos projets, documents et validations client en un seul
-                endroit.
+                Les architectes jonglent en moyenne entre 6 outils qui ne se parlent pas. Chalto les
+                relie et trace chaque décision, de l&apos;esquisse à la réception.
               </p>
               {/* CTA buttons — liens statiques, pas de motion */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <Button size="lg" asChild>
                   <a href="#waitlist">
-                    Rejoindre la bêta <ArrowRight className="ml-2 h-4 w-4" />
+                    Rejoindre la bêta gratuite <ArrowRight className="ml-2 h-4 w-4" />
                   </a>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/demo">Voir la démo</Link>
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Accès bêta sur invitation · Gratuit · Sans engagement
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-3 flex-wrap">
+                <span>✓ Gratuit</span>
+                <span>✓ Sans engagement</span>
+                <span>✓ Accès immédiat</span>
               </p>
             </div>
           </section>
 
-          {/* Features — statique */}
-          <section id="features" className="py-20 px-6 md:px-4 bg-muted/30">
+          {/* Pain cards */}
+          <section className="py-20 px-6 md:px-4">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tight">Tout ce dont vous avez besoin</h2>
+                <h2 className="text-3xl font-bold tracking-tight">Vous reconnaissez ça ?</h2>
                 <p className="text-muted-foreground mt-2">
-                  Un outil pensé pour les réalités du terrain
+                  Trois frictions que chaque architecte connaît par cœur.
                 </p>
               </div>
-
-              {/* Hero feature — Validation client */}
-              <div className="animated-border-simple rounded-xl p-px mb-6">
-                <Card className="rounded-[11px] border-0 relative overflow-hidden">
-                  <div
-                    className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
-                    }}
-                  />
-                  <CardContent className="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="bg-primary/15 w-14 h-14 rounded-xl flex items-center justify-center shrink-0">
-                      <CheckCircle className="h-7 w-7 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Carte 1 — Le fichier introuvable */}
+                <Card className="flex flex-col gap-0 overflow-hidden">
+                  <CardContent className="p-6 flex flex-col gap-5">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <FolderOpen className="w-5 h-5 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold mb-1">Validation client en 1 clic</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Envoyez un lien sécurisé à votre client. Il approuve ou commente directement
-                        — <span className="text-foreground font-medium">sans créer de compte</span>.
+                    <blockquote className="border-l-4 border-primary pl-4 italic text-foreground text-sm leading-relaxed">
+                      &quot;Tu peux me renvoyer le plan ? J&apos;ai plus le mail.&quot;
+                    </blockquote>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono text-xs text-muted-foreground">
+                        Plan_masse_v3_finale.dwg
+                      </p>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        Plan_masse_v3_finale_OK.dwg
+                      </p>
+                      <p className="font-mono text-xs text-primary font-medium">
+                        Plan_masse_v3_finale_OK_VRAI.dwg
                       </p>
                     </div>
+                    <p className="text-sm text-muted-foreground italic">
+                      La bonne version est quelque part. Personne ne sait laquelle.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Carte 2 — La validation fantôme */}
+                <Card className="flex flex-col gap-0 overflow-hidden">
+                  <CardContent className="p-6 flex flex-col gap-5">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-primary" />
+                    </div>
+                    <blockquote className="border-l-4 border-primary pl-4 italic text-foreground text-sm leading-relaxed">
+                      &quot;J&apos;avais pas validé ça — on en avait parlé mais je n&apos;ai rien
+                      signé.&quot;
+                    </blockquote>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      La décision a été prise à l&apos;oral. En réunion. Ou au téléphone. Trois
+                      semaines plus tard, personne ne s&apos;en souvient de la même façon.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Carte 3 — L'échéance noyée */}
+                <Card className="flex flex-col gap-0 overflow-hidden">
+                  <CardContent className="p-6 flex flex-col gap-5">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CalendarX2 className="w-5 h-5 text-primary" />
+                    </div>
+                    <blockquote className="border-l-4 border-primary pl-4 italic text-foreground text-sm leading-relaxed">
+                      &quot;La date de dépôt du PC — elle était dans quel mail déjà ?&quot;
+                    </blockquote>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      L&apos;information existe. Elle est quelque part dans vos mails, votre Excel,
+                      votre carnet. Mais pas au bon endroit au bon moment.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Grid features */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {features.map((feature) => {
-                  const Icon = feature.icon
-                  if (feature.title === "Génération IA") {
-                    return (
-                      <AIFeatureCard
-                        key={feature.title}
-                        title={feature.title}
-                        description={feature.description}
-                        icon={Icon}
-                      />
-                    )
-                  }
-                  return (
-                    <Card
-                      key={feature.title}
-                      className="h-full hover:border-primary/50 transition-colors duration-200"
-                    >
-                      <CardContent className="p-6 space-y-3">
-                        <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <h3 className="font-semibold">{feature.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+              {/* Transition */}
+              <div className="mt-16 text-center space-y-3">
+                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                  Ces trois problèmes ont une seule cause : l&apos;information est éparpillée entre
+                  des outils qui ne se parlent pas.
+                </p>
+                <p className="text-lg md:text-xl font-semibold text-foreground">
+                  Chalto centralise tout.
+                </p>
               </div>
             </div>
           </section>
 
+          <LandingSolutionSection />
+
+          <LandingScreenshotsSection />
+
+          {SHOW_ARCHITECT_SECTION && <LandingArchitectSection />}
+
+          <LandingFounderSection />
+
+          {/* Features — statique */}
+          {SHOW_FEATURES && (
+            <section id="features" className="py-20 px-6 md:px-4 bg-muted/30">
+              <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tight">
+                    Tout ce dont vous avez besoin
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Un outil pensé pour les réalités du terrain
+                  </p>
+                </div>
+
+                {/* Hero feature — Validation client */}
+                <div className="animated-border-simple rounded-xl p-px mb-6">
+                  <Card className="rounded-[11px] border-0 relative overflow-hidden">
+                    <div
+                      className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                      style={{
+                        background:
+                          "linear-gradient(to bottom right, hsl(224 79% 52%), #8b5cf6, #ec4899)",
+                      }}
+                    />
+                    <CardContent className="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
+                      <div className="bg-primary/15 w-14 h-14 rounded-xl flex items-center justify-center shrink-0">
+                        <CheckCircle className="h-7 w-7 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-bold mb-1">Validation client en 1 clic</h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          Envoyez un lien sécurisé à votre client. Il approuve ou commente
+                          directement —{" "}
+                          <span className="text-foreground font-medium">sans créer de compte</span>.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Grid features */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {features.map((feature) => {
+                    const Icon = feature.icon
+                    if (feature.title === "Génération IA") {
+                      return (
+                        <AIFeatureCard
+                          key={feature.title}
+                          title={feature.title}
+                          description={feature.description}
+                          icon={Icon}
+                        />
+                      )
+                    }
+                    return (
+                      <Card
+                        key={feature.title}
+                        className="h-full hover:border-primary/50 transition-colors duration-200"
+                      >
+                        <CardContent className="p-6 space-y-3">
+                          <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+                            <Icon className="h-5 w-5 text-primary" />
+                          </div>
+                          <h3 className="font-semibold">{feature.title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {feature.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Profession showcase — client island */}
-          <LandingProfessionSection />
+          {SHOW_PROFESSION_SECTION && <LandingProfessionSection />}
 
           {/* Testimonials */}
           {SHOW_TESTIMONIALS && (
@@ -475,49 +579,9 @@ export default function LandingPage() {
           )}
 
           {/* Device showcase — client island */}
-          <LandingDeviceShowcase />
+          {SHOW_DEVICE_SHOWCASE && <LandingDeviceShowcase />}
 
-          {/* FAQ — statique */}
-          <section className="py-20 px-6 md:px-4">
-            <div className="max-w-2xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tight">Questions fréquentes</h2>
-              </div>
-              <div className="space-y-4">
-                {[
-                  {
-                    question: "Chalto est-il gratuit ?",
-                    answer:
-                      "Oui, plan Starter gratuit avec 2 projets et 5 documents. Plans Pro et Agence pour aller plus loin.",
-                  },
-                  {
-                    question: "Mon client a besoin d'un compte ?",
-                    answer: "Non. Il reçoit un lien par email et valide sans créer de compte.",
-                  },
-                  {
-                    question: "Ça fonctionne sur mobile ?",
-                    answer:
-                      "Oui, Chalto est installable sur iPhone et Android comme une app native.",
-                  },
-                  {
-                    question: "Quels métiers peuvent utiliser Chalto ?",
-                    answer:
-                      "Architectes, plombiers, électriciens, menuisiers, entrepreneurs — tous les corps de métier.",
-                  },
-                  {
-                    question: "Mes données sont-elles sécurisées ?",
-                    answer:
-                      "Oui. Chiffrement HTTPS, Row Level Security Supabase, tokens sécurisés.",
-                  },
-                ].map((faq) => (
-                  <div key={faq.question} className="border rounded-xl p-5 space-y-2">
-                    <p className="font-semibold text-sm">{faq.question}</p>
-                    <p className="text-sm text-muted-foreground">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          <LandingFaqSection />
 
           {/* CTA Final — statique */}
           <section className="py-20 px-6 md:px-4">
@@ -537,19 +601,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Waitlist — statique wrapper + client form */}
-          <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
-            <div className="max-w-md mx-auto">
-              <div className="text-center space-y-4 mb-8">
-                <Badge variant="outline">🚀 Accès bêta</Badge>
-                <h2 className="text-3xl font-bold tracking-tight">Rejoignez les premiers</h2>
-                <p className="text-muted-foreground">
-                  Chalto est en accès bêta fermé. Inscrivez-vous pour être contacté en priorité.
-                </p>
-              </div>
-              <WaitlistForm />
-            </div>
-          </section>
+          <LandingBetaSection />
         </main>
 
         {/* Footer — 3 colonnes */}
@@ -563,8 +615,8 @@ export default function LandingPage() {
                   <span className="font-semibold text-foreground text-base">Chalto</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  La plateforme des pros du bâtiment. Gérez vos projets, coordonnez vos équipes et
-                  simplifiez votre administratif — de la conception à la réception.
+                  L&apos;outil de gestion de projets pensé pour les architectes. Validations client,
+                  coordination prestataires, traçabilité des décisions — tout au même endroit.
                 </p>
                 <div className="flex items-center gap-3 pt-1">
                   <a
