@@ -170,9 +170,13 @@ export function DocumentPanel({
           docId: document.id,
           data: (data ?? null) as unknown as ValidationData | null,
         })
-        // Validations on a "draft" or freshly-(re)sent doc belong to a previous version — skip.
-        // When document is "sent", rely on Realtime to update status; any cached validation is stale.
-        const isLegacy = document.status === "draft" || document.status === "sent"
+        // Skip stale validations: a "draft" doc has none; a "sent" doc only has a current
+        // validation if the version matches (guards against old validations from previous send cycles).
+        const docVersion = document.version ?? 1
+        const valVersion = (data as { version?: number | null } | null)?.version ?? 1
+        const isCurrentVersion = valVersion === docVersion
+        const isLegacy =
+          document.status === "draft" || (document.status === "sent" && !isCurrentVersion)
         if (data?.status && !isLegacy) {
           setLocalStatus(data.status)
           onStatusChangeRef.current?.(document.id, data.status)
