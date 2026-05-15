@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -168,7 +169,12 @@ function AIFeatureCard({
   )
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const admin = createAdminClient()
+  const { count: waitlistCount } = await admin
+    .from("waitlist")
+    .select("*", { count: "exact", head: true })
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -601,7 +607,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <LandingBetaSection />
+          <LandingBetaSection initialCount={waitlistCount ?? 0} />
         </main>
 
         {/* Footer — 3 colonnes */}

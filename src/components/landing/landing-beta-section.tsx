@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select"
 import { Check, CheckCircle, Lock, ArrowRight } from "lucide-react"
 
-const BETA_COUNT = 2
 const BETA_TOTAL = 10
 
 const gains = [
@@ -40,7 +39,8 @@ const asks = [
   "Honnêteté totale — le bon comme le moins bon",
 ]
 
-export function LandingBetaSection() {
+export function LandingBetaSection({ initialCount = 0 }: { initialCount?: number }) {
+  const [betaCount, setBetaCount] = useState(initialCount)
   const [prenom, setPrenom] = useState("")
   const [email, setEmail] = useState("")
   const [specialite, setSpecialite] = useState("")
@@ -74,11 +74,12 @@ export function LandingBetaSection() {
       return
     }
 
+    setBetaCount((c) => c + 1)
     setSuccess(true)
     setLoading(false)
   }
 
-  const progressPct = Math.round((BETA_COUNT / BETA_TOTAL) * 100)
+  const progressPct = Math.min(Math.round((betaCount / BETA_TOTAL) * 100), 100)
 
   return (
     <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
@@ -238,7 +239,7 @@ export function LandingBetaSection() {
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
-                  <span className="font-semibold text-foreground">{BETA_COUNT} architectes</span>{" "}
+                  <span className="font-semibold text-foreground">{betaCount} architectes</span>{" "}
                   inscrits sur {BETA_TOTAL} places disponibles
                 </span>
                 <span>{progressPct}%</span>
