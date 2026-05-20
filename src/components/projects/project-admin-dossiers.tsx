@@ -80,6 +80,7 @@ interface ProjectAdminDossiersProps {
   collapseSignal?: number
   expandSignal?: number
   onOpenAdd?: () => void
+  onOpenEdit?: (dossier: AdminDossier) => void
 }
 
 interface FormState {
@@ -109,6 +110,7 @@ export function ProjectAdminDossiers({
   collapseSignal,
   expandSignal,
   onOpenAdd,
+  onOpenEdit,
 }: ProjectAdminDossiersProps) {
   const [dossiers, setDossiers] = useState<AdminDossier[]>(initialDossiers)
   const [isOpen, setIsOpen] = useState(defaultOpen || !!highlightedDossierId)
@@ -346,7 +348,7 @@ export function ProjectAdminDossiers({
                           <DossierCard
                             dossier={d}
                             highlighted={highlightedDossierId === d.id}
-                            onEdit={!readOnly ? openEdit : undefined}
+                            onEdit={!readOnly ? (onOpenEdit ?? openEdit) : undefined}
                             onDelete={!readOnly ? handleDelete : undefined}
                             onNextStatus={!readOnly ? handleNextStatus : undefined}
                             deletingId={deletingId}
@@ -369,7 +371,7 @@ export function ProjectAdminDossiers({
                             <DossierCard
                               dossier={d}
                               highlighted={highlightedDossierId === d.id}
-                              onEdit={!readOnly ? openEdit : undefined}
+                              onEdit={!readOnly ? (onOpenEdit ?? openEdit) : undefined}
                               onDelete={!readOnly ? handleDelete : undefined}
                               deletingId={deletingId}
                             />

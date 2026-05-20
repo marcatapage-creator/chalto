@@ -622,6 +622,11 @@ export function ProjectPageClient({
                         ? () => router.push(`/projects/${project.id}/admin-dossier/new`)
                         : undefined
                     }
+                    onOpenEdit={
+                      !isDesktop
+                        ? (d) => router.push(`/projects/${project.id}/admin-dossier/${d.id}/edit`)
+                        : undefined
+                    }
                   />
                 </div>
               </>
