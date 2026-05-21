@@ -83,11 +83,11 @@ export function DocumentPanelFooter({
     )
   }
 
-  if (localStatus === "commented") {
+  if (localStatus === "commented" && isChantier) {
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Envoyer
+          Partager avec l&apos;équipe
         </p>
         <DocumentActions
           documentId={documentId}
@@ -107,7 +107,7 @@ export function DocumentPanelFooter({
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Partager
+          Partager avec l&apos;équipe
         </p>
         <DocumentActions
           documentId={documentId}

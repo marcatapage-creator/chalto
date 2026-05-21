@@ -64,9 +64,11 @@ const REQUEST_TYPE_OPTIONS = [
 function RequestTypeSelector({
   value,
   onChange,
+  options = REQUEST_TYPE_OPTIONS,
 }: {
   value: "validation" | "transmission"
   onChange: (v: "validation" | "transmission") => void
+  options?: readonly { value: "validation" | "transmission"; label: string }[]
 }) {
   return (
     <>
@@ -76,7 +78,7 @@ function RequestTypeSelector({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {REQUEST_TYPE_OPTIONS.map((opt) => (
+            {options.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -88,9 +90,9 @@ function RequestTypeSelector({
       <RadioGroup
         value={value}
         onValueChange={(v) => onChange(v as "validation" | "transmission")}
-        className="hidden sm:grid grid-cols-2 gap-2"
+        className={cn("hidden sm:grid gap-2", options.length === 1 ? "grid-cols-1" : "grid-cols-2")}
       >
-        {REQUEST_TYPE_OPTIONS.map(({ value: val, label }) => (
+        {options.map(({ value: val, label }) => (
           <Label
             key={val}
             htmlFor={`rt-${val}`}
@@ -125,12 +127,19 @@ export function DocumentSendForm({
   onSent,
   onClose,
 }: DocumentSendFormProps) {
+  // approved en chantier → seul le presta est disponible
   const [audience, setAudience] = useState<"client" | "contributor">(
-    status === "approved" ? "contributor" : "client"
+    status === "approved" && isChantier ? "contributor" : "client"
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
   const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
+
+  // commented + client → seule la validation a du sens (le client a déjà lu pour info)
+  const requestTypeOptions =
+    audience === "client" && status === "commented"
+      ? ([{ value: "validation", label: "Pour validation" }] as const)
+      : REQUEST_TYPE_OPTIONS
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
@@ -251,13 +260,17 @@ export function DocumentSendForm({
 
   return (
     <div className="space-y-4">
-      {/* Audience */}
-      {status !== "approved" && isChantier && (
+      {/* Audience — sélecteur visible en chantier quand client est encore disponible */}
+      {isChantier && status !== "approved" && (
         <div className="grid grid-cols-2 gap-2">
           {(["client", "contributor"] as const).map((a) => (
             <button
               key={a}
-              onClick={() => setAudience(a)}
+              onClick={() => {
+                setAudience(a)
+                // commented + client : forcer validation (déjà lu pour info)
+                if (a === "client" && status === "commented") setRequestType("validation")
+              }}
               className={cn(
                 "flex items-center gap-2 p-3 rounded-lg border-2 text-left transition-all",
                 audience === a
@@ -332,7 +345,11 @@ export function DocumentSendForm({
       )}
 
       {/* Type de demande */}
-      <RequestTypeSelector value={requestType} onChange={setRequestType} />
+      <RequestTypeSelector
+        value={requestType}
+        onChange={setRequestType}
+        options={requestTypeOptions}
+      />
 
       {/* Message facultatif */}
       <Textarea
