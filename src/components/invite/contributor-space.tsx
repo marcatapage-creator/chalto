@@ -524,6 +524,7 @@ export function ContributorSpace({
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
                                       documentId: doc.id,
+                                      contributorToken: contributor.invite_token,
                                       status: "commented",
                                       comment: docComment[doc.id]?.trim() || null,
                                       contributorName: contributor.name,
@@ -592,6 +593,7 @@ export function ContributorSpace({
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
                                       documentId: doc.id,
+                                      contributorToken: contributor.invite_token,
                                       status: "rejected",
                                       comment: docComment[doc.id] ?? null,
                                       contributorName: contributor.name,
@@ -617,6 +619,7 @@ export function ContributorSpace({
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
                                       documentId: doc.id,
+                                      contributorToken: contributor.invite_token,
                                       status: "approved",
                                       comment: docComment[doc.id] ?? null,
                                       contributorName: contributor.name,
