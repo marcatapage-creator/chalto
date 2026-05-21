@@ -38,6 +38,7 @@ interface DocumentSendFormProps {
   clientName?: string
   status: string
   fileUrl?: string | null
+  isChantier?: boolean
   onSent?: (info?: AudienceInfo) => void
   onClose: () => void
 }
@@ -49,6 +50,7 @@ interface DocumentActionsProps {
   clientName?: string
   status: string
   fileUrl?: string | null
+  isChantier?: boolean
   className?: string
   onSent?: (info?: AudienceInfo) => void
   onOpenSend?: () => void
@@ -119,6 +121,7 @@ export function DocumentSendForm({
   clientName,
   status,
   fileUrl,
+  isChantier = false,
   onSent,
   onClose,
 }: DocumentSendFormProps) {
@@ -249,7 +252,7 @@ export function DocumentSendForm({
   return (
     <div className="space-y-4">
       {/* Audience */}
-      {status !== "approved" && (
+      {status !== "approved" && isChantier && (
         <div className="grid grid-cols-2 gap-2">
           {(["client", "contributor"] as const).map((a) => (
             <button
@@ -370,6 +373,7 @@ export function DocumentActions({
   clientName,
   status,
   fileUrl,
+  isChantier = false,
   className,
   onSent,
   onOpenSend,
@@ -419,6 +423,7 @@ export function DocumentActions({
             clientName={clientName}
             status={status}
             fileUrl={fileUrl}
+            isChantier={isChantier}
             onSent={onSent}
             onClose={() => setOpen(false)}
           />

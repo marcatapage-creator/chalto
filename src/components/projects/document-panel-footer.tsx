@@ -75,6 +75,7 @@ export function DocumentPanelFooter({
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}
+          isChantier={isChantier}
           className="w-full"
           onOpenSend={onOpenSend}
         />
@@ -94,6 +95,7 @@ export function DocumentPanelFooter({
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}
+          isChantier={isChantier}
           className="w-full"
           onOpenSend={onOpenSend}
         />
@@ -113,6 +115,7 @@ export function DocumentPanelFooter({
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}
+          isChantier={isChantier}
           className="w-full"
           onOpenSend={onOpenSend}
         />
