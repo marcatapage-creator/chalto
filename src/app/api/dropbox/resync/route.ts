@@ -1,26 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getValidAccessToken } from "@/lib/dropbox"
+import { getValidAccessToken, downloadDropboxFile } from "@/lib/dropbox"
 import { NextResponse, type NextRequest } from "next/server"
 import { dropboxResyncSchema } from "@/lib/api-schemas"
 import { checkRateLimit } from "@/lib/rate-limit"
-
-function mimeFromFilename(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() ?? ""
-  const map: Record<string, string> = {
-    pdf: "application/pdf",
-    dwg: "application/acad",
-    dxf: "application/dxf",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    xls: "application/vnd.ms-excel",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    doc: "application/msword",
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-  }
-  return map[ext] ?? "application/octet-stream"
-}
 
 export async function POST(request: NextRequest) {
   if (!(await checkRateLimit(request)))
@@ -65,35 +48,14 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Télécharger la dernière version depuis Dropbox via l'ID du fichier
-  const dlRes = await fetch("https://content.dropboxapi.com/2/files/download", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: doc.cloud_file_id }),
-    },
-  })
-
-  if (!dlRes.ok) {
-    const dropboxError = await dlRes.text().catch(() => "")
-    console.error("[resync] Dropbox download failed", {
-      status: dlRes.status,
-      cloud_file_id: doc.cloud_file_id,
-      error: dropboxError,
-    })
-    return NextResponse.json(
-      { error: `Dropbox ${dlRes.status}: ${dropboxError.slice(0, 200)}` },
-      { status: 502 }
-    )
+  const downloaded = await downloadDropboxFile(accessToken, doc.cloud_file_id)
+  if (!downloaded) {
+    console.error("[resync] Dropbox download failed", { cloud_file_id: doc.cloud_file_id })
+    return NextResponse.json({ error: "Échec du téléchargement Dropbox" }, { status: 502 })
   }
 
-  // Récupérer le nom du fichier depuis les headers Dropbox
-  const apiResult = dlRes.headers.get("Dropbox-API-Result")
-  const dropboxMeta = apiResult ? (JSON.parse(apiResult) as { name?: string }) : null
-  const fileName = dropboxMeta?.name ?? doc.file_name ?? "fichier"
-  const contentType = mimeFromFilename(fileName)
-
-  const buffer = await dlRes.arrayBuffer()
+  const { buffer, fileName: dlFileName, contentType } = downloaded
+  const fileName = dlFileName ?? doc.file_name ?? "fichier"
   const currentVersion = doc.version ?? 1
   const newVersion = currentVersion + 1
   const safeName = fileName.replace(/[/\\]/g, "_")

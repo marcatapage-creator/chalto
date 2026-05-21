@@ -84,6 +84,20 @@ export function LandingBetaSection({ initialCount = 0 }: { initialCount?: number
   return (
     <section id="waitlist" className="py-20 px-6 md:px-4 bg-muted/30">
       <div className="max-w-6xl mx-auto">
+        {/* Bandeau compteur */}
+        <div className="flex justify-center mb-10">
+          <div className="inline-flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-full px-5 py-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-sm text-emerald-800 dark:text-emerald-300">
+              <span className="font-bold">
+                {betaCount} architecte{betaCount > 1 ? "s" : ""}
+              </span>{" "}
+              déjà inscrit{betaCount > 1 ? "s" : ""} sur{" "}
+              <span className="font-bold">{BETA_TOTAL} places</span>
+            </span>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold tracking-tight">

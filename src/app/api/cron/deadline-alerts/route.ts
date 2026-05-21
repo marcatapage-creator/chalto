@@ -21,13 +21,10 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export async function GET(request: Request) {
-  // Auth : CRON_SECRET requis en production, optionnel en dev
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = request.headers.get("Authorization")
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+  const auth = request.headers.get("Authorization")
+  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const admin = createAdminClient()

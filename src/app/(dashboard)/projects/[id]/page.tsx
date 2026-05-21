@@ -50,7 +50,9 @@ export default async function ProjectPage({
     supabase.from("pro_views").select("last_viewed_at").eq("project_id", id).maybeSingle(),
     supabase
       .from("situations")
-      .select("*, contributor:contributors(name, contact_id), attachments:situation_attachments(*)")
+      .select(
+        "*, contributor:contributors(name, contact_id), attachments:situation_attachments(id, url, file_name, type, file_size, file_type)"
+      )
       .eq("project_id", id)
       .order("submitted_at", { ascending: false })
       .limit(200),

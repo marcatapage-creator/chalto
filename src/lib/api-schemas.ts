@@ -41,6 +41,7 @@ export const validateSchema = z.object({
 
 export const validateContributorSchema = z.object({
   documentId: uuid,
+  contributorToken: uuid,
   status: z.enum(["approved", "rejected", "commented"]),
   comment: z.string().nullish(),
   contributorName: nonEmpty,

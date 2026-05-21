@@ -1,23 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getValidAccessToken, callDropbox } from "@/lib/dropbox"
+import { getValidAccessToken, callDropbox, downloadDropboxFile } from "@/lib/dropbox"
 import { NextResponse, type NextRequest } from "next/server"
-
-function mimeFromFilename(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() ?? ""
-  const map: Record<string, string> = {
-    pdf: "application/pdf",
-    dwg: "application/acad",
-    dxf: "application/dxf",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    xls: "application/vnd.ms-excel",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    doc: "application/msword",
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-  }
-  return map[ext] ?? "application/octet-stream"
-}
 
 async function verifySignature(secret: string, body: string, signature: string): Promise<boolean> {
   const encoder = new TextEncoder()
@@ -57,21 +40,11 @@ async function resyncDocument(
     cloud_file_id: string
   }
 ) {
-  const dlRes = await fetch("https://content.dropboxapi.com/2/files/download", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: doc.cloud_file_id }),
-    },
-  })
-  if (!dlRes.ok) return
+  const downloaded = await downloadDropboxFile(accessToken, doc.cloud_file_id)
+  if (!downloaded) return
 
-  const apiResult = dlRes.headers.get("Dropbox-API-Result")
-  const dropboxMeta = apiResult ? (JSON.parse(apiResult) as { name?: string }) : null
-  const fileName = dropboxMeta?.name ?? doc.file_name ?? "fichier"
-  const contentType = mimeFromFilename(fileName)
-
-  const buffer = await dlRes.arrayBuffer()
+  const { buffer, contentType } = downloaded
+  const fileName = downloaded.fileName ?? doc.file_name ?? "fichier"
   const currentVersion = doc.version ?? 1
   const newVersion = currentVersion + 1
   const safeName = fileName.replace(/[/\\]/g, "_")
@@ -178,8 +151,8 @@ export async function POST(request: NextRequest) {
           cursor = result.cursor
           hasMore = result.has_more
         }
-      } catch {
-        // Curseur expiré ou erreur réseau — on passe au lien suivant
+      } catch (err) {
+        console.error("[dropbox webhook] cursor continue error", { linkId: link.id, err })
         continue
       }
 
@@ -188,22 +161,24 @@ export async function POST(request: NextRequest) {
         .update({ cursor, last_synced_at: new Date().toISOString() })
         .eq("id", link.id)
 
-      for (const fileId of changedFileIds) {
-        const { data: doc } = await admin
-          .from("documents")
-          .select("id, file_url, file_name, file_type, file_size, version, cloud_file_id")
-          .eq("project_id", link.project_id)
-          .eq("cloud_file_id", fileId)
-          .eq("status", "rejected")
-          .maybeSingle()
+      await Promise.all(
+        changedFileIds.map(async (fileId) => {
+          const { data: doc } = await admin
+            .from("documents")
+            .select("id, file_url, file_name, file_type, file_size, version, cloud_file_id")
+            .eq("project_id", link.project_id)
+            .eq("cloud_file_id", fileId)
+            .eq("status", "rejected")
+            .maybeSingle()
 
-        if (!doc?.cloud_file_id) continue
+          if (!doc?.cloud_file_id) return
 
-        await resyncDocument(admin, accessToken, userId, {
-          ...doc,
-          cloud_file_id: doc.cloud_file_id,
+          await resyncDocument(admin, accessToken, userId, {
+            ...doc,
+            cloud_file_id: doc.cloud_file_id,
+          })
         })
-      }
+      )
     }
   }
 

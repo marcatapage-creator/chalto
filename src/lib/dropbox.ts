@@ -56,7 +56,39 @@ export async function getValidAccessToken(userId: string): Promise<string | null
   return data.access_token
 }
 
+// ── File helpers ─────────────────────────────────────────────────────────────
+
+export function mimeFromFilename(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() ?? ""
+  const map: Record<string, string> = {
+    pdf: "application/pdf",
+    dwg: "application/acad",
+    dxf: "application/dxf",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xls: "application/vnd.ms-excel",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    doc: "application/msword",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+  }
+  return map[ext] ?? "application/octet-stream"
+}
+
+export function docTypeFromFilename(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() ?? ""
+  if (["dwg", "dxf", "rvt", "ifc", "skp"].includes(ext)) return "Plan"
+  if (ext === "pdf") return "PDF"
+  if (["xlsx", "xls", "csv", "ods"].includes(ext)) return "Tableur"
+  if (["doc", "docx", "odt", "txt"].includes(ext)) return "Document"
+  if (["jpg", "jpeg", "png", "gif", "webp", "heic"].includes(ext)) return "Image"
+  return "Document"
+}
+
 // ── API wrapper ───────────────────────────────────────────────────────────────
+
+const API_TIMEOUT_MS = 15_000
+const DOWNLOAD_TIMEOUT_MS = 30_000
 
 /** Appel générique à l'API Dropbox. Passe `null` comme body pour les endpoints sans payload. */
 export async function callDropbox<T>(
@@ -64,19 +96,68 @@ export async function callDropbox<T>(
   endpoint: string,
   body: object | null = null
 ): Promise<T> {
-  const res = await fetch(`${DROPBOX_API}${endpoint}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    ...(body !== null && { body: JSON.stringify(body) }),
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`Dropbox ${endpoint} → ${res.status}: ${text}`)
+  try {
+    const res = await fetch(`${DROPBOX_API}${endpoint}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+      ...(body !== null && { body: JSON.stringify(body) }),
+    })
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "")
+      throw new Error(`Dropbox ${endpoint} → ${res.status}: ${text}`)
+    }
+
+    return res.json() as Promise<T>
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Dropbox ${endpoint} → timeout after ${API_TIMEOUT_MS}ms`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
   }
+}
 
-  return res.json() as Promise<T>
+/** Télécharge un fichier depuis Dropbox avec timeout. Retourne null en cas d'échec. */
+export async function downloadDropboxFile(
+  accessToken: string,
+  path: string
+): Promise<{ buffer: ArrayBuffer; fileName: string; contentType: string } | null> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS)
+
+  try {
+    const res = await fetch("https://content.dropboxapi.com/2/files/download", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Dropbox-API-Arg": JSON.stringify({ path }),
+      },
+      signal: controller.signal,
+    })
+
+    if (!res.ok) return null
+
+    const apiResult = res.headers.get("Dropbox-API-Result")
+    const meta = apiResult ? (JSON.parse(apiResult) as { name?: string }) : null
+    const fileName = meta?.name ?? path.split("/").pop() ?? "fichier"
+    const buffer = await res.arrayBuffer()
+
+    return { buffer, fileName, contentType: mimeFromFilename(fileName) }
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      console.error("[downloadDropboxFile] timeout", { path })
+    }
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
 }

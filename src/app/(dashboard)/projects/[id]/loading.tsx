@@ -25,7 +25,7 @@ export default function ProjectLoading() {
         <div className="space-y-3">
           <Skeleton className="h-4 w-28" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
+            <Skeleton key={i} className="h-18 w-full rounded-xl" />
           ))}
         </div>
 

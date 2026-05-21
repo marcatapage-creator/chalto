@@ -252,15 +252,16 @@ export function ProjectPageClient({
   useEffect(() => {
     let cancelled = false
     const t = setTimeout(() => {
-      if (cancelled) return // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(supabase as any)
+      if (cancelled) return
+      // pro_views n'est pas dans les types générés Supabase — bypass ciblé
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      void (supabase as any)
         .from("pro_views")
         .upsert(
           { user_id: userId, project_id: project.id, last_viewed_at: new Date().toISOString() },
           { onConflict: "user_id,project_id" }
         )
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .then(({ error }: { error: any }) => {
+        .then(({ error }: { error: Error | null }) => {
           if (error) console.error("[pro_views upsert]", error)
         })
     }, 500)

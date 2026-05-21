@@ -97,7 +97,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
-        <GoogleAnalytics gaId="G-6Z1Q32P5LT" />
+        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
       </body>
     </html>
   )

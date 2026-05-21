@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
-import { Menu, X } from "lucide-react"
+import { X } from "lucide-react"
 
 function scrollToSection(id: string) {
   const el = document.getElementById(id)
@@ -90,7 +90,26 @@ export function LandingNav() {
                   transition={{ duration: 0.18 }}
                   className="block"
                 >
-                  <Menu className="h-5 w-5" />
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <line
+                      x1="3"
+                      y1="6.5"
+                      x2="17"
+                      y2="6.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="3"
+                      y1="13.5"
+                      x2="17"
+                      y2="13.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                 </motion.span>
               )}
             </AnimatePresence>

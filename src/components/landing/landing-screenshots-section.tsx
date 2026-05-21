@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 const tabs = [
   {
@@ -55,6 +56,17 @@ function PhoneFrame({ src, alt }: { src: string; alt: string }) {
 export function LandingScreenshotsSection() {
   const [active, setActive] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const onScroll = () => {
+      const slideWidth = el.scrollWidth / tabs.length
+      setActive(Math.round(el.scrollLeft / slideWidth))
+    }
+    el.addEventListener("scroll", onScroll, { passive: true })
+    return () => el.removeEventListener("scroll", onScroll)
+  }, [])
 
   return (
     <section id="screenshots" className="py-20 px-6 md:px-4 bg-muted/30">
@@ -119,11 +131,11 @@ export function LandingScreenshotsSection() {
         </div>
 
         {/* ── MOBILE : horizontal swipe carousel ── */}
-        <div className="md:hidden">
+        <div className="md:hidden -mx-6">
           <div
             ref={scrollRef}
-            className="flex gap-8 overflow-x-auto snap-x snap-mandatory pb-6 scrollbar-hide"
-            style={{ scrollbarWidth: "none" }}
+            className="flex overflow-x-auto snap-x snap-mandatory pb-6 scrollbar-hide"
+            style={{ scrollbarWidth: "none", paddingInline: "10vw", gap: 0 }}
           >
             {tabs.map((tab) => (
               <div
@@ -140,9 +152,15 @@ export function LandingScreenshotsSection() {
             ))}
           </div>
           {/* Scroll hint dots */}
-          <div className="flex justify-center gap-2 mt-2">
-            {tabs.map((tab) => (
-              <div key={tab.id} className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+          <div className="flex justify-center gap-2 mt-4">
+            {tabs.map((tab, i) => (
+              <div
+                key={tab.id}
+                className={cn(
+                  "rounded-full transition-all duration-300",
+                  i === active ? "w-4 h-1.5 bg-primary" : "w-1.5 h-1.5 bg-muted-foreground/30"
+                )}
+              />
             ))}
           </div>
         </div>

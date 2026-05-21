@@ -18,7 +18,6 @@ import {
 import { AlertCircle, Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
 import { analytics } from "@/lib/analytics"
-import { motion, AnimatePresence } from "framer-motion"
 
 function SessionExpiredBanner() {
   const searchParams = useSearchParams()
@@ -87,33 +86,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <AnimatePresence>
-        {googleLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm"
-          >
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/Logo.svg" alt="Chalto" width={64} height={64} />
-            </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="text-sm text-muted-foreground"
-            >
-              Connexion en cours…
-            </motion.p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {googleLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Logo.svg"
+            alt="Chalto"
+            width={64}
+            height={64}
+            className="animate-bounce"
+            style={{ animationDuration: "1.4s" }}
+          />
+          <p className="text-sm text-muted-foreground animate-in fade-in duration-300 delay-150">
+            Connexion en cours…
+          </p>
+        </div>
+      )}
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2">
@@ -171,76 +159,62 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <AnimatePresence mode="wait" initial={false}>
-                {!showEmailForm ? (
-                  <motion.button
-                    key="toggle"
-                    type="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={() => setShowEmailForm(true)}
-                    className="w-full text-sm text-center text-primary hover:underline transition-colors cursor-pointer py-1"
-                  >
-                    Continuer avec email
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    key="form"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                    className="space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+              {!showEmailForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowEmailForm(true)}
+                  className="w-full text-sm text-center text-primary hover:underline transition-colors cursor-pointer py-1 animate-in fade-in duration-150"
+                >
+                  Continuer avec email
+                </button>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      placeholder="jean@exemple.fr"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Mot de passe</Label>
+                    <div className="relative">
                       <Input
-                        id="email"
-                        type="email"
-                        inputMode="email"
-                        autoComplete="email"
-                        placeholder="jean@exemple.fr"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pr-10"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        aria-label={
+                          showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Mot de passe</Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="current-password"
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                          aria-label={
-                            showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
-                          }
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    {error && <p className="text-sm text-destructive">{error}</p>}
-                    <Button type="submit" className="w-full" loading={loading}>
-                      {loading ? "Connexion..." : "Se connecter"}
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                  <Button type="submit" className="w-full" loading={loading}>
+                    {loading ? "Connexion..." : "Se connecter"}
+                  </Button>
+                </div>
+              )}
             </CardContent>
             <CardFooter>
               <p className="text-sm text-muted-foreground text-center w-full">

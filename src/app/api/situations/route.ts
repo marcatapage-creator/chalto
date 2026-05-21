@@ -68,43 +68,47 @@ export async function POST(request: Request) {
     }
 
     const ALLOWED_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp", "heic", "heif"])
-    const files = formData.getAll("files") as File[]
-    const attachments = []
+    const validFiles = (formData.getAll("files") as File[]).filter(
+      (f): f is File =>
+        f instanceof File && ALLOWED_EXTENSIONS.has((f.name.split(".").pop() ?? "").toLowerCase())
+    )
 
-    for (const file of files) {
-      if (!(file instanceof File)) continue
-      const ext = (file.name.split(".").pop() ?? "").toLowerCase()
-      if (!ALLOWED_EXTENSIONS.has(ext)) continue
-      const fileName = `${crypto.randomUUID()}.${ext}`
-      const path = `${data.projectId}/${situation.id}/${fileName}`
+    const attachments = (
+      await Promise.all(
+        validFiles.map(async (file) => {
+          const ext = (file.name.split(".").pop() ?? "").toLowerCase()
+          const fileName = `${crypto.randomUUID()}.${ext}`
+          const path = `${data.projectId}/${situation.id}/${fileName}`
 
-      const buffer = await file.arrayBuffer()
-      const { error: uploadError } = await admin.storage
-        .from("situations")
-        .upload(path, buffer, { contentType: file.type })
+          const buffer = await file.arrayBuffer()
+          const { error: uploadError } = await admin.storage
+            .from("situations")
+            .upload(path, buffer, { contentType: file.type })
 
-      if (uploadError) {
-        console.error("[situations POST] upload", uploadError)
-        continue
-      }
+          if (uploadError) {
+            console.error("[situations POST] upload", uploadError)
+            return null
+          }
 
-      const { data: urlData } = admin.storage.from("situations").getPublicUrl(path)
+          const { data: urlData } = admin.storage.from("situations").getPublicUrl(path)
 
-      const { data: attachment } = await admin
-        .from("situation_attachments")
-        .insert({
-          situation_id: situation.id,
-          type: file.type === "application/pdf" ? "document" : "photo",
-          url: urlData.publicUrl,
-          file_name: file.name,
-          file_size: file.size,
-          file_type: file.type,
+          const { data: attachment } = await admin
+            .from("situation_attachments")
+            .insert({
+              situation_id: situation.id,
+              type: file.type === "application/pdf" ? "document" : "photo",
+              url: urlData.publicUrl,
+              file_name: file.name,
+              file_size: file.size,
+              file_type: file.type,
+            })
+            .select()
+            .single()
+
+          return attachment ?? null
         })
-        .select()
-        .single()
-
-      if (attachment) attachments.push(attachment)
-    }
+      )
+    ).filter(Boolean)
 
     const { data: profile } = await admin
       .from("profiles")

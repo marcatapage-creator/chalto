@@ -14,19 +14,38 @@ export const ratelimit = new Ratelimit({
   prefix: "chalto",
 })
 
-export async function checkRateLimit(request: Request): Promise<boolean> {
-  if (process.env.NODE_ENV === "development") return true
+// 20 requêtes par heure par IP — pour les routes publiques sensibles (validation token)
+const strictRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "1 h"),
+  analytics: true,
+  prefix: "chalto:strict",
+})
 
-  const ip =
+function getIp(request: Request): string {
+  return (
     request.headers.get("x-forwarded-for")?.split(",")[0] ??
     request.headers.get("x-real-ip") ??
     "anonymous"
+  )
+}
 
+export async function checkRateLimit(request: Request): Promise<boolean> {
+  if (process.env.NODE_ENV === "development") return true
   try {
-    const { success } = await ratelimit.limit(ip)
+    const { success } = await ratelimit.limit(getIp(request))
     return success
   } catch {
-    // Fail-open: if Redis is unreachable, don't block the request
+    return true
+  }
+}
+
+export async function checkStrictRateLimit(request: Request): Promise<boolean> {
+  if (process.env.NODE_ENV === "development") return true
+  try {
+    const { success } = await strictRatelimit.limit(getIp(request))
+    return success
+  } catch {
     return true
   }
 }

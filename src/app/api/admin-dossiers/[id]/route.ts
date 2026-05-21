@@ -58,15 +58,19 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const admin = createAdminClient()
 
-    const { error } = await admin
+    const { error, count } = await admin
       .from("admin_dossiers")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("user_id", user.id)
 
     if (error) {
       console.error("[admin-dossiers DELETE]", error)
       return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 })
+    }
+
+    if (count === 0) {
+      return NextResponse.json({ error: "Dossier introuvable" }, { status: 404 })
     }
 
     return NextResponse.json({ success: true })

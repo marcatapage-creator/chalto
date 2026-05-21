@@ -1,5 +1,6 @@
 "use client"
 
+import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 
 const blocks = [
@@ -68,15 +69,27 @@ export function LandingSolutionSection() {
                 </p>
 
                 {/* Before / After grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_40px_1fr] items-center gap-3 mb-6">
                   {/* AVANT */}
                   <div className="rounded-xl p-5 bg-[#f4f4f2] dark:bg-muted">
                     <span className="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
                       Avant
                     </span>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                       {block.before}
                     </p>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="hidden md:flex items-center justify-center">
+                    <motion.div
+                      initial={{ x: -4, opacity: 0.4 }}
+                      whileInView={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
+                      viewport={{ once: true }}
+                    >
+                      <ArrowRight className="w-5 h-5 text-muted-foreground/50" />
+                    </motion.div>
                   </div>
 
                   {/* APRÈS */}
@@ -84,12 +97,12 @@ export function LandingSolutionSection() {
                     <span className="text-xs font-semibold uppercase tracking-widest text-[#2d6a4f] dark:text-emerald-400">
                       Après
                     </span>
-                    <p className="mt-3 text-sm leading-relaxed text-foreground">{block.after}</p>
+                    <p className="mt-3 text-base leading-relaxed text-foreground">{block.after}</p>
                   </div>
                 </div>
 
                 {/* Stat */}
-                <p className="text-sm font-semibold text-[#2d6a4f] dark:text-emerald-400">
+                <p className="text-base md:text-lg font-bold text-[#2d6a4f] dark:text-emerald-400">
                   → {block.stat}
                 </p>
               </div>

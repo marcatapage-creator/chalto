@@ -18,10 +18,29 @@ export async function POST(request: Request) {
     const parsed = validateContributorSchema.safeParse(await request.json())
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
-    const { documentId, status, comment, contributorName, contributorId, requestType } = parsed.data
+    const {
+      documentId,
+      contributorToken,
+      status,
+      comment,
+      contributorName,
+      contributorId,
+      requestType,
+    } = parsed.data
     const isTransmission = requestType === "transmission"
 
     const admin = createAdminClient()
+
+    // Vérification du token avant toute opération d'écriture
+    const { data: contributor } = await admin
+      .from("contributors")
+      .select("id")
+      .eq("invite_token", contributorToken)
+      .single()
+
+    if (!contributor) {
+      return NextResponse.json({ error: "Token invalide" }, { status: 403 })
+    }
 
     const { data: document } = await admin
       .from("documents")

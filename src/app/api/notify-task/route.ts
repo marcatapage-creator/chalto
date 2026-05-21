@@ -3,11 +3,19 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
 import { buildBrandHeader } from "@/lib/email-brand"
+import { escapeHtml } from "@/lib/email"
 import { notifyTaskSchema } from "@/lib/api-schemas"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
+  if (!(await checkRateLimit(request)))
+    return NextResponse.json(
+      { error: "Trop de requêtes — réessayez dans une minute" },
+      { status: 429 }
+    )
+
   try {
     const parsed = notifyTaskSchema.safeParse(await request.json())
     if (!parsed.success)
@@ -61,7 +69,7 @@ export async function POST(request: Request) {
 
     const baseUrl = new URL(request.url).origin
     const inviteUrl = `${baseUrl}/invite/${contributor.invite_token}`
-    const proName = proProfile?.full_name ?? "Votre professionnel"
+    const proName = escapeHtml(proProfile?.full_name ?? "Votre professionnel")
     const brandHeader = buildBrandHeader(proProfile)
 
     const dueDateHtml = task.due_date
@@ -71,7 +79,7 @@ export async function POST(request: Request) {
       : ""
 
     const descriptionHtml = task.description
-      ? `<p style="margin: 6px 0 0; font-size: 13px; color: #555; line-height: 1.6;">${task.description}</p>`
+      ? `<p style="margin: 6px 0 0; font-size: 13px; color: #555; line-height: 1.6;">${escapeHtml(task.description)}</p>`
       : ""
 
     if (process.env.SKIP_EMAILS === "true") {
@@ -96,17 +104,17 @@ export async function POST(request: Request) {
             </h1>
 
             <p style="color: #555; font-size: 15px; margin: 0 0 24px;">
-              Bonjour ${contact.name},
+              Bonjour ${escapeHtml(contact.name)},
             </p>
 
             <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
               <strong>${proName}</strong> vous rappelle une tâche en attente
-              sur le projet <strong>${project?.name}</strong>.
+              sur le projet <strong>${escapeHtml(project?.name)}</strong>.
             </p>
 
             <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 32px;">
               <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Tâche</p>
-              <p style="margin: 0; font-weight: 600; font-size: 16px;">${task.title}</p>
+              <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(task.title)}</p>
               ${descriptionHtml}
               ${dueDateHtml}
             </div>
@@ -117,7 +125,7 @@ export async function POST(request: Request) {
             </a>
 
             <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
-              Vous avez reçu cet email car ${proName} vous a assigné une tâche via Chalto.<br/>
+              Vous avez reçu cet email car ${escapeHtml(proProfile?.full_name ?? "Votre professionnel")} vous a assigné une tâche via Chalto.<br/>
               Si vous n&apos;attendiez pas ce message, ignorez cet email.
             </p>
 

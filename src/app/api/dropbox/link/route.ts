@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getValidAccessToken, callDropbox } from "@/lib/dropbox"
+import {
+  getValidAccessToken,
+  callDropbox,
+  mimeFromFilename,
+  docTypeFromFilename,
+  downloadDropboxFile,
+} from "@/lib/dropbox"
 import { NextResponse, type NextRequest } from "next/server"
 import { linkCloudFolderSchema, unlinkCloudFolderSchema } from "@/lib/api-schemas"
 import { checkRateLimit } from "@/lib/rate-limit"
@@ -14,33 +20,6 @@ interface DropboxEntry {
   path_display: string
   id: string
   size?: number
-}
-
-function docTypeFromFilename(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() ?? ""
-  if (["dwg", "dxf", "rvt", "ifc", "skp"].includes(ext)) return "Plan"
-  if (ext === "pdf") return "PDF"
-  if (["xlsx", "xls", "csv", "ods"].includes(ext)) return "Tableur"
-  if (["doc", "docx", "odt", "txt"].includes(ext)) return "Document"
-  if (["jpg", "jpeg", "png", "gif", "webp", "heic"].includes(ext)) return "Image"
-  return "Document"
-}
-
-function mimeFromFilename(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() ?? ""
-  const map: Record<string, string> = {
-    pdf: "application/pdf",
-    dwg: "application/acad",
-    dxf: "application/dxf",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    xls: "application/vnd.ms-excel",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    doc: "application/msword",
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-  }
-  return map[ext] ?? "application/octet-stream"
 }
 
 // ── POST — lier un dossier et déclencher la sync initiale ─────────────────────
@@ -157,24 +136,16 @@ export async function POST(request: NextRequest) {
 
       // Télécharger depuis Dropbox et uploader dans Supabase Storage
       try {
-        const dlRes = await fetch("https://content.dropboxapi.com/2/files/download", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Dropbox-API-Arg": JSON.stringify({ path: file.path_display }),
-          },
-        })
+        const downloaded = await downloadDropboxFile(accessToken, file.path_display)
+        if (!downloaded) continue
 
-        if (!dlRes.ok) continue
-
-        const buffer = await dlRes.arrayBuffer()
         const safeName = file.name.replace(/[/\\]/g, "_")
         const storagePath = `${user.id}/${doc.id}/${safeName}`
 
         const { error: uploadError } = await admin.storage
           .from("documents")
-          .upload(storagePath, buffer, {
-            contentType: mimeFromFilename(file.name),
+          .upload(storagePath, downloaded.buffer, {
+            contentType: downloaded.contentType,
             upsert: false,
           })
 
@@ -184,8 +155,8 @@ export async function POST(request: NextRequest) {
         }
 
         syncedCount++
-      } catch {
-        // Fichier non critique — on continue
+      } catch (err) {
+        console.error("[dropbox link] sync file error", { fileId: file.id, err })
       }
     }
 

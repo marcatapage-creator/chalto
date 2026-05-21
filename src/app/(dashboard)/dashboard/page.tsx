@@ -90,7 +90,9 @@ export default async function DashboardPage() {
   const [{ data: projects }, { data: profile }] = await Promise.all([
     supabase
       .from("projects")
-      .select("id, status, name, client_name, phase, created_at, professions(slug, label)")
+      .select(
+        "id, status, name, client_name, phase, created_at, professions(slug, label), documents(project_id, status)"
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100),
@@ -109,19 +111,11 @@ export default async function DashboardPage() {
     return aIsArchi - bIsArchi
   })
 
-  const projectIds = projects?.map((p) => p.id) ?? []
-  const { data: documents } =
-    projectIds.length > 0
-      ? await supabase.from("documents").select("project_id, status").in("project_id", projectIds)
-      : { data: [] as { project_id: string; status: string }[] }
-
-  const documentSentCount = (documents ?? []).filter((d) =>
-    ["sent", "approved", "rejected"].includes(d.status)
-  ).length
+  type DocRow = { project_id: string; status: string }
 
   const projectsWithCounts: ProjectWithCounts[] = (projects ?? []).map((p) => {
     const prof = p.professions as unknown as { slug: string; label: string } | null
-    const docs = documents?.filter((d) => d.project_id === p.id) ?? []
+    const docs = (p.documents as unknown as DocRow[] | null) ?? []
     return {
       id: p.id,
       name: p.name,
@@ -143,14 +137,20 @@ export default async function DashboardPage() {
     }
   })
 
+  const allDocs = (projects ?? []).flatMap((p) => (p.documents as unknown as DocRow[] | null) ?? [])
+
+  const documentSentCount = allDocs.filter((d) =>
+    ["sent", "approved", "rejected"].includes(d.status)
+  ).length
+
   const demoProjectId =
     profile?.demo_project_id ?? projects?.find((p) => p.name?.includes("Projet démo"))?.id ?? null
 
   const initialCounts = {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
-    totalDocs: documents?.length ?? 0,
-    approved: documents?.filter((d) => d.status === DOCUMENT_STATUS.APPROVED).length ?? 0,
-    pending: documents?.filter((d) => d.status === DOCUMENT_STATUS.SENT).length ?? 0,
+    totalDocs: allDocs.length,
+    approved: allDocs.filter((d) => d.status === DOCUMENT_STATUS.APPROVED).length,
+    pending: allDocs.filter((d) => d.status === DOCUMENT_STATUS.SENT).length,
   }
 
   return (
