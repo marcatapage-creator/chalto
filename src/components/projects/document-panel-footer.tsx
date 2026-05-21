@@ -11,6 +11,7 @@ interface DocumentPanelFooterProps {
   fileUrl?: string | null
   proposing: boolean
   documentId: string
+  documentName: string
   projectId: string
   clientName?: string
   localVersion: number
@@ -28,6 +29,7 @@ export function DocumentPanelFooter({
   fileUrl,
   proposing,
   documentId,
+  documentName,
   projectId,
   clientName,
   localVersion,
@@ -69,6 +71,7 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
+          documentName={documentName}
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}
@@ -87,6 +90,7 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
+          documentName={documentName}
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}
@@ -105,6 +109,7 @@ export function DocumentPanelFooter({
         </p>
         <DocumentActions
           documentId={documentId}
+          documentName={documentName}
           projectId={projectId}
           status={localStatus}
           fileUrl={fileUrl}

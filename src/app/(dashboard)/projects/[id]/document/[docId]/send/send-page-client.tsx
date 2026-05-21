@@ -158,16 +158,25 @@ export function SendPageClient({
         )
         if (upsertError) console.error("[document_contributors upsert]", upsertError)
 
-        await fetchWithTimeout("/api/send-document-contributor", {
+        const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            documentId: document.id,
             contributorIds: selectedContributors,
+            documentName: document.name,
+            projectId,
             message: message || undefined,
             requestType,
           }),
         })
+
+        if (!emailRes.ok) {
+          const errData = await emailRes.json().catch(() => ({}))
+          console.error("[send-document-contributor]", errData)
+          toast.error((errData as { error?: string }).error ?? "Erreur lors de l'envoi email")
+          setLoading(false)
+          return
+        }
 
         haptics.success()
         toast.success("Document envoyé aux prestataires ✅")

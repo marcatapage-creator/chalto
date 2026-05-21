@@ -498,6 +498,7 @@ export function DocumentPanel({
         fileUrl={fileUrl}
         proposing={proposing}
         documentId={document.id}
+        documentName={document.name}
         projectId={document.project_id}
         clientName={clientName}
         localVersion={localVersion}

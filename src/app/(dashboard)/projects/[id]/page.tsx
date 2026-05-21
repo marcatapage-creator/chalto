@@ -10,9 +10,9 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ highlight?: string; tab?: string }>
+  searchParams: Promise<{ highlight?: string; tab?: string; created?: string }>
 }) {
-  const [{ id }, { highlight, tab }] = await Promise.all([params, searchParams])
+  const [{ id }, { highlight, tab, created }] = await Promise.all([params, searchParams])
   const user = await getAuthUser()
   if (!user) redirect("/login")
   const supabase = await createClient()
@@ -167,6 +167,7 @@ export default async function ProjectPage({
       authorName={authorName}
       professionSlug={professionSlug}
       initialHighlightId={highlight ?? (tab === "situations" ? "tab_situations" : null)}
+      initialCreatedDocId={created ?? null}
       initialValidations={initialValidations}
       initialSituations={(situations ?? []) as unknown as Situation[]}
       initialDossiers={(dossiers ?? []) as unknown as AdminDossier[]}

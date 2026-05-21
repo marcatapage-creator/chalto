@@ -33,6 +33,7 @@ interface Contributor {
 
 interface DocumentSendFormProps {
   documentId: string
+  documentName: string
   projectId: string
   clientName?: string
   status: string
@@ -43,6 +44,7 @@ interface DocumentSendFormProps {
 
 interface DocumentActionsProps {
   documentId: string
+  documentName: string
   projectId: string
   clientName?: string
   status: string
@@ -112,6 +114,7 @@ function RequestTypeSelector({
  */
 export function DocumentSendForm({
   documentId,
+  documentName,
   projectId,
   clientName,
   status,
@@ -213,16 +216,25 @@ export function DocumentSendForm({
         )
         if (upsertError) console.error("[document_contributors upsert]", upsertError)
 
-        await fetchWithTimeout("/api/send-document-contributor", {
+        const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            documentId,
             contributorIds: selectedContributors,
+            documentName,
+            projectId,
             message: message || undefined,
             requestType,
           }),
         })
+
+        if (!emailRes.ok) {
+          const errData = await emailRes.json().catch(() => ({}))
+          console.error("[send-document-contributor]", errData)
+          toast.error((errData as { error?: string }).error ?? "Erreur lors de l'envoi email")
+          setLoading(false)
+          return
+        }
 
         haptics.success()
         toast.success("Document envoyé aux prestataires ✅")
@@ -353,6 +365,7 @@ export function DocumentSendForm({
 
 export function DocumentActions({
   documentId,
+  documentName,
   projectId,
   clientName,
   status,
@@ -401,6 +414,7 @@ export function DocumentActions({
         >
           <DocumentSendForm
             documentId={documentId}
+            documentName={documentName}
             projectId={projectId}
             clientName={clientName}
             status={status}

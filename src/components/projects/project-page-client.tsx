@@ -104,6 +104,7 @@ interface ProjectPageClientProps {
   authorName: string
   professionSlug?: string | null
   initialHighlightId?: string | null
+  initialCreatedDocId?: string | null
   initialValidations?: Record<string, ValidationData>
   initialSituations?: Situation[]
   initialDossiers?: AdminDossier[]
@@ -137,6 +138,7 @@ export function ProjectPageClient({
   authorName,
   professionSlug,
   initialHighlightId,
+  initialCreatedDocId = null,
   initialValidations = {},
   initialSituations = [],
   initialDossiers = [],
@@ -164,13 +166,19 @@ export function ProjectPageClient({
     initialHighlightId?.startsWith("doc_") ? initialHighlightId.slice(4) : null
   )
   const [detailsOpen, setDetailsOpen] = useState(true)
-  const [docsOpen, setDocsOpen] = useState(initialHighlightId?.startsWith("doc_") ?? false)
+  const [docsOpen, setDocsOpen] = useState(
+    (initialHighlightId?.startsWith("doc_") || !!initialCreatedDocId) ?? false
+  )
 
   // ─── Highlight (notification deep-link) ──────────────────────────────────────
   // "tab_situations" is a legacy sentinel from old ?tab=situations notifications — not a real highlight
   const isLegacySituationsTab = initialHighlightId === "tab_situations"
   const [highlightedId, setHighlightedId] = useState<string | null>(
-    isLegacySituationsTab ? null : (initialHighlightId ?? null)
+    isLegacySituationsTab
+      ? null
+      : initialCreatedDocId
+        ? `doc_${initialCreatedDocId}`
+        : (initialHighlightId ?? null)
   )
 
   // Efface le highlight initial (deep-link depuis notif) après 2,5 s

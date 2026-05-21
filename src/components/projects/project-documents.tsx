@@ -348,7 +348,13 @@ export function ProjectDocuments({
                 {
                   label: "Upload un fichier",
                   icon: <Upload className="h-4 w-4" />,
-                  onClick: () => setTimeout(() => setAddDocOpen(true), 300),
+                  onClick: () => {
+                    if (!isDesktop) {
+                      router.push(`/projects/${projectId}/documents/new`)
+                    } else {
+                      setTimeout(() => setAddDocOpen(true), 300)
+                    }
+                  },
                 },
                 ...(!isDesktop
                   ? [
