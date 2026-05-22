@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { checkRateLimit } from "@/lib/rate-limit"
 import { generateDocumentSchema } from "@/lib/api-schemas"
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from "docx"
 
@@ -454,12 +453,6 @@ function buildDocx(content: string, title: string): Promise<Buffer> {
 // ---------------------------------------------------------------------------
 
 export async function POST(req: Request) {
-  if (!(await checkRateLimit(req)))
-    return NextResponse.json(
-      { error: "Limite atteinte — réessayez dans une heure" },
-      { status: 429 }
-    )
-
   const supabase = await createClient()
   const {
     data: { user },
