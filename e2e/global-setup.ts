@@ -50,6 +50,7 @@ export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0].use.baseURL ?? "http://localhost:3000"
   const browser = await chromium.launch()
   const page = await browser.newPage()
+  await page.addInitScript(() => localStorage.setItem("cookie-consent", "refused"))
 
   await page.goto(`${baseURL}/login`)
   await page.getByRole("button", { name: /continuer avec email/i }).click()
