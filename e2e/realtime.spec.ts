@@ -53,6 +53,7 @@ test("9.1 — approbation client met à jour le statut du document sans recharge
   const proCtx = await browser.newContext({ storageState: "e2e/.auth/user.json" })
   // Contexte client — public, pas d'auth
   const clientCtx = await browser.newContext()
+  await clientCtx.addInitScript(() => localStorage.setItem("cookie-consent", "refused"))
 
   try {
     const proPage = await proCtx.newPage()
@@ -97,6 +98,7 @@ test("9.1 — refus client avec commentaire met à jour le statut Realtime côt�
 
   const proCtx = await browser.newContext({ storageState: "e2e/.auth/user.json" })
   const clientCtx = await browser.newContext()
+  await clientCtx.addInitScript(() => localStorage.setItem("cookie-consent", "refused"))
 
   try {
     const proPage = await proCtx.newPage()
@@ -142,6 +144,7 @@ test("9.2 — mise à jour tâche prestataire reflétée en temps réel sur la f
 
   const proCtx = await browser.newContext({ storageState: "e2e/.auth/user.json" })
   const contractorCtx = await browser.newContext()
+  await contractorCtx.addInitScript(() => localStorage.setItem("cookie-consent", "refused"))
 
   try {
     const proPage = await proCtx.newPage()
@@ -192,6 +195,7 @@ test("9.1 — aucune erreur console postgres_changes lors de la validation clien
   const realtimeErrors: string[] = []
   const proCtx = await browser.newContext({ storageState: "e2e/.auth/user.json" })
   const clientCtx = await browser.newContext()
+  await clientCtx.addInitScript(() => localStorage.setItem("cookie-consent", "refused"))
 
   try {
     const proPage = await proCtx.newPage()

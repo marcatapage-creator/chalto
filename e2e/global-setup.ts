@@ -58,6 +58,7 @@ export default async function globalSetup(config: FullConfig) {
   await page.getByRole("button", { name: /connexion|se connecter/i }).click()
   await page.waitForURL(/dashboard/, { timeout: 15_000 })
 
+  await page.evaluate(() => localStorage.setItem("cookie-consent", "refused"))
   await page.context().storageState({ path: AUTH_FILE })
   await browser.close()
 
