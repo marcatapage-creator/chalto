@@ -177,7 +177,7 @@ export const dropboxResyncSchema = z.object({
 export const generateDocumentSchema = z.object({
   projectId: uuid,
   projectName: z.string().min(1),
-  workType: z.string().min(1),
+  workType: z.string(),
   clientName: z.string().optional(),
   professionSlug: z.string().optional(),
   documentType: z.enum(["cctp", "aps"]),
