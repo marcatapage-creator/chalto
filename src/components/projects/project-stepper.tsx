@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState, useEffect, useRef } from "react"
+import { Fragment, useState, useEffect, useMemo, useRef } from "react"
 import { motion, useAnimation } from "framer-motion"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -45,7 +45,7 @@ export function ProjectStepper({
   const [showClotureDialog, setShowClotureDialog] = useState(false)
   const [dontShowClotureAgain, setDontShowClotureAgain] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const pillControls = useAnimation()
   const labelControls = useAnimation()
   const isFirstRender = useRef(true)

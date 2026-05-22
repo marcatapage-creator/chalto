@@ -83,14 +83,14 @@ const PRO = {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(true)
+  vi.mocked(rateLimitModule.checkStrictRateLimit).mockResolvedValue(true)
   vi.mocked(notificationsModule.createNotification).mockResolvedValue(undefined)
   vi.mocked(emailModule.sendApprovalEmail).mockResolvedValue(undefined as never)
 })
 
 describe("POST /api/validate", () => {
   it("retourne 429 si limite dépassée", async () => {
-    vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(false)
+    vi.mocked(rateLimitModule.checkStrictRateLimit).mockResolvedValue(false)
     const res = await POST(req({ token: "tok", status: "approved" }))
     expect(res.status).toBe(429)
   })

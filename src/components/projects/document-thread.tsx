@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FadeIn } from "@/components/ui/motion"
+import { toast } from "sonner"
 
 const PAGE_SIZE = 50
 
@@ -102,16 +103,22 @@ export function DocumentThread({ documentId, authorName, authorRole }: DocumentT
   const handleSend = async () => {
     if (!content.trim()) return
     setLoading(true)
-
-    await supabase.from("messages").insert({
-      document_id: documentId,
-      author_name: authorName,
-      author_role: authorRole,
-      content: content.trim(),
-    })
-
-    setContent("")
-    setLoading(false)
+    try {
+      const { error } = await supabase.from("messages").insert({
+        document_id: documentId,
+        author_name: authorName,
+        author_role: authorRole,
+        content: content.trim(),
+      })
+      if (error) {
+        console.error("[document-thread] insert error:", error)
+        toast.error("Erreur lors de l'envoi du message")
+        return
+      }
+      setContent("")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

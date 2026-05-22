@@ -172,3 +172,21 @@ export const updateAdminDossierSchema = z.object({
 export const dropboxResyncSchema = z.object({
   documentId: uuid,
 })
+
+// POST /api/generate-document
+export const generateDocumentSchema = z.object({
+  projectId: uuid,
+  projectName: z.string().min(1),
+  workType: z.string().min(1),
+  clientName: z.string().optional(),
+  professionSlug: z.string().optional(),
+  documentType: z.enum(["cctp", "aps"]),
+  answers: z.object({
+    lots: z.array(z.string()),
+    pieces: z.array(z.string()),
+    materiaux: z.string(),
+    ambiance: z.string(),
+    contraintes: z.string(),
+    niveau: z.enum(["economique", "standard", "premium"]),
+  }),
+})

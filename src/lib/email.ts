@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { buildBrandHeader } from "./email-brand"
 
 export function escapeHtml(str: string | null | undefined): string {
   if (!str) return ""
@@ -43,12 +44,11 @@ export async function sendValidationEmail({
   companyName?: string | null
 }) {
   const isTransmission = requestType === "transmission"
-  const brandHeader = logoUrl
-    ? `<img src="${logoUrl}" alt="${escapeHtml(companyName) || "Logo"}" style="max-height: 48px; max-width: 160px; object-fit: contain;" />`
-    : `<div style="display: inline-flex; align-items: center; gap: 8px;">
-        <img src="https://chalto.fr/Logo.svg" alt="Chalto" width="28" height="28" style="display: block;" />
-        <span style="font-weight: 700; font-size: 16px; color: #111;">Chalto</span>
-       </div>`
+  const brandHeader = buildBrandHeader({
+    logo_url: logoUrl,
+    company_name: companyName,
+    branding_enabled: !!logoUrl,
+  })
 
   const senderName = companyName ?? proName
 

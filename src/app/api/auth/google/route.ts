@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse, type NextRequest } from "next/server"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function GET(request: NextRequest) {
+  if (!(await checkRateLimit(request)))
+    return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
   const { origin } = new URL(request.url)
   const source = request.nextUrl.searchParams.get("source")
 

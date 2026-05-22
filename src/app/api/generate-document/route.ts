@@ -2,26 +2,8 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { checkRateLimit } from "@/lib/rate-limit"
+import { generateDocumentSchema } from "@/lib/api-schemas"
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from "docx"
-
-interface Answers {
-  lots: string[]
-  pieces: string[]
-  materiaux: string
-  ambiance: string
-  contraintes: string
-  niveau: "economique" | "standard" | "premium"
-}
-
-interface RequestBody {
-  projectId: string
-  projectName: string
-  workType: string
-  clientName?: string
-  professionSlug?: string
-  documentType: "cctp" | "aps"
-  answers: Answers
-}
 
 // ---------------------------------------------------------------------------
 // Mock CCTP statique (dev uniquement)
@@ -485,12 +467,11 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
 
-  const body = (await req.json()) as RequestBody
-  const { projectId, projectName, workType, clientName, documentType, answers } = body
-  const hasItems = documentType === "aps" ? answers?.pieces?.length > 0 : answers?.lots?.length > 0
-  if (!projectId || !projectName || !documentType || !hasItems) {
-    return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
-  }
+  const parsed = generateDocumentSchema.safeParse(await req.json())
+  if (!parsed.success) return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
+  const { projectId, projectName, workType, clientName, documentType, answers } = parsed.data
+  const hasItems = documentType === "aps" ? answers.pieces.length > 0 : answers.lots.length > 0
+  if (!hasItems) return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
 
   // Vérification explicite de l'ownership avant toute opération admin
   const { data: project, error: projectError } = await supabase
@@ -612,13 +593,15 @@ Pour chaque lot non concerné par le projet, indique-le brièvement. Utilise un 
   const buffer = await buildDocx(textContent, docName)
 
   // 4. Upload dans Supabase Storage
-  const filePath = `${user.id}/${newDoc.id}/cctp.docx`
+  const fileName = `${documentType}.docx`
+  const filePath = `${user.id}/${newDoc.id}/${fileName}`
   const { error: uploadError } = await admin.storage.from("documents").upload(filePath, buffer, {
     contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     upsert: true,
   })
 
   if (uploadError) {
+    await supabase.from("documents").delete().eq("id", newDoc.id)
     return NextResponse.json({ error: "Erreur upload fichier" }, { status: 500 })
   }
 
@@ -629,7 +612,7 @@ Pour chaque lot non concerné par le projet, indique-le brièvement. Utilise un 
     .from("documents")
     .update({
       file_url: urlData.publicUrl,
-      file_name: "cctp.docx",
+      file_name: fileName,
       file_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     })
     .eq("id", newDoc.id)

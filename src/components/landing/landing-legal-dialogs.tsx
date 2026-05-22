@@ -79,13 +79,32 @@ function MentionsLegalesContent() {
       </Section>
 
       <Section title="5. Cookies">
+        <p>Le site chalto.fr utilise deux types de cookies :</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>
+            <strong>Cookies techniques</strong> — indispensables au fonctionnement du service
+            (authentification, préférences d&apos;affichage). Ils ne nécessitent pas votre
+            consentement.
+          </li>
+          <li>
+            <strong>Cookies analytiques (Google Analytics)</strong> — utilisés pour mesurer
+            l&apos;audience et améliorer le service. Ils sont déposés uniquement après votre accord
+            explicite, que vous pouvez donner ou retirer à tout moment via la bannière affichée lors
+            de votre première visite.
+          </li>
+        </ul>
         <p>
-          Le site chalto.fr utilise des cookies techniques nécessaires au bon fonctionnement du
-          service (authentification, préférences) ainsi que des cookies analytiques anonymisés
-          (Vercel Analytics) pour mesurer l&apos;audience. Ces derniers ne collectent aucune donnée
-          personnelle identifiable.
+          Nous utilisons également Vercel Analytics, un outil de mesure d&apos;audience anonymisé
+          qui ne dépose pas de cookies et ne collecte aucune donnée personnelle identifiable.
         </p>
-        <p>Vous pouvez désactiver les cookies depuis les paramètres de votre navigateur.</p>
+        <p>
+          Pour retirer votre consentement aux cookies analytiques, effacez les données de votre
+          navigateur pour chalto.fr ou contactez-nous à{" "}
+          <a href="mailto:contact@chalto.fr" className="underline">
+            contact@chalto.fr
+          </a>
+          .
+        </p>
       </Section>
 
       <Section title="6. Liens hypertextes">

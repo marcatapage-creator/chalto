@@ -39,6 +39,7 @@ import { InviteButton } from "@/components/projects/invite-button"
 import { TaskComments } from "@/components/projects/task-comments"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { TASK_STATUS } from "@/types/index"
 import type { Contact, Task } from "@/types/domain"
 
 interface ProjectTasksProps {
@@ -60,9 +61,9 @@ interface ProjectTasksProps {
 }
 
 const columns = [
-  { id: "todo", label: "À faire", color: "text-muted-foreground" },
-  { id: "in_progress", label: "En cours", color: "text-blue-500" },
-  { id: "done", label: "Terminé", color: "text-primary" },
+  { id: TASK_STATUS.TODO, label: "À faire", color: "text-muted-foreground" },
+  { id: TASK_STATUS.IN_PROGRESS, label: "En cours", color: "text-blue-500" },
+  { id: TASK_STATUS.DONE, label: "Terminé", color: "text-primary" },
 ]
 
 export function ProjectTasks({
@@ -219,20 +220,26 @@ export function ProjectTasks({
     if (fetchPendingRef.current) return
     fetchPendingRef.current = true
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("tasks")
         .select("*, contacts(id, name)")
         .eq("project_id", projectId)
         .order("created_at", { ascending: true })
         .limit(500)
 
-      if (data) {
+      if (error) {
+        console.error("[project-tasks] fetchTasks error:", error)
+      } else if (data) {
         const typedData = data as unknown as Task[]
-        setTasks(typedData.filter((t) => t.status !== "suggestion" && t.status !== "rejected"))
-        setSuggestions(typedData.filter((t) => t.status === "suggestion"))
-        setLoaded(true)
+        setTasks(
+          typedData.filter(
+            (t) => t.status !== TASK_STATUS.SUGGESTION && t.status !== TASK_STATUS.REJECTED
+          )
+        )
+        setSuggestions(typedData.filter((t) => t.status === TASK_STATUS.SUGGESTION))
       }
     } finally {
+      setLoaded(true)
       fetchPendingRef.current = false
     }
   }, [supabase, projectId])
@@ -297,38 +304,40 @@ export function ProjectTasks({
       return
     }
     setLoading(true)
+    try {
+      const { data: newTask, error } = await supabase
+        .from("tasks")
+        .insert({
+          project_id: projectId,
+          title: form.title,
+          description: form.description || null,
+          assigned_to: form.assigned_to || null,
+          due_date: form.due_date || null,
+          created_by: userId,
+          status: TASK_STATUS.TODO,
+        })
+        .select("*, contacts(id, name)")
+        .single()
 
-    const { data: newTask, error } = await supabase
-      .from("tasks")
-      .insert({
-        project_id: projectId,
-        title: form.title,
-        description: form.description || null,
-        assigned_to: form.assigned_to || null,
-        due_date: form.due_date || null,
-        created_by: userId,
-        status: "todo",
-      })
-      .select("*, contacts(id, name)")
-      .single()
-
-    if (error) {
-      console.error("[task insert]", error)
-      toast.error("Erreur lors de la création")
-    } else {
-      setTasks((prev) => [...prev, newTask as unknown as Task])
-      setTasksOpen(true)
-      toast.success("Tâche créée ✅")
-      triggerHighlight(newTask.id)
-      setOpen(false)
-      setForm({ title: "", description: "", assigned_to: "", due_date: "" })
-      void channelRef.current?.send({
-        type: "broadcast",
-        event: "task_created",
-        payload: newTask,
-      })
+      if (error) {
+        console.error("[task insert]", error)
+        toast.error("Erreur lors de la création")
+      } else {
+        setTasks((prev) => [...prev, newTask as unknown as Task])
+        setTasksOpen(true)
+        toast.success("Tâche créée ✅")
+        triggerHighlight(newTask.id)
+        setOpen(false)
+        setForm({ title: "", description: "", assigned_to: "", due_date: "" })
+        void channelRef.current?.send({
+          type: "broadcast",
+          event: "task_created",
+          payload: newTask,
+        })
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
@@ -367,8 +376,11 @@ export function ProjectTasks({
 
   const handleApproveSuggestion = async (task: Task) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== task.id))
-    setTasks((prev) => [...prev, { ...task, status: "todo" }])
-    const { error } = await supabase.from("tasks").update({ status: "todo" }).eq("id", task.id)
+    setTasks((prev) => [...prev, { ...task, status: TASK_STATUS.TODO }])
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status: TASK_STATUS.TODO })
+      .eq("id", task.id)
     if (error) {
       setSuggestions((prev) => [...prev, task])
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
@@ -380,13 +392,16 @@ export function ProjectTasks({
     void channelRef.current?.send({
       type: "broadcast",
       event: "task_updated",
-      payload: { taskId: task.id, status: "todo" },
+      payload: { taskId: task.id, status: TASK_STATUS.TODO },
     })
   }
 
   const handleRejectSuggestion = async (task: Task) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== task.id))
-    const { error } = await supabase.from("tasks").update({ status: "rejected" }).eq("id", task.id)
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status: TASK_STATUS.REJECTED })
+      .eq("id", task.id)
     if (error) {
       setSuggestions((prev) => [...prev, task])
       toast.error("Erreur lors du refus")
@@ -406,27 +421,30 @@ export function ProjectTasks({
       return
     }
     setContactLoading(true)
-    const { data, error } = await supabase
-      .from("contacts")
-      .insert({
-        user_id: userId,
-        name: contactForm.name,
-        email: contactForm.email || null,
-        phone: contactForm.phone || null,
-      })
-      .select("id, name")
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert({
+          user_id: userId,
+          name: contactForm.name,
+          email: contactForm.email || null,
+          phone: contactForm.phone || null,
+        })
+        .select("id, name")
+        .single()
 
-    if (error) {
-      toast.error("Erreur lors de la création")
-    } else {
-      setLocalContacts((prev) => [...prev, data])
-      setForm((prev) => ({ ...prev, assigned_to: data.id }))
-      setContactForm({ name: "", email: "", phone: "" })
-      setDialogView("task")
-      toast.success(`${data.name} ajouté à l'annuaire ✅`)
+      if (error) {
+        toast.error("Erreur lors de la création")
+      } else {
+        setLocalContacts((prev) => [...prev, data])
+        setForm((prev) => ({ ...prev, assigned_to: data.id }))
+        setContactForm({ name: "", email: "", phone: "" })
+        setDialogView("task")
+        toast.success(`${data.name} ajouté à l'annuaire ✅`)
+      }
+    } finally {
+      setContactLoading(false)
     }
-    setContactLoading(false)
   }
 
   const todayMin = useMemo(() => {
@@ -436,9 +454,9 @@ export function ProjectTasks({
 
   const tasksByStatus = useMemo(
     () => ({
-      todo: tasks.filter((t) => t.status === "todo"),
-      in_progress: tasks.filter((t) => t.status === "in_progress"),
-      done: tasks.filter((t) => t.status === "done"),
+      [TASK_STATUS.TODO]: tasks.filter((t) => t.status === TASK_STATUS.TODO),
+      [TASK_STATUS.IN_PROGRESS]: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS),
+      [TASK_STATUS.DONE]: tasks.filter((t) => t.status === TASK_STATUS.DONE),
     }),
     [tasks]
   )
@@ -768,7 +786,7 @@ export function ProjectTasks({
                                                   label: "Mettre en pause",
                                                   icon: <ArrowLeft className="h-4 w-4" />,
                                                   onClick: () =>
-                                                    handleStatusChange(task.id, "todo"),
+                                                    handleStatusChange(task.id, TASK_STATUS.TODO),
                                                 },
                                               ]
                                             : []),
@@ -778,7 +796,10 @@ export function ProjectTasks({
                                                   label: "Rouvrir",
                                                   icon: <ArrowLeft className="h-4 w-4" />,
                                                   onClick: () =>
-                                                    handleStatusChange(task.id, "in_progress"),
+                                                    handleStatusChange(
+                                                      task.id,
+                                                      TASK_STATUS.IN_PROGRESS
+                                                    ),
                                                 },
                                               ]
                                             : []),
@@ -865,7 +886,9 @@ export function ProjectTasks({
                                           onClick={() =>
                                             handleStatusChange(
                                               task.id,
-                                              col.id === "todo" ? "in_progress" : "done"
+                                              col.id === TASK_STATUS.TODO
+                                                ? TASK_STATUS.IN_PROGRESS
+                                                : TASK_STATUS.DONE
                                             )
                                           }
                                         >

@@ -1,26 +1,35 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { checkRateLimit } from "@/lib/rate-limit"
 
-export async function DELETE() {
-  const supabase = await createClient()
+export async function DELETE(request: Request) {
+  if (!(await checkRateLimit(request)))
+    return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
 
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
-  }
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  const admin = createAdminClient()
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+    }
 
-  const { error } = await admin.auth.admin.deleteUser(user.id)
+    const admin = createAdminClient()
 
-  if (error) {
+    const { error } = await admin.auth.admin.deleteUser(user.id)
+
+    if (error) {
+      console.error("Erreur suppression compte:", error)
+      return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
     console.error("Erreur suppression compte:", error)
-    return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 })
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true })
 }

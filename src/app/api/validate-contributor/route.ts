@@ -34,12 +34,15 @@ export async function POST(request: Request) {
     // Vérification du token avant toute opération d'écriture
     const { data: contributor } = await admin
       .from("contributors")
-      .select("id")
+      .select("id, invite_expires_at")
       .eq("invite_token", contributorToken)
       .single()
 
     if (!contributor) {
       return NextResponse.json({ error: "Token invalide" }, { status: 403 })
+    }
+    if (contributor.invite_expires_at && new Date(contributor.invite_expires_at) < new Date()) {
+      return NextResponse.json({ error: "Lien expiré" }, { status: 410 })
     }
 
     const { data: document } = await admin

@@ -91,22 +91,54 @@ describe("POST /api/validate-contributor", () => {
   it("retourne 429 si limite dépassée", async () => {
     vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(false)
     const res = await POST(
-      req({ documentId: uuid, status: "approved", contributorName: CONTRIB_NAME })
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
     )
     expect(res.status).toBe(429)
   })
 
   it("retourne 400 si le corps est invalide", async () => {
-    const res = await POST(req({ documentId: uuid, status: "approved", contributorName: "" }))
+    const res = await POST(
+      req({ documentId: uuid, contributorToken: uuid, status: "approved", contributorName: "" })
+    )
     expect(res.status).toBe(400)
+  })
+
+  it("retourne 410 si le token est expiré", async () => {
+    vi.mocked(adminModule.createAdminClient).mockReturnValue(
+      makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: "2020-01-01T00:00:00Z" } },
+      })
+    )
+    const res = await POST(
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
+    )
+    expect(res.status).toBe(410)
   })
 
   it("retourne 404 si le document est introuvable", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
-      makeAdmin({ documents: { data: null } })
+      makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
+        documents: { data: null },
+      })
     )
     const res = await POST(
-      req({ documentId: uuid, status: "approved", contributorName: CONTRIB_NAME })
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
     )
     expect(res.status).toBe(404)
   })
@@ -114,6 +146,7 @@ describe("POST /api/validate-contributor", () => {
   it("flux transmission — retourne 200 et envoie l'email de transmission", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
         validations: {},
         profiles: { data: PRO },
@@ -122,6 +155,7 @@ describe("POST /api/validate-contributor", () => {
     const res = await POST(
       req({
         documentId: uuid,
+        contributorToken: uuid,
         status: "commented",
         contributorName: CONTRIB_NAME,
         requestType: "transmission",
@@ -138,13 +172,19 @@ describe("POST /api/validate-contributor", () => {
   it("flux validation approved — retourne 200 et envoie l'email d'approbation", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
         validations: {},
         profiles: { data: PRO },
       })
     )
     const res = await POST(
-      req({ documentId: uuid, status: "approved", contributorName: CONTRIB_NAME })
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
     )
     expect(res.status).toBe(200)
     expect(emailModule.sendApprovalEmail).toHaveBeenCalledWith(
@@ -158,12 +198,20 @@ describe("POST /api/validate-contributor", () => {
   it("flux validation rejected — crée une notification de refus", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
         validations: {},
         profiles: { data: PRO },
       })
     )
-    await POST(req({ documentId: uuid, status: "rejected", contributorName: CONTRIB_NAME }))
+    await POST(
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "rejected",
+        contributorName: CONTRIB_NAME,
+      })
+    )
     expect(notificationsModule.createNotification).toHaveBeenCalledWith(
       expect.objectContaining({ type: "document_rejected" })
     )
@@ -172,25 +220,39 @@ describe("POST /api/validate-contributor", () => {
   it("n'envoie pas l'email si le pro n'a pas d'adresse email", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
         validations: {},
         profiles: { data: { ...PRO, email: null } },
       })
     )
-    await POST(req({ documentId: uuid, status: "approved", contributorName: CONTRIB_NAME }))
+    await POST(
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
+    )
     expect(emailModule.sendApprovalEmail).not.toHaveBeenCalled()
   })
 
   it("retourne 500 si la mise à jour du document échoue", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin({
+        contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC, updateError: { message: "update failed" } },
         validations: { insertError: null },
         profiles: { data: PRO },
       })
     )
     const res = await POST(
-      req({ documentId: uuid, status: "approved", contributorName: CONTRIB_NAME })
+      req({
+        documentId: uuid,
+        contributorToken: uuid,
+        status: "approved",
+        contributorName: CONTRIB_NAME,
+      })
     )
     expect(res.status).toBe(500)
   })

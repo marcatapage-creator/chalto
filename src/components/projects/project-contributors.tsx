@@ -64,14 +64,14 @@ export function ProjectContributors({
   useEffect(() => {
     if (collapseSignal === undefined || collapseSignal === prevCollapseSignal.current) return
     prevCollapseSignal.current = collapseSignal
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setIsOpen(false)
   }, [collapseSignal])
   const prevExpandSignal = useRef(expandSignal ?? 0)
   useEffect(() => {
     if (expandSignal === undefined || expandSignal === prevExpandSignal.current) return
     prevExpandSignal.current = expandSignal
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setIsOpen(true)
   }, [expandSignal])
 
@@ -115,38 +115,43 @@ export function ProjectContributors({
 
   const handleInvite = async (contact: Contact) => {
     setLoading(contact.id)
-    const res = await fetchWithTimeout("/api/send-invite", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contactId: contact.id, projectId }),
-    })
+    try {
+      const res = await fetchWithTimeout("/api/send-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactId: contact.id, projectId }),
+      })
 
-    if (res.ok) {
-      const { data } = await supabase
-        .from("contributors")
-        .select("id, name, invite_token, contact_id, professions(label)")
-        .eq("project_id", projectId)
-      if (data) {
-        const list = data as unknown as Contributor[]
-        setContributors(list)
-        notifyChange(list)
-        const newContributor = list.find((c) => c.contact_id === contact.id)
-        if (newContributor) {
-          setIsOpen(true)
-          setHighlightedContributorId(newContributor.id)
+      if (res.ok) {
+        const { data } = await supabase
+          .from("contributors")
+          .select("id, name, invite_token, contact_id, professions(label)")
+          .eq("project_id", projectId)
+        if (data) {
+          const list = data as unknown as Contributor[]
+          setContributors(list)
+          notifyChange(list)
+          const newContributor = list.find((c) => c.contact_id === contact.id)
+          if (newContributor) {
+            setIsOpen(true)
+            setHighlightedContributorId(newContributor.id)
+          }
         }
+        toast.success(`Invitation envoyée à ${contact.name} ✅`)
+        if (availableContacts.length <= 1) setDialogOpen(false)
+      } else {
+        const data = await res.json()
+        toast.error(
+          data.error === "Email manquant"
+            ? "Ce contact n'a pas d'email renseigné"
+            : "Erreur lors de l'envoi"
+        )
       }
-      toast.success(`Invitation envoyée à ${contact.name} ✅`)
-      if (availableContacts.length <= 1) setDialogOpen(false)
-    } else {
-      const data = await res.json()
-      toast.error(
-        data.error === "Email manquant"
-          ? "Ce contact n'a pas d'email renseigné"
-          : "Erreur lors de l'envoi"
-      )
+    } catch {
+      toast.error("Erreur réseau — réessayez")
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   const handleCopy = (contributor: Contributor) => {

@@ -38,6 +38,7 @@ export const NOTIFICATION_TYPE = {
   SITUATION_REVIEWED: "situation_reviewed",
   CLOUD_FILE_SYNCED: "cloud_file_synced",
   CLOUD_TOKEN_EXPIRED: "cloud_token_expired",
+  DEADLINE_ALERT: "deadline_alert",
 } as const
 
 export type NotificationType = (typeof NOTIFICATION_TYPE)[keyof typeof NOTIFICATION_TYPE]
@@ -87,6 +88,8 @@ export const TASK_STATUS = {
   TODO: "todo",
   IN_PROGRESS: "in_progress",
   DONE: "done",
+  SUGGESTION: "suggestion",
+  REJECTED: "rejected",
 } as const
 
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS]
@@ -122,4 +125,6 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
   todo: "À faire",
   in_progress: "En cours",
   done: "Terminé",
+  suggestion: "Suggestion",
+  rejected: "Refusé",
 }

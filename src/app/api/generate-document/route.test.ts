@@ -15,13 +15,15 @@ vi.mock("docx", () => ({
 }))
 
 const VALID_BODY = {
-  projectId: "proj-1",
+  projectId: "123e4567-e89b-12d3-a456-426614174000",
   projectName: "Rénovation Dupont",
   workType: "Rénovation complète",
   documentType: "cctp",
   answers: {
     lots: ["Gros œuvre"],
+    pieces: [],
     materiaux: "Béton",
+    ambiance: "",
     contraintes: "",
     niveau: "standard",
   },
@@ -41,6 +43,7 @@ function tableChain(result: unknown): Record<string, unknown> {
     eq: () => chain(),
     update: () => chain(),
     insert: () => chain(),
+    delete: () => chain(),
     single: () => Promise.resolve(result),
     then: (f?: ((v: unknown) => unknown) | null, r?: ((e: unknown) => unknown) | null) =>
       Promise.resolve(result).then(f, r),

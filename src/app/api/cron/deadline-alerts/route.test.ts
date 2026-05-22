@@ -17,6 +17,7 @@ function makeAdmin(dossiers: unknown[] | null, dbError = false) {
   const queryChain: Record<string, unknown> = {}
   queryChain.select = () => queryChain
   queryChain.not = () => queryChain
+  queryChain.range = () => queryChain
   queryChain.update = () => queryChain
   queryChain.eq = () => queryChain
   queryChain.then = (f?: ((v: unknown) => unknown) | null) =>

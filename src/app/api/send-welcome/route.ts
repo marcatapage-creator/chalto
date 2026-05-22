@@ -19,7 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
     const { fullName } = parsed.data
 
-    const { error: emailError } = await sendWelcomeEmail({ email: user.email!, fullName })
+    if (!user.email) {
+      return NextResponse.json({ error: "Aucun email associé à ce compte" }, { status: 400 })
+    }
+
+    const { error: emailError } = await sendWelcomeEmail({ email: user.email, fullName })
     if (emailError) {
       console.error("[send-welcome] Resend error:", emailError)
       return NextResponse.json({ error: "Erreur envoi email" }, { status: 500 })

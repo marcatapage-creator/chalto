@@ -9,7 +9,7 @@ Sentry.init({
 
   tracesSampleRate: 1,
   enableLogs: true,
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 
   beforeSend(event, hint) {
     const err = hint?.originalException

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -188,7 +188,7 @@ export function ProjectDocuments({
   hasDropboxConnected = false,
 }: ProjectDocumentsProps) {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const [pickerOpen, setPickerOpen] = useState(false)
   const [addDocOpen, setAddDocOpen] = useState(false)

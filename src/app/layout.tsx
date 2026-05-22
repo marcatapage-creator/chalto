@@ -4,8 +4,8 @@ import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { PullToRefresh } from "@/components/ui/pull-to-refresh"
-import { GoogleAnalytics } from "@next/third-parties/google"
 import { Analytics } from "@vercel/analytics/react"
+import { CookieConsent } from "@/components/cookie-consent"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { headers } from "next/headers"
 import "./globals.css"
@@ -97,7 +97,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
-        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+        <CookieConsent gaId={process.env.NEXT_PUBLIC_GA_ID} />
       </body>
     </html>
   )

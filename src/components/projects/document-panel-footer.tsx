@@ -83,16 +83,17 @@ export function DocumentPanelFooter({
     )
   }
 
-  if (localStatus === "commented" && isChantier) {
+  if (localStatus === "commented") {
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Partager avec l&apos;équipe
+          {isChantier ? "Partager avec l’équipe" : "Envoyer pour validation"}
         </p>
         <DocumentActions
           documentId={documentId}
           documentName={documentName}
           projectId={projectId}
+          clientName={clientName}
           status={localStatus}
           fileUrl={fileUrl}
           isChantier={isChantier}

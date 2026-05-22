@@ -68,6 +68,7 @@ describe("validateContributorSchema", () => {
     expect(
       validateContributorSchema.safeParse({
         documentId: uuid,
+        contributorToken: uuid,
         status: "commented",
         contributorName: "Alice",
         requestType: "transmission",
@@ -79,6 +80,7 @@ describe("validateContributorSchema", () => {
     expect(
       validateContributorSchema.safeParse({
         documentId: uuid,
+        contributorToken: uuid,
         status: "approved",
         contributorName: "Bob",
       }).success

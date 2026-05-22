@@ -32,6 +32,17 @@ describe("POST /api/send-welcome", () => {
     expect(res.status).toBe(401)
   })
 
+  it("retourne 400 si l'utilisateur n'a pas d'email", async () => {
+    vi.mocked(serverModule.createClient).mockResolvedValue(
+      makeClient({ id: "user-1", email: null }) as unknown as Awaited<
+        ReturnType<typeof serverModule.createClient>
+      >
+    )
+    const res = await POST(req({ fullName: "Alice" }))
+    expect(res.status).toBe(400)
+    expect(emailModule.sendWelcomeEmail).not.toHaveBeenCalled()
+  })
+
   it("retourne 200 et envoie l'email de bienvenue", async () => {
     vi.mocked(serverModule.createClient).mockResolvedValue(
       makeClient() as unknown as Awaited<ReturnType<typeof serverModule.createClient>>

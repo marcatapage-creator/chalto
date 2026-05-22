@@ -1,33 +1,42 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { checkRateLimit } from "@/lib/rate-limit"
 
-export async function DELETE() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export async function DELETE(request: Request) {
+  if (!(await checkRateLimit(request)))
+    return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
 
-  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  const admin = createAdminClient()
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
 
-  const { data: integration } = await admin
-    .from("user_integrations")
-    .select("access_token")
-    .eq("user_id", user.id)
-    .eq("provider", "dropbox")
-    .single()
+    const admin = createAdminClient()
 
-  // Révocation best-effort — on supprime même si Dropbox répond une erreur
-  if (integration?.access_token) {
-    await fetch("https://api.dropboxapi.com/2/auth/token/revoke", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${integration.access_token}` },
-    }).catch(() => {})
+    const { data: integration } = await admin
+      .from("user_integrations")
+      .select("access_token")
+      .eq("user_id", user.id)
+      .eq("provider", "dropbox")
+      .single()
+
+    // Révocation best-effort — on supprime même si Dropbox répond une erreur
+    if (integration?.access_token) {
+      await fetch("https://api.dropboxapi.com/2/auth/token/revoke", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${integration.access_token}` },
+      }).catch(() => {})
+    }
+
+    await admin.from("user_integrations").delete().eq("user_id", user.id).eq("provider", "dropbox")
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Erreur déconnexion Dropbox:", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
-
-  await admin.from("user_integrations").delete().eq("user_id", user.id).eq("provider", "dropbox")
-
-  return NextResponse.json({ success: true })
 }

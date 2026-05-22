@@ -310,10 +310,15 @@ export function DocumentPanel({
   )
 
   const handleRemoveFile = async () => {
-    await supabase
+    const { error } = await supabase
       .from("documents")
       .update({ file_url: null, file_name: null, file_type: null, file_size: null })
       .eq("id", document.id)
+    if (error) {
+      console.error("[document-panel] handleRemoveFile error:", error)
+      toast.error("Erreur lors de la suppression du fichier")
+      return
+    }
     setLocalFileUrl(null)
     toast.success("Fichier supprimé")
   }

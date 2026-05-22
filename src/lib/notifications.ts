@@ -1,17 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import type { NotificationType } from "@/types/index"
 
 interface CreateNotificationParams {
   userId: string
-  type:
-    | "document_approved"
-    | "document_rejected"
-    | "message_received"
-    | "task_assigned"
-    | "situation_submitted"
-    | "situation_reviewed"
-    | "cloud_file_synced"
-    | "cloud_token_expired"
-    | "deadline_alert"
+  type: NotificationType
   title: string
   body?: string
   link?: string
