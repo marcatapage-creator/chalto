@@ -18,6 +18,8 @@ function makeChannel() {
 
 describe("useRealtimeChannel", () => {
   let supabase: {
+    auth: { getSession: ReturnType<typeof vi.fn> }
+    realtime: { setAuth: ReturnType<typeof vi.fn> }
     channel: ReturnType<typeof vi.fn>
     removeChannel: ReturnType<typeof vi.fn>
   }
@@ -27,6 +29,12 @@ describe("useRealtimeChannel", () => {
     vi.useFakeTimers()
     channels = []
     supabase = {
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { access_token: "test-token" } } }),
+      },
+      realtime: { setAuth: vi.fn() },
       channel: vi.fn().mockImplementation(() => {
         const ch = makeChannel()
         channels.push(ch)
@@ -40,16 +48,26 @@ describe("useRealtimeChannel", () => {
     vi.useRealTimers()
   })
 
-  it("souscrit au channel au montage", () => {
+  it("souscrit au channel au montage", async () => {
     const setup = vi.fn().mockImplementation((ch) => ch)
     renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
+    await vi.advanceTimersByTimeAsync(0) // flush microtasks (async getSession)
     expect(supabase.channel).toHaveBeenCalledTimes(1)
     expect(channels[0].subscribe).toHaveBeenCalledTimes(1)
   })
 
-  it("retire le channel au démontage", () => {
+  it("injecte le token d'auth avant la souscription", async () => {
+    const setup = vi.fn().mockImplementation((ch) => ch)
+    renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(supabase.auth.getSession).toHaveBeenCalledTimes(1)
+    expect(supabase.realtime.setAuth).toHaveBeenCalledWith("test-token")
+  })
+
+  it("retire le channel au démontage", async () => {
     const setup = vi.fn().mockImplementation((ch) => ch)
     const { unmount } = renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
+    await vi.advanceTimersByTimeAsync(0) // laisser la souscription se terminer
     unmount()
     expect(supabase.removeChannel).toHaveBeenCalledTimes(1)
   })
@@ -57,6 +75,7 @@ describe("useRealtimeChannel", () => {
   it("réessaie après CHANNEL_ERROR (premier retry après 2s)", async () => {
     const setup = vi.fn().mockImplementation((ch) => ch)
     renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
+    await vi.advanceTimersByTimeAsync(0) // flush souscription initiale
 
     channels[0]._fire("CHANNEL_ERROR")
     expect(supabase.channel).toHaveBeenCalledTimes(1) // pas encore retenté
@@ -68,6 +87,8 @@ describe("useRealtimeChannel", () => {
   it("réessaie 3 fois au maximum puis abandonne", async () => {
     const setup = vi.fn().mockImplementation((ch) => ch)
     renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
+
+    await vi.advanceTimersByTimeAsync(0) // flush souscription initiale
 
     // retry 1 → 2s
     channels[0]._fire("CHANNEL_ERROR")
@@ -93,6 +114,7 @@ describe("useRealtimeChannel", () => {
     const setup = vi.fn().mockImplementation((ch) => ch)
     const { unmount } = renderHook(() => useRealtimeChannel(supabase as never, "test", setup))
 
+    await vi.advanceTimersByTimeAsync(0) // flush souscription initiale
     channels[0]._fire("CHANNEL_ERROR")
     unmount()
 

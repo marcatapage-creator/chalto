@@ -18,13 +18,18 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
-  const acceptedTypes = ["application/pdf", "image/jpeg", "image/png"]
+  const acceptedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ]
   const maxSize = 10 * 1024 * 1024 // 10MB
 
   const handleFile = async (file: File) => {
     if (!acceptedTypes.includes(file.type)) {
       toast.error("Format non supporté", {
-        description: "Utilisez un fichier PDF, JPG ou PNG uniquement.",
+        description: "Utilisez un fichier PDF, JPG, PNG ou DOCX uniquement.",
       })
       return
     }
@@ -103,7 +108,7 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".pdf,.jpg,.jpeg,.png,.docx"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
@@ -120,7 +125,7 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
         <div className="flex flex-col items-center gap-2">
           <Upload className="h-6 w-6 text-muted-foreground" />
           <p className="text-sm font-medium">Glisser un fichier ou cliquer pour uploader</p>
-          <p className="text-xs text-muted-foreground">PDF, JPG, PNG — 10MB maximum</p>
+          <p className="text-xs text-muted-foreground">PDF, JPG, PNG, DOCX — 10MB maximum</p>
         </div>
       )}
     </div>

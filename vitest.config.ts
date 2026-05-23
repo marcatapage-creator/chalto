@@ -26,10 +26,7 @@ export default defineConfig({
         "src/lib/doc-status.ts",
         "src/app/api/generate-document/**",
         "src/app/api/auth/**",
-        "src/app/api/dropbox/connect/**",
-        "src/app/api/dropbox/callback/**",
-        "src/app/api/dropbox/browse/**",
-        "src/app/api/dropbox/link/**",
+        "src/app/api/dropbox/**",
       ],
       thresholds: {
         lines: 72,

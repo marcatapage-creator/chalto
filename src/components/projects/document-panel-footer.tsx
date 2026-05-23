@@ -20,6 +20,7 @@ interface DocumentPanelFooterProps {
   onProposeV2: () => void
   onCopyLink: () => void
   onResynced?: (version: number, fileUrl: string) => void
+  onStatusChange?: (status: string) => void
   onOpenSend?: () => void
 }
 
@@ -38,6 +39,7 @@ export function DocumentPanelFooter({
   onProposeV2,
   onCopyLink,
   onResynced,
+  onStatusChange,
   onOpenSend,
 }: DocumentPanelFooterProps) {
   const [resyncing, setResyncing] = useState(false)
@@ -118,6 +120,7 @@ export function DocumentPanelFooter({
           fileUrl={fileUrl}
           isChantier={isChantier}
           className="w-full"
+          onStatusChange={onStatusChange}
           onOpenSend={onOpenSend}
         />
       </div>

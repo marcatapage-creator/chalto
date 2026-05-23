@@ -234,31 +234,43 @@ export function Sidebar({
   }, [refreshDeadlines])
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`sidebar-counts:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
-        () => setLocalCounts((prev) => ({ ...prev, projects: prev.projects + 1 }))
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
-        () => setLocalCounts((prev) => ({ ...prev, projects: Math.max(0, prev.projects - 1) }))
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
-        () => setLocalCounts((prev) => ({ ...prev, contacts: prev.contacts + 1 }))
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
-        () => setLocalCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts - 1) }))
-      )
-      .subscribe()
+    let cancelled = false
+    let ch: ReturnType<typeof supabase.channel> | undefined
+
+    void (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
+      ch = supabase
+        .channel(`sidebar-counts:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
+          () => setLocalCounts((prev) => ({ ...prev, projects: prev.projects + 1 }))
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
+          () => setLocalCounts((prev) => ({ ...prev, projects: Math.max(0, prev.projects - 1) }))
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
+          () => setLocalCounts((prev) => ({ ...prev, contacts: prev.contacts + 1 }))
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
+          () => setLocalCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts - 1) }))
+        )
+        .subscribe()
+    })()
+
     return () => {
-      void supabase.removeChannel(channel)
+      cancelled = true
+      if (ch) void supabase.removeChannel(ch)
     }
   }, [supabase, userId])
 

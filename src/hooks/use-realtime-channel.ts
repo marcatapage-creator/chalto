@@ -24,8 +24,13 @@ export function useRealtimeChannel(supabase: SupabaseClient, channelName: string
     let retryTimer: ReturnType<typeof setTimeout> | null = null
     let cancelled = false
 
-    const subscribe = () => {
+    const subscribe = async () => {
       if (cancelled) return
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
       // Suffix changes on each retry so Supabase doesn't reuse a stale channel
       const uniqueName = `${channelName}:${instanceId.current}:r${retries}`
       channel = setupRef.current(supabase.channel(uniqueName)).subscribe((status, err) => {
@@ -36,7 +41,7 @@ export function useRealtimeChannel(supabase: SupabaseClient, channelName: string
             const delay = Math.min(1_000 * 2 ** retries, 30_000) // 2s → 4s → 8s → cap 30s
             console.warn(`[${uniqueName}] CHANNEL_ERROR — retry ${retries}/3 in ${delay}ms`)
             if (channel) void supabase.removeChannel(channel)
-            retryTimer = setTimeout(subscribe, delay)
+            retryTimer = setTimeout(() => void subscribe(), delay)
           } else {
             console.warn(`[${uniqueName}] Realtime indisponible après 3 tentatives`)
           }
@@ -44,7 +49,7 @@ export function useRealtimeChannel(supabase: SupabaseClient, channelName: string
       })
     }
 
-    subscribe()
+    void subscribe()
 
     return () => {
       cancelled = true

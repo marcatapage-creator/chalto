@@ -29,7 +29,12 @@ const documentTypes = [
   "Autre",
 ]
 
-const acceptedTypes = ["application/pdf", "image/jpeg", "image/png"]
+const acceptedTypes = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]
 const maxSize = 10 * 1024 * 1024
 
 interface NewDocumentPageClientProps {
@@ -52,7 +57,7 @@ export function NewDocumentPageClient({ projectId, projectName }: NewDocumentPag
     const selected = e.target.files?.[0]
     if (!selected) return
     if (!acceptedTypes.includes(selected.type)) {
-      toast.error("Format non supporté — PDF, JPG ou PNG uniquement")
+      toast.error("Format non supporté — PDF, JPG, PNG ou DOCX uniquement")
       return
     }
     if (selected.size > maxSize) {
@@ -197,13 +202,13 @@ export function NewDocumentPageClient({ projectId, projectName }: NewDocumentPag
                 className="w-full flex items-center gap-2 rounded-lg border border-dashed border-muted-foreground/30 px-3 py-2.5 text-sm text-muted-foreground hover:border-primary/50 hover:bg-muted/30 transition-colors"
               >
                 <Paperclip className="h-4 w-4 shrink-0" />
-                Joindre un fichier — PDF, JPG, PNG (10MB max)
+                Joindre un fichier — PDF, JPG, PNG, DOCX (10MB max)
               </button>
             )}
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.jpg,.jpeg,.png,.docx"
               className="hidden"
               onChange={handleFileChange}
             />

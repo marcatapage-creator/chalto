@@ -511,6 +511,10 @@ export function DocumentPanel({
         cloudFileId={document.cloud_file_id}
         onProposeV2={handleProposeV2}
         onCopyLink={handleCopyLink}
+        onStatusChange={(newStatus) => {
+          setLocalStatus(newStatus)
+          onStatusChangeRef.current?.(document.id, newStatus)
+        }}
         onOpenSend={
           isMobile
             ? () => router.push(`/projects/${document.project_id}/document/${document.id}/send`)

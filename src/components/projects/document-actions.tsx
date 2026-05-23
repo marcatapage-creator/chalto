@@ -40,6 +40,7 @@ interface DocumentSendFormProps {
   fileUrl?: string | null
   isChantier?: boolean
   onSent?: (info?: AudienceInfo) => void
+  onStatusChange?: (status: string) => void
   onClose: () => void
 }
 
@@ -53,6 +54,7 @@ interface DocumentActionsProps {
   isChantier?: boolean
   className?: string
   onSent?: (info?: AudienceInfo) => void
+  onStatusChange?: (status: string) => void
   onOpenSend?: () => void
 }
 
@@ -125,6 +127,7 @@ export function DocumentSendForm({
   fileUrl,
   isChantier = false,
   onSent,
+  onStatusChange,
   onClose,
 }: DocumentSendFormProps) {
   // approved en chantier → seul le presta est disponible
@@ -249,6 +252,7 @@ export function DocumentSendForm({
         }
 
         haptics.success()
+        onStatusChange?.("sent")
         toast.success("Document envoyé aux prestataires ✅")
       }
     } catch {
@@ -393,6 +397,7 @@ export function DocumentActions({
   isChantier = false,
   className,
   onSent,
+  onStatusChange,
   onOpenSend,
 }: DocumentActionsProps) {
   const [open, setOpen] = useState(false)
@@ -442,6 +447,7 @@ export function DocumentActions({
             fileUrl={fileUrl}
             isChantier={isChantier}
             onSent={onSent}
+            onStatusChange={onStatusChange}
             onClose={() => setOpen(false)}
           />
         </ResponsiveDialog>

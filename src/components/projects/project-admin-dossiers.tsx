@@ -141,6 +141,7 @@ export function ProjectAdminDossiers({
   const [form, setForm] = useState<FormState>(defaultForm())
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [nextStatusId, setNextStatusId] = useState<string | null>(null)
 
   const openAdd = () => {
     setEditing(null)
@@ -244,6 +245,7 @@ export function ProjectAdminDossiers({
   const handleNextStatus = async (d: AdminDossier) => {
     const next = NEXT_STATUS[d.status]
     if (!next) return
+    setNextStatusId(d.id)
     try {
       const res = await fetchWithTimeout(`/api/admin-dossiers/${d.id}`, {
         method: "PATCH",
@@ -261,6 +263,8 @@ export function ProjectAdminDossiers({
       _bc.close()
     } catch {
       toast.error("Erreur réseau — réessayez")
+    } finally {
+      setNextStatusId(null)
     }
   }
 
@@ -360,6 +364,7 @@ export function ProjectAdminDossiers({
                             onDelete={!readOnly ? handleDelete : undefined}
                             onNextStatus={!readOnly ? handleNextStatus : undefined}
                             deletingId={deletingId}
+                            nextStatusId={nextStatusId}
                           />
                         </div>
                       ))}
@@ -382,6 +387,7 @@ export function ProjectAdminDossiers({
                               onEdit={!readOnly ? (onOpenEdit ?? openEdit) : undefined}
                               onDelete={!readOnly ? handleDelete : undefined}
                               deletingId={deletingId}
+                              nextStatusId={nextStatusId}
                             />
                           </div>
                         ))}
@@ -501,6 +507,7 @@ function DossierCard({
   onDelete,
   onNextStatus,
   deletingId,
+  nextStatusId,
 }: {
   dossier: AdminDossier
   highlighted?: boolean
@@ -508,10 +515,12 @@ function DossierCard({
   onDelete?: (id: string) => void
   onNextStatus?: (d: AdminDossier) => void
   deletingId: string | null
+  nextStatusId: string | null
 }) {
   const deadlineBadge = getDeadlineBadge(d.deadline)
   const nextStep = NEXT_STATUS[d.status]
   const isDeleting = deletingId === d.id
+  const isNextStatusPending = nextStatusId === d.id
   const typeLabel = d.type === "autre" && d.label ? d.label : TYPE_LABEL[d.type]
 
   return (
@@ -577,8 +586,13 @@ function DossierCard({
                 variant="outline"
                 className="flex-1 text-xs xl:h-7"
                 onClick={() => onNextStatus(d)}
+                disabled={isNextStatusPending}
               >
-                {nextStep.label}
+                {isNextStatusPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  nextStep.label
+                )}
               </Button>
             )}
             <div className="flex items-center gap-1 ml-auto">
