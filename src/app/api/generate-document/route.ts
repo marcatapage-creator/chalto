@@ -4,6 +4,17 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { generateDocumentSchema } from "@/lib/api-schemas"
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from "docx"
 
+type NiveauPrestation = "economique" | "standard" | "premium"
+
+interface Answers {
+  lots: string[]
+  pieces: string[]
+  materiaux: string
+  ambiance: string
+  contraintes: string
+  niveau: NiveauPrestation
+}
+
 // ---------------------------------------------------------------------------
 // Mock CCTP statique (dev uniquement)
 // ---------------------------------------------------------------------------
