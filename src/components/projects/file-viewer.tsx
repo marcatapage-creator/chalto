@@ -15,8 +15,12 @@ export function FileViewer({ fileUrl, fileName, fileType, onRemove }: FileViewer
   const [fullscreen, setFullscreen] = useState(false)
   const [iframeError, setIframeError] = useState(false)
 
-  const isPdf = fileType === "application/pdf"
-  const isImage = fileType.startsWith("image/")
+  // Detect non-renderable types by MIME or extension — prevents auto-download via iframe
+  const isDocx =
+    fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    fileName.toLowerCase().endsWith(".docx")
+  const isPdf = !isDocx && fileType === "application/pdf"
+  const isImage = !isDocx && fileType.startsWith("image/")
 
   const inner = (
     <div className="relative w-full h-full min-h-100 bg-muted/30 rounded-lg overflow-hidden">
