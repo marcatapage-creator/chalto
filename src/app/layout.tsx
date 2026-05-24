@@ -88,6 +88,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {}
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <>
+            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+            <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+          </>
+        )}
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
         <ThemeProvider>
