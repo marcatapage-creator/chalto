@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://chalto.fr"}/projects/${document.project_id}`
 
     if (isTransmission) {
-      void createNotification({
+      await createNotification({
         userId,
         type: "document_approved",
         title: "Document lu par un prestataire",
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
           ? proProfile?.notif_email_approved !== false
           : proProfile?.notif_email_rejected !== false)
 
-      void createNotification({
+      await createNotification({
         userId,
         type: status === "approved" ? "document_approved" : "document_rejected",
         title:

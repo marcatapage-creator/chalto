@@ -101,7 +101,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         )
       }
 
-      void createNotification({
+      await createNotification({
         userId: project.user_id,
         type: "situation_reviewed",
         title: action === "validate" ? "Situation validée" : "Situation refusée",

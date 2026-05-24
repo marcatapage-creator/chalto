@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/projects/${document.project_id}`
 
     if (isTransmission) {
-      void createNotification({
+      await createNotification({
         userId,
         type: "document_approved",
         title: "Document lu par votre client",
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
           ? proProfile?.notif_email_approved !== false
           : proProfile?.notif_email_rejected !== false)
 
-      void createNotification({
+      await createNotification({
         userId,
         type: status === "approved" ? "document_approved" : "document_rejected",
         title: status === "approved" ? "Document approuvé" : "Document refusé",

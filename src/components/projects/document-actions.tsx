@@ -218,6 +218,9 @@ export function DocumentSendForm({
           return
         }
 
+        // DB is authoritative — update UI immediately, don't wait for email
+        onStatusChange?.("sent")
+
         await supabase.from("documents").update({ audience: "contributor" }).eq("id", documentId)
 
         const { error: upsertError } = await supabase.from("document_contributors").upsert(
@@ -252,7 +255,6 @@ export function DocumentSendForm({
         }
 
         haptics.success()
-        onStatusChange?.("sent")
         toast.success("Document envoyé aux prestataires ✅")
       }
     } catch {

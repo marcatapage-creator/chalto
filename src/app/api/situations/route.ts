@@ -132,7 +132,7 @@ export async function POST(request: Request) {
       )
     }
 
-    void createNotification({
+    await createNotification({
       userId: project.user_id,
       type: "situation_submitted",
       title: "Nouvelle situation de travaux",
