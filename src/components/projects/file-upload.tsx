@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 interface FileUploadProps {
   documentId: string
   userId: string
-  onSuccess?: (url: string) => void
+  onSuccess?: (url: string, fileName: string, fileType: string) => void
 }
 
 export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
@@ -78,7 +78,7 @@ export function FileUpload({ documentId, userId, onSuccess }: FileUploadProps) {
     }
 
     toast.success("Fichier uploadé avec succès ✅")
-    onSuccess?.(data.publicUrl)
+    onSuccess?.(data.publicUrl, file.name, file.type)
     setUploading(false)
   }
 

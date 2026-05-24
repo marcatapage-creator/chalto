@@ -56,8 +56,10 @@ export function DocumentPanel({
   const router = useRouter()
   const [localStatus, setLocalStatus] = useState(document.status)
   const [localVersion, setLocalVersion] = useState(document.version ?? 1)
-  // undefined = unset (fall through to document.file_url); null = explicitly cleared; string = uploaded URL
+  // undefined = unset (fall through to document.*); null = explicitly cleared; string = uploaded value
   const [localFileUrl, setLocalFileUrl] = useState<string | null | undefined>(undefined)
+  const [localFileName, setLocalFileName] = useState<string | null | undefined>(undefined)
+  const [localFileType, setLocalFileType] = useState<string | null | undefined>(undefined)
   const [prevVersions, setPrevVersions] = useState<PrevVersion[]>([])
   const [activeVersionTab, setActiveVersionTab] = useState<number | null>(() => {
     if (typeof window === "undefined") return null
@@ -320,6 +322,8 @@ export function DocumentPanel({
       return
     }
     setLocalFileUrl(null)
+    setLocalFileName(null)
+    setLocalFileType(null)
     toast.success("Fichier supprimé")
   }
 
@@ -372,6 +376,8 @@ export function DocumentPanel({
     setLocalVersion(newVersion)
     setLocalStatus("draft")
     setLocalFileUrl(null)
+    setLocalFileName(null)
+    setLocalFileType(null)
     handleVersionTabChange(null)
     onStatusChange?.(document.id, "draft", newVersion)
 
@@ -483,15 +489,19 @@ export function DocumentPanel({
           ) : fileUrl ? (
             <FileViewer
               fileUrl={fileUrl}
-              fileName={document.file_name ?? document.name}
-              fileType={document.file_type ?? "application/pdf"}
+              fileName={localFileName ?? document.file_name ?? document.name}
+              fileType={localFileType ?? document.file_type ?? "application/pdf"}
               onRemove={localStatus === "draft" ? handleRemoveFile : undefined}
             />
           ) : (
             <FileUpload
               documentId={document.id}
               userId={userId}
-              onSuccess={(url) => setLocalFileUrl(url)}
+              onSuccess={(url, fileName, fileType) => {
+                setLocalFileUrl(url)
+                setLocalFileName(fileName)
+                setLocalFileType(fileType)
+              }}
             />
           )}
         </div>
