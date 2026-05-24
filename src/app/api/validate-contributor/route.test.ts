@@ -167,6 +167,9 @@ describe("POST /api/validate-contributor", () => {
       expect.objectContaining({ contributorName: CONTRIB_NAME, proEmail: "pro@example.com" })
     )
     expect(emailModule.sendApprovalEmail).not.toHaveBeenCalled()
+    expect(notificationsModule.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "document_approved" })
+    )
   })
 
   it("flux validation approved — retourne 200 et envoie l'email d'approbation", async () => {

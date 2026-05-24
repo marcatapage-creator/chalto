@@ -161,4 +161,30 @@ describe("PATCH /api/situations/[id]/review", () => {
     const body = await res.json()
     expect(body.situation.status).toBe("validee")
   })
+
+  it("crée une notification quand le prestataire a un contact_id", async () => {
+    const updated = { ...SITUATION, status: "validee" }
+    const contributorWithContact = { ...CONTRIBUTOR, contact_id: "contact-1" }
+    vi.mocked(serverModule.createClient).mockResolvedValue(
+      makeServerClient({ id: "user-1" }) as unknown as Awaited<
+        ReturnType<typeof serverModule.createClient>
+      >
+    )
+    vi.mocked(adminModule.createAdminClient).mockReturnValue(
+      makeAdminClient({
+        situations: [
+          { data: SITUATION, error: null },
+          { data: updated, error: null },
+        ],
+        projects: [{ data: PROJECT, error: null }],
+        contributors: [{ data: contributorWithContact, error: null }],
+        contacts: [{ data: { email: null }, error: null }],
+      }) as unknown as ReturnType<typeof adminModule.createAdminClient>
+    )
+    const res = await PATCH(req({ action: "validate" }), { params })
+    expect(res.status).toBe(200)
+    expect(notificationsModule.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "situation_reviewed" })
+    )
+  })
 })

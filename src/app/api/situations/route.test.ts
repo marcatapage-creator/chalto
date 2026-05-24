@@ -128,6 +128,9 @@ describe("POST /api/situations", () => {
     expect(res.status).toBe(201)
     const body = await res.json()
     expect(body.situation.lot_label).toBe("Gros œuvre")
+    expect(notificationsModule.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "situation_submitted" })
+    )
   })
 
   it("retourne 500 si l'insertion échoue", async () => {
