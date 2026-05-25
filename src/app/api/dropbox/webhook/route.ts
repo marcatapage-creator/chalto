@@ -161,24 +161,9 @@ export async function POST(request: NextRequest) {
         .update({ cursor, last_synced_at: new Date().toISOString() })
         .eq("id", link.id)
 
-      await Promise.all(
-        changedFileIds.map(async (fileId) => {
-          const { data: doc } = await admin
-            .from("documents")
-            .select("id, file_url, file_name, file_type, file_size, version, cloud_file_id")
-            .eq("project_id", link.project_id)
-            .eq("cloud_file_id", fileId)
-            .eq("status", "rejected")
-            .maybeSingle()
-
-          if (!doc?.cloud_file_id) return
-
-          await resyncDocument(admin, accessToken, userId, {
-            ...doc,
-            cloud_file_id: doc.cloud_file_id,
-          })
-        })
-      )
+      // Mise à jour du cursor seulement — le resync est déclenché manuellement
+      // par l'archi via "Resynchroniser depuis Dropbox" pour éviter d'écraser
+      // un statut rejected/approved avec un changement Dropbox antérieur au refus.
     }
   }
 
