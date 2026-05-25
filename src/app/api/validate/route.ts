@@ -4,6 +4,7 @@ import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 import { validateSchema } from "@/lib/api-schemas"
 import { checkStrictRateLimit } from "@/lib/rate-limit"
+import { DOCUMENT_STATUS } from "@/types"
 
 export async function POST(request: Request) {
   if (!(await checkStrictRateLimit(request)))
@@ -29,10 +30,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Token invalide" }, { status: 404 })
     }
 
+    // L4 — expiration du token (colonne ajoutée via migration 20260525000001)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const expiresAt = (document as any).validation_token_expires_at as string | null
+    if (expiresAt && new Date(expiresAt) < new Date()) {
+      return NextResponse.json({ error: "Ce lien de validation a expiré" }, { status: 410 })
+    }
+
     if (document.audience === "contributor") {
       return NextResponse.json(
         { error: "Ce document est actuellement évalué par un prestataire" },
         { status: 403 }
+      )
+    }
+
+    if (document.status !== DOCUMENT_STATUS.SENT) {
+      return NextResponse.json(
+        { error: "Ce document n'est plus en attente de validation" },
+        { status: 409 }
       )
     }
 

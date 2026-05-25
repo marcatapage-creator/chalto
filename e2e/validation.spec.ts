@@ -2,12 +2,16 @@
  * RECETTE 4.2 — Approbation client + notification Realtime côté pro
  * RECETTE 4.3 — Refus avec commentaire
  * RECETTE 4.4 — Token invalide → page d'erreur dédiée
+ * RG-L2       — Guard re-validation : API retourne 409 si doc déjà approuvé
+ * RG-L4       — Expiration token : API retourne 410 si token expiré
  *
  * Variables d'env requises :
- *   E2E_VALIDATION_TOKEN        — token d'un doc "sent" (approbation principale)
- *   E2E_VALIDATION_TOKEN_REFUSE — token d'un doc "sent" dédié au refus
+ *   E2E_VALIDATION_TOKEN          — token d'un doc "sent" (approbation principale)
+ *   E2E_VALIDATION_TOKEN_REFUSE   — token d'un doc "sent" dédié au refus
  *   E2E_VALIDATION_TOKEN_CLIENT   — token d'un doc "sent" alternatif (approbation)
  *   E2E_VALIDATION_TOKEN_CLIENT_2 — token d'un doc "sent" alternatif (refus)
+ *   E2E_VALIDATION_TOKEN_APPROVED — token d'un doc "approved" (guard L2)
+ *   E2E_VALIDATION_TOKEN_EXPIRED  — token d'un doc "sent" avec token expiré (guard L4)
  */
 import { test, expect } from "@playwright/test"
 import { e2eEnv } from "./helpers/env"
@@ -162,4 +166,49 @@ test("4.3 — flux client alternatif — le client peut refuser avec un commenta
   await page.getByRole("textbox").fill("Quelques ajustements nécessaires")
   await refuseBtn.click()
   await expect(page.getByText(/document refusé/i)).toBeVisible({ timeout: 10_000 })
+})
+
+// ─── RG-L2 : Guard re-validation (statut !== sent) ────────────────────────────
+
+test("RG-L2 — API retourne 409 si le document est déjà approuvé", async ({ page }) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_APPROVED")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_APPROVED non défini")
+    return
+  }
+  const res = await page.request.post("/api/validate", {
+    data: { token, status: "approved" },
+  })
+  expect(res.status()).toBe(409)
+})
+
+test("RG-L2 — la page de validation d'un doc approuvé ne propose pas les boutons Approuver/Refuser", async ({
+  page,
+}) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_APPROVED")
+  if (!token) {
+    test.skip(true, "E2E_VALIDATION_TOKEN_APPROVED non défini")
+    return
+  }
+  await page.goto(`/validate/${token}`)
+  await page.waitForTimeout(2_000)
+  await expect(page.getByRole("button", { name: /approuver/i })).not.toBeVisible()
+  await expect(page.getByRole("button", { name: /refuser/i })).not.toBeVisible()
+})
+
+// ─── RG-L4 : Expiration du token de validation ───────────────────────────────
+
+test("RG-L4 — API retourne 410 pour un token de validation expiré", async ({ page }) => {
+  const token = e2eEnv("E2E_VALIDATION_TOKEN_EXPIRED")
+  if (!token) {
+    test.skip(
+      true,
+      "E2E_VALIDATION_TOKEN_EXPIRED non défini — migration 20260525000001 appliquée ?"
+    )
+    return
+  }
+  const res = await page.request.post("/api/validate", {
+    data: { token, status: "approved" },
+  })
+  expect(res.status()).toBe(410)
 })

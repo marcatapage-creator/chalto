@@ -49,6 +49,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
     }
 
+    if (document.status === DOCUMENT_STATUS.APPROVED) {
+      return NextResponse.json({ error: "Ce document est déjà approuvé" }, { status: 409 })
+    }
+
     if (!document.projects?.client_email) {
       return NextResponse.json({ error: "Pas d'email client" }, { status: 400 })
     }
@@ -77,14 +81,20 @@ export async function POST(request: Request) {
       )
     }
 
+    const tokenExpiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()
+
+    // validation_token_expires_at absent des types générés — régénérer après migration 20260525000001
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const docUpdate: any = {
+      status: DOCUMENT_STATUS.SENT,
+      pro_message: message ?? null,
+      request_type: requestType,
+      audience: "client",
+      validation_token_expires_at: tokenExpiresAt,
+    }
     const { error: updateError } = await supabase
       .from("documents")
-      .update({
-        status: DOCUMENT_STATUS.SENT,
-        pro_message: message ?? null,
-        request_type: requestType,
-        audience: "client",
-      })
+      .update(docUpdate)
       .eq("id", documentId)
 
     if (updateError) {

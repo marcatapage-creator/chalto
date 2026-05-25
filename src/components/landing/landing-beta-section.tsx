@@ -3,13 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Check, CheckCircle, Lock, ArrowRight } from "lucide-react"
 
 const BETA_TOTAL = 10
@@ -43,8 +36,6 @@ export function LandingBetaSection({ initialCount = 0 }: { initialCount?: number
   const [betaCount, setBetaCount] = useState(initialCount)
   const [prenom, setPrenom] = useState("")
   const [email, setEmail] = useState("")
-  const [specialite, setSpecialite] = useState("")
-  const [, setProjets] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +51,7 @@ export function LandingBetaSection({ initialCount = 0 }: { initialCount?: number
     const res = await fetch("/api/waitlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name: prenom, profession: specialite }),
+      body: JSON.stringify({ email, name: prenom }),
     })
 
     if (res.status === 409) {
@@ -196,39 +187,6 @@ export function LandingBetaSection({ initialCount = 0 }: { initialCount?: number
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                      Votre spécialité
-                    </label>
-                    <Select onValueChange={setSpecialite}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MOE">MOE</SelectItem>
-                        <SelectItem value="Archi intérieur">Architecte d&apos;intérieur</SelectItem>
-                        <SelectItem value="Contractant général">Contractant général</SelectItem>
-                        <SelectItem value="Autre">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                      Nombre de projets actifs
-                    </label>
-                    <Select onValueChange={setProjets}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1-3">1 – 3</SelectItem>
-                        <SelectItem value="4-8">4 – 8</SelectItem>
-                        <SelectItem value="9+">9+</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
 

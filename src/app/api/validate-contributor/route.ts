@@ -4,6 +4,7 @@ import { createNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 import { validateContributorSchema } from "@/lib/api-schemas"
 import { checkRateLimit } from "@/lib/rate-limit"
+import { DOCUMENT_STATUS } from "@/types"
 
 export async function POST(request: Request) {
   const allowed = await checkRateLimit(request)
@@ -55,12 +56,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Document introuvable" }, { status: 404 })
     }
 
+    const isApprovedTransmission = isTransmission && document.status === DOCUMENT_STATUS.APPROVED
+
+    if (!isApprovedTransmission && document.status !== DOCUMENT_STATUS.SENT) {
+      return NextResponse.json(
+        { error: "Ce document n'est plus en attente de validation" },
+        { status: 409 }
+      )
+    }
+
+    // L5 — vérifier que ce prestataire est bien associé à ce document
+    const { data: docContributor } = await admin
+      .from("document_contributors")
+      .select("id")
+      .eq("document_id", documentId)
+      .eq("contributor_id", contributor.id)
+      .maybeSingle()
+
+    if (!docContributor) {
+      return NextResponse.json({ error: "Accès non autorisé à ce document" }, { status: 403 })
+    }
+
     const userId = document.projects.user_id
     const effectiveStatus = isTransmission ? "commented" : status
 
     const [{ error: docUpdateError }, { error: validationInsertError }, { data: proProfile }] =
       await Promise.all([
-        admin.from("documents").update({ status: effectiveStatus }).eq("id", documentId),
+        // Ne pas écraser le statut d'un doc déjà approuvé par le client (transmission seule)
+        isApprovedTransmission
+          ? Promise.resolve({ error: null })
+          : admin.from("documents").update({ status: effectiveStatus }).eq("id", documentId),
         admin.from("validations").insert({
           document_id: documentId,
           status: effectiveStatus,

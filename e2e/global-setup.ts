@@ -375,6 +375,46 @@ export default async function globalSetup(config: FullConfig) {
     })
   }
 
+  // ── 2h-bis. Documents pour tests des règles de gestion (L2, L4) ────────────
+
+  // L2 — doc approuvé : la re-validation via token doit être bloquée (409)
+  const { data: docApprovedGuard } = await admin
+    .from("documents")
+    .insert({
+      project_id: project.id,
+      name: "Document E2E – approuvé guard re-validation",
+      type: "Plan",
+      status: "approved",
+      version: 1,
+      audience: "client",
+    })
+    .select("id, validation_token")
+    .single()
+
+  // L4 — token expiré : /api/validate doit retourner 410
+  // La colonne validation_token_expires_at est ajoutée par migration 20260525000001.
+  // Si la migration n'est pas encore appliquée, le doc est seedé sans expiration (test skipé).
+  let docExpiredToken: { id: string; validation_token: string | null } | null = null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (admin as any)
+      .from("documents")
+      .insert({
+        project_id: project.id,
+        name: "Document E2E – token expiré",
+        type: "Plan",
+        status: "sent",
+        version: 1,
+        audience: "client",
+        validation_token_expires_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      })
+      .select("id, validation_token")
+      .single()
+    docExpiredToken = data
+  } catch {
+    console.warn("[e2e seed] validation_token_expires_at indisponible — migration non appliquée")
+  }
+
   // ── 2i. Situation de test (en_attente, pour tests architecte) ────────────
   const { data: seedSituation } = await admin
     .from("situations")
@@ -417,6 +457,9 @@ export default async function globalSetup(config: FullConfig) {
     E2E_VALIDATION_TOKEN_AUDIENCE_GUARD: docAudienceGuard?.validation_token ?? "",
     E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT: docTransmissionClient?.validation_token ?? "",
     E2E_DOC_APPROVED_FOR_SEND_ID: docApprovedForSend?.id ?? "",
+    E2E_VALIDATION_TOKEN_APPROVED: docApprovedGuard?.validation_token ?? "",
+    E2E_VALIDATION_TOKEN_EXPIRED: docExpiredToken?.validation_token ?? "",
+    E2E_DOC_SENT_CLIENT_ID: docValidation.id,
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))
@@ -438,6 +481,9 @@ export default async function globalSetup(config: FullConfig) {
   process.env.E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT =
     docTransmissionClient?.validation_token ?? ""
   process.env.E2E_DOC_APPROVED_FOR_SEND_ID = docApprovedForSend?.id ?? ""
+  process.env.E2E_VALIDATION_TOKEN_APPROVED = docApprovedGuard?.validation_token ?? ""
+  process.env.E2E_VALIDATION_TOKEN_EXPIRED = docExpiredToken?.validation_token ?? ""
+  process.env.E2E_DOC_SENT_CLIENT_ID = docValidation.id
 
   console.log(
     `[e2e seed] Projet ${project.id} | contributor ${contributor.id} | ${sentDocs.length} docs sent | 4 docs contrib | 3 drafts | 5 tâches`

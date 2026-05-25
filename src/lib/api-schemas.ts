@@ -28,6 +28,15 @@ export const sendDocumentContributorSchema = z.object({
   requestType: z.enum(["transmission", "validation"]).optional(),
 })
 
+export const sendToContributorsSchema = z.object({
+  documentId: uuid,
+  documentName: nonEmpty,
+  projectId: uuid,
+  contributorIds: z.array(uuid).min(1),
+  requestType: z.enum(["transmission", "validation"]).default("validation"),
+  message: z.string().optional(),
+})
+
 export const sendWelcomeSchema = z.object({
   fullName: z.string().optional(),
 })

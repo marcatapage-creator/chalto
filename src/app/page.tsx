@@ -12,7 +12,6 @@ import { LandingPainStickers } from "@/components/landing/landing-pain-stickers"
 import { LandingLegalDialogs } from "@/components/landing/landing-legal-dialogs"
 import { LandingScreenshotsSection } from "@/components/landing/landing-screenshots-section"
 import { LandingArchitectSection } from "@/components/landing/landing-architect-section"
-import { LandingFounderSection } from "@/components/landing/landing-founder-section"
 import { LandingFaqSection } from "@/components/landing/landing-faq-section"
 
 export default async function LandingPage() {
@@ -163,8 +162,6 @@ export default async function LandingPage() {
           <LandingScreenshotsSection />
 
           <LandingArchitectSection />
-
-          <LandingFounderSection />
 
           <LandingFaqSection />
 

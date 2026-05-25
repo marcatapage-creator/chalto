@@ -108,7 +108,13 @@ export function ContributorSpace({
       const initial: Record<string, "approved" | "rejected" | null> = {}
       for (const dc of initialDocs) {
         const d = dc.documents as { id?: string; status?: string } | null
-        if (d?.id && (d.status === "approved" || d.status === "rejected")) {
+        // Ne pas pré-remplir pour les transmissions — le prestataire n'a pas décidé,
+        // c'est le client qui a approuvé.
+        if (
+          d?.id &&
+          dc.request_type !== "transmission" &&
+          (d.status === "approved" || d.status === "rejected")
+        ) {
           initial[d.id] = d.status
         }
       }

@@ -136,11 +136,17 @@ export function DocumentSendForm({
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
-  const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
+  // approved + contributor → forcé en transmission (le doc client est figé)
+  const [requestType, setRequestType] = useState<"validation" | "transmission">(
+    status === "approved" ? "transmission" : "validation"
+  )
 
+  // doc approuvé envoyé aux prestataires → uniquement pour information
+  const isApprovedContributor = status === "approved" && audience === "contributor"
   // commented + client → seule la validation a du sens (le client a déjà lu pour info)
-  const requestTypeOptions =
-    audience === "client" && status === "commented"
+  const requestTypeOptions = isApprovedContributor
+    ? ([{ value: "transmission", label: "Pour information" }] as const)
+    : audience === "client" && status === "commented"
       ? ([{ value: "validation", label: "Pour validation" }] as const)
       : REQUEST_TYPE_OPTIONS
   const [message, setMessage] = useState("")
@@ -206,54 +212,29 @@ export function DocumentSendForm({
             : "Email de validation envoyé au client ✅"
         )
       } else {
-        const { error: rpcError } = await supabase.rpc("send_document_to_client", {
-          p_document_id: documentId,
-          p_status: "sent",
-        })
-
-        if (rpcError) {
-          console.error("[send_document_to_client]", rpcError)
-          toast.error("Erreur lors de la mise à jour du document — réessayez")
-          setLoading(false)
-          return
-        }
-
-        // DB is authoritative — update UI immediately, don't wait for email
-        onStatusChange?.("sent")
-
-        await supabase.from("documents").update({ audience: "contributor" }).eq("id", documentId)
-
-        const { error: upsertError } = await supabase.from("document_contributors").upsert(
-          selectedContributors.map((contributorId) => ({
-            document_id: documentId,
-            contributor_id: contributorId,
-            request_type: requestType,
-            pro_message: message || null,
-          })),
-          { onConflict: "document_id,contributor_id" }
-        )
-        if (upsertError) console.error("[document_contributors upsert]", upsertError)
-
-        const emailRes = await fetchWithTimeout("/api/send-document-contributor", {
+        const res = await fetchWithTimeout("/api/send-to-contributors", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contributorIds: selectedContributors,
+            documentId,
             documentName,
             projectId,
-            message: message || undefined,
+            contributorIds: selectedContributors,
             requestType,
+            message: message || undefined,
           }),
         })
 
-        if (!emailRes.ok) {
-          const errData = await emailRes.json().catch(() => ({}))
-          console.error("[send-document-contributor]", errData)
-          toast.error((errData as { error?: string }).error ?? "Erreur lors de l'envoi email")
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          console.error("[send-to-contributors]", errData)
+          toast.error((errData as { error?: string }).error ?? "Erreur lors de l'envoi")
           setLoading(false)
           return
         }
 
+        // DB is authoritative — update UI immediately
+        onStatusChange?.("sent")
         haptics.success()
         toast.success("Document envoyé aux prestataires ✅")
       }
@@ -351,11 +332,18 @@ export function DocumentSendForm({
       )}
 
       {/* Type de demande */}
-      <RequestTypeSelector
-        value={requestType}
-        onChange={setRequestType}
-        options={requestTypeOptions}
-      />
+      {isApprovedContributor ? (
+        <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+          Ce document a été approuvé par le client — il sera transmis pour information uniquement.
+          Le prestataire ne peut pas le refuser.
+        </p>
+      ) : (
+        <RequestTypeSelector
+          value={requestType}
+          onChange={setRequestType}
+          options={requestTypeOptions}
+        />
+      )}
 
       {/* Message facultatif */}
       <Textarea
