@@ -34,6 +34,7 @@ function tableChain(
       update: () => chain("update"),
       insert: () => chain("insert"),
       single: () => Promise.resolve(value),
+      maybeSingle: () => Promise.resolve(value),
       then: (f?: ((v: unknown) => unknown) | null, r?: ((e: unknown) => unknown) | null) =>
         Promise.resolve(value).then(f, r),
     }
@@ -63,7 +64,7 @@ const DOC = {
   id: "doc-1",
   project_id: "proj-1",
   name: "Devis principal",
-  status: "pending",
+  status: "sent",
   projects: { name: "Rénovation", user_id: "user-1" },
 }
 
@@ -148,6 +149,7 @@ describe("POST /api/validate-contributor", () => {
       makeAdmin({
         contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
+        document_contributors: { data: { id: "dc-1" } },
         validations: {},
         profiles: { data: PRO },
       })
@@ -177,6 +179,7 @@ describe("POST /api/validate-contributor", () => {
       makeAdmin({
         contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
+        document_contributors: { data: { id: "dc-1" } },
         validations: {},
         profiles: { data: PRO },
       })
@@ -203,6 +206,7 @@ describe("POST /api/validate-contributor", () => {
       makeAdmin({
         contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
+        document_contributors: { data: { id: "dc-1" } },
         validations: {},
         profiles: { data: PRO },
       })
@@ -225,6 +229,7 @@ describe("POST /api/validate-contributor", () => {
       makeAdmin({
         contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC },
+        document_contributors: { data: { id: "dc-1" } },
         validations: {},
         profiles: { data: { ...PRO, email: null } },
       })
@@ -245,6 +250,7 @@ describe("POST /api/validate-contributor", () => {
       makeAdmin({
         contributors: { data: { id: "contrib-1", invite_expires_at: null } },
         documents: { data: DOC, updateError: { message: "update failed" } },
+        document_contributors: { data: { id: "dc-1" } },
         validations: { insertError: null },
         profiles: { data: PRO },
       })

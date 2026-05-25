@@ -63,7 +63,7 @@ const DOC = {
   id: "doc-1",
   project_id: "proj-1",
   name: "Devis principal",
-  status: "pending",
+  status: "sent",
   projects: {
     name: "Rénovation",
     user_id: "user-1",
