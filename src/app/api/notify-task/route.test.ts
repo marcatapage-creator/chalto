@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { POST } from "./route"
 import * as serverModule from "@/lib/supabase/server"
 import * as adminModule from "@/lib/supabase/admin"
+import * as rateLimitModule from "@/lib/rate-limit"
 import * as emailBrandModule from "@/lib/email-brand"
 
 vi.mock("@/lib/supabase/server")
 vi.mock("@/lib/supabase/admin")
+vi.mock("@/lib/rate-limit")
 vi.mock("resend", () => ({
   Resend: class {
     emails = { send: vi.fn().mockResolvedValue({ id: "resend-id" }) }
@@ -66,6 +68,7 @@ const CONTRIBUTOR = { invite_token: "tok-alice" }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(rateLimitModule.checkRateLimit).mockResolvedValue(true)
   vi.mocked(emailBrandModule.buildBrandHeader).mockReturnValue("")
 })
 
