@@ -81,26 +81,34 @@ export async function POST(request: Request) {
       )
     }
 
-    const tokenExpiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()
-
-    // validation_token_expires_at absent des types générés — régénérer après migration 20260525000001
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docUpdate: any = {
-      status: DOCUMENT_STATUS.SENT,
-      pro_message: message ?? null,
-      request_type: requestType,
-      audience: "client",
-      validation_token_expires_at: tokenExpiresAt,
-    }
     const { error: updateError } = await supabase
       .from("documents")
-      .update(docUpdate)
+      .update({
+        status: DOCUMENT_STATUS.SENT,
+        pro_message: message ?? null,
+        request_type: requestType,
+        audience: "client",
+      })
       .eq("id", documentId)
 
     if (updateError) {
       console.error("Update document error:", updateError)
       return NextResponse.json({ error: "Erreur mise à jour document" }, { status: 500 })
     }
+
+    // Best-effort : définir l'expiration du token (colonne ajoutée via migration 20260525000001)
+    const tokenExpiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("documents") as any)
+      .update({ validation_token_expires_at: tokenExpiresAt })
+      .eq("id", documentId)
+      .then(
+        ({ error }: { error: unknown }) => {
+          if (error)
+            console.warn("[send-validation] token expiry not set (migration pending?):", error)
+        },
+        (e: unknown) => console.warn("[send-validation] token expiry update threw:", e)
+      )
 
     revalidatePath("/dashboard")
     revalidatePath(`/projects/${document.project_id}`)
