@@ -16,6 +16,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
+    optimizeCss: true,
   },
   headers: async () => [{ source: "/(.*)", headers: securityHeaders }],
   images: {

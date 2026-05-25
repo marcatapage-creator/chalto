@@ -1,18 +1,47 @@
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
-import { LandingBetaSection } from "@/components/landing/landing-beta-section"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
+// Above-fold — static imports (LCP critical path)
 import { LandingNav } from "@/components/landing/landing-nav"
 import { LandingAnimatedWord } from "@/components/landing/landing-animated-word"
-import { LandingSolutionSection } from "@/components/landing/landing-solution-section"
-import { LandingPainStickers } from "@/components/landing/landing-pain-stickers"
-import { LandingLegalDialogs } from "@/components/landing/landing-legal-dialogs"
-import { LandingScreenshotsSection } from "@/components/landing/landing-screenshots-section"
-import { LandingArchitectSection } from "@/components/landing/landing-architect-section"
-import { LandingFaqSection } from "@/components/landing/landing-faq-section"
+// Below-fold — dynamic imports (code-split framer-motion hors du bundle critique)
+const LandingPainStickers = dynamic(() =>
+  import("@/components/landing/landing-pain-stickers").then((m) => ({
+    default: m.LandingPainStickers,
+  }))
+)
+const LandingSolutionSection = dynamic(() =>
+  import("@/components/landing/landing-solution-section").then((m) => ({
+    default: m.LandingSolutionSection,
+  }))
+)
+const LandingScreenshotsSection = dynamic(() =>
+  import("@/components/landing/landing-screenshots-section").then((m) => ({
+    default: m.LandingScreenshotsSection,
+  }))
+)
+const LandingArchitectSection = dynamic(() =>
+  import("@/components/landing/landing-architect-section").then((m) => ({
+    default: m.LandingArchitectSection,
+  }))
+)
+const LandingFaqSection = dynamic(() =>
+  import("@/components/landing/landing-faq-section").then((m) => ({ default: m.LandingFaqSection }))
+)
+const LandingBetaSection = dynamic(() =>
+  import("@/components/landing/landing-beta-section").then((m) => ({
+    default: m.LandingBetaSection,
+  }))
+)
+const LandingLegalDialogs = dynamic(() =>
+  import("@/components/landing/landing-legal-dialogs").then((m) => ({
+    default: m.LandingLegalDialogs,
+  }))
+)
 
 export default async function LandingPage() {
   const admin = createAdminClient()
