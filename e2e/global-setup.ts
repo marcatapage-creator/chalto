@@ -350,6 +350,31 @@ export default async function globalSetup(config: FullConfig) {
     })
   }
 
+  // Doc approuvé v2 (anti-régression : envoi au presta → statut ne doit pas revenir "approuvé")
+  const { data: docApprovedForSend } = await admin
+    .from("documents")
+    .insert({
+      project_id: project.id,
+      name: "Document E2E – approuvé v2 (test envoi presta)",
+      type: "Plan",
+      status: "approved",
+      version: 2,
+      audience: "client",
+    })
+    .select("id")
+    .single()
+
+  if (docApprovedForSend) {
+    await admin.from("validations").insert({
+      document_id: docApprovedForSend.id,
+      status: "approved",
+      client_name: "Client Test E2E",
+      contributor_id: null,
+      approved_at: new Date().toISOString(),
+      version: 2,
+    })
+  }
+
   // ── 2i. Situation de test (en_attente, pour tests architecte) ────────────
   const { data: seedSituation } = await admin
     .from("situations")
@@ -391,6 +416,7 @@ export default async function globalSetup(config: FullConfig) {
     E2E_SITUATION_ID: seedSituation?.id ?? "",
     E2E_VALIDATION_TOKEN_AUDIENCE_GUARD: docAudienceGuard?.validation_token ?? "",
     E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT: docTransmissionClient?.validation_token ?? "",
+    E2E_DOC_APPROVED_FOR_SEND_ID: docApprovedForSend?.id ?? "",
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))
@@ -411,6 +437,7 @@ export default async function globalSetup(config: FullConfig) {
   process.env.E2E_VALIDATION_TOKEN_AUDIENCE_GUARD = docAudienceGuard?.validation_token ?? ""
   process.env.E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT =
     docTransmissionClient?.validation_token ?? ""
+  process.env.E2E_DOC_APPROVED_FOR_SEND_ID = docApprovedForSend?.id ?? ""
 
   console.log(
     `[e2e seed] Projet ${project.id} | contributor ${contributor.id} | ${sentDocs.length} docs sent | 4 docs contrib | 3 drafts | 5 tâches`

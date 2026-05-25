@@ -7,9 +7,14 @@
  * 2. Version Realtime : le client lit une transmission → le pro voit
  *    "Commenté par [client]" sans "le prestataire" dans le banner.
  *
+ * 3. Anti-régression statut : doc approuvé envoyé au presta → statut reste "envoyé",
+ *    ne revient pas à "approuvé" après le re-run du useEffect.
+ *
  * Variables d'env requises :
  *   E2E_PROJECT_ID                          — UUID du projet de test
  *   E2E_VALIDATION_TOKEN_TRANSMISSION_CLIENT — token d'un doc transmission audience=client
+ *   E2E_DOC_APPROVED_FOR_SEND_ID            — UUID du doc approuvé v2 seedé
+ *   E2E_INVITE_TOKEN                        — token prestataire
  */
 import { test, expect } from "@playwright/test"
 import { e2eEnv } from "./helpers/env"
@@ -21,6 +26,78 @@ test.beforeEach(({}, testInfo) => {
   if (!e2eEnv("E2E_PROJECT_ID")) {
     testInfo.skip(true, "E2E_PROJECT_ID non défini")
   }
+})
+
+// ─── Anti-régression : statut doc après envoi au presta ───────────────────────
+
+test("3.4 — statut reste 'envoyé' après envoi d'un doc approuvé v2 au presta (pas de revert)", async ({
+  page,
+}) => {
+  test.setTimeout(30_000)
+  const projectId = e2eEnv("E2E_PROJECT_ID")
+  const inviteToken = e2eEnv("E2E_INVITE_TOKEN")
+  if (!projectId || !inviteToken) {
+    test.skip(true, "E2E_PROJECT_ID ou E2E_INVITE_TOKEN non défini")
+    return
+  }
+
+  await page.goto(`/projects/${projectId}`)
+  await expect(page).not.toHaveURL(/login/)
+
+  // Trouve le doc approuvé seedé
+  const docItem = page.getByText(/approuvé v2.*test envoi presta/i).first()
+  const hasDoc = await docItem.isVisible({ timeout: 10_000 }).catch(() => false)
+  if (!hasDoc) {
+    test.skip(true, "Document approuvé v2 de test non trouvé — seed manquant")
+    return
+  }
+
+  await docItem.click()
+
+  // Vérifie que le panel s'ouvre sur "approuvé"
+  const approvedBadge = page.getByText(/approuvé/i).first()
+  await expect(approvedBadge).toBeVisible({ timeout: 5_000 })
+
+  // Clique "Partager" (bouton pour un doc approuvé)
+  const shareBtn = page.getByRole("button", { name: /partager/i }).first()
+  const hasShareBtn = await shareBtn.isVisible({ timeout: 5_000 }).catch(() => false)
+  if (!hasShareBtn) {
+    test.skip(true, "Bouton 'Partager' introuvable — doc peut-être déjà envoyé")
+    return
+  }
+  await shareBtn.click()
+
+  // Sélectionne le premier prestataire dans la liste
+  const contribBtn = page
+    .locator("button")
+    .filter({ hasText: /E2E Prestataire|Prestataire Test/i })
+    .first()
+  const hasContrib = await contribBtn.isVisible({ timeout: 5_000 }).catch(() => false)
+  if (!hasContrib) {
+    test.skip(true, "Aucun prestataire disponible dans le formulaire d'envoi")
+    return
+  }
+  await contribBtn.click()
+
+  // Soumet l'envoi
+  const sendBtn = page.getByRole("button", { name: /partager|envoyer/i }).last()
+  await sendBtn.click()
+
+  // Statut passe à "envoyé" immédiatement (optimiste)
+  await expect(page.getByText(/envoyé/i).first()).toBeVisible({ timeout: 8_000 })
+
+  // Attend 1.5s pour s'assurer que le useEffect ne reverte pas le statut
+  await page.waitForTimeout(1_500)
+
+  // Le statut doit TOUJOURS être "envoyé", pas "approuvé"
+  const isStillSent = await page
+    .getByText(/envoyé/i)
+    .first()
+    .isVisible()
+    .catch(() => false)
+  expect(isStillSent, "Le statut a réverté à 'approuvé' — régression du useEffect isLegacy").toBe(
+    true
+  )
 })
 
 // ─── Wording statique (doc déjà commenté par le client, seedé en DB) ─────────

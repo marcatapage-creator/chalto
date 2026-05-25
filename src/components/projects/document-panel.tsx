@@ -172,13 +172,13 @@ export function DocumentPanel({
           docId: document.id,
           data: (data ?? null) as unknown as ValidationData | null,
         })
-        // Skip stale validations: a "draft" doc has none; a "sent" doc only has a current
-        // validation if the version matches (guards against old validations from previous send cycles).
+        // Skip stale validations: draft docs have none; sent docs are awaiting a new response
+        // so any existing validation belongs to a previous cycle regardless of version.
         const docVersion = document.version ?? 1
         const valVersion = (data as { version?: number | null } | null)?.version ?? 1
         const isCurrentVersion = valVersion === docVersion
         const isLegacy =
-          document.status === "draft" || (document.status === "sent" && !isCurrentVersion)
+          document.status === "draft" || document.status === "sent" || !isCurrentVersion
         if (data?.status && !isLegacy) {
           setLocalStatus(data.status)
           onStatusChangeRef.current?.(document.id, data.status)
