@@ -57,7 +57,7 @@ export async function DashboardUrgences({ userId }: { userId: string }) {
             return (
               <Link
                 key={doc.id}
-                href={`/projects/${doc.project_id}`}
+                href={`/projects/${doc.project_id}?highlight=doc_${doc.id}`}
                 className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -79,7 +79,7 @@ export async function DashboardUrgences({ userId }: { userId: string }) {
             return (
               <Link
                 key={task.id}
-                href={`/projects/${task.project_id}`}
+                href={`/projects/${task.project_id}?highlight=task_${task.id}`}
                 className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
