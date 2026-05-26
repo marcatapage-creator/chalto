@@ -38,6 +38,16 @@ async function getNavCount(page: Page, label: RegExp): Promise<number | null> {
   return isNaN(n) ? 0 : n
 }
 
+/**
+ * Lit le count APRÈS que le sidebar a chargé ses vraies valeurs.
+ * Le layout initialise toujours à 0, le useEffect fetch les valeurs réelles.
+ * networkidle attend la fin des requêtes Supabase avant de lire le baseline.
+ */
+async function getStableNavCount(page: Page, label: RegExp): Promise<number | null> {
+  await page.waitForLoadState("networkidle")
+  return getNavCount(page, label)
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // PROJETS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -48,7 +58,8 @@ test("sidebar — créer un projet incrémente le compteur Projets en temps rée
   await page.goto("/projects")
   await expect(page).not.toHaveURL(/login/)
 
-  const initialCount = await getNavCount(page, /projets/i)
+  // getStableNavCount attend networkidle pour que le useEffect sidebar ait fini de fetch
+  const initialCount = await getStableNavCount(page, /projets/i)
   if (initialCount === null) {
     test.skip(true, "Badge 'Projets' non visible (viewport < xl ou layout différent)")
     return
@@ -96,7 +107,7 @@ test("sidebar — supprimer un projet décrémente le compteur Projets en temps 
     return
   }
 
-  const initialCount = await getNavCount(page, /projets/i)
+  const initialCount = await getStableNavCount(page, /projets/i)
   if (initialCount === null || initialCount === 0) {
     test.skip(true, "Compteur Projets non lisible ou déjà à 0")
     return
@@ -138,7 +149,8 @@ test("sidebar — créer un contact incrémente le compteur Annuaire en temps r�
   await page.goto("/contacts")
   await expect(page).not.toHaveURL(/login/)
 
-  const initialCount = await getNavCount(page, /annuaire/i)
+  // getStableNavCount attend networkidle pour que le useEffect sidebar ait fini de fetch
+  const initialCount = await getStableNavCount(page, /annuaire/i)
   if (initialCount === null) {
     test.skip(true, "Badge 'Annuaire' non visible (viewport < xl ou layout différent)")
     return
@@ -186,7 +198,7 @@ test("sidebar — supprimer un contact décrémente le compteur Annuaire en temp
     return
   }
 
-  const initialCount = await getNavCount(page, /annuaire/i)
+  const initialCount = await getStableNavCount(page, /annuaire/i)
   if (initialCount === null || initialCount === 0) {
     test.skip(true, "Compteur Annuaire non lisible ou déjà à 0")
     return
