@@ -271,3 +271,27 @@ input[type="date"]::-webkit-date-and-time-value {
   background: conic-gradient(from var(--ai-btn-angle), hsl(var(--border)) 25%, hsl(224 79% 65% / 0.45), #a78bfa70, hsl(224 79% 65% / 0.45), hsl(var(--border)) 75%);
   animation: ai-btn-spin 7s linear infinite;
 }
+
+/* Dialog / AlertDialog — fondu desktop uniquement */
+@keyframes dialog-fade-in {
+  from { opacity: 0; }
+}
+@keyframes dialog-fade-out {
+  to { opacity: 0; }
+}
+
+@media (min-width: 1280px) {
+  [data-slot="dialog-overlay"][data-state="open"],
+  [data-slot="alert-dialog-overlay"][data-state="open"],
+  [data-slot="dialog-content"][data-state="open"],
+  [data-slot="alert-dialog-content"][data-state="open"] {
+    animation: dialog-fade-in 200ms ease;
+  }
+
+  [data-slot="dialog-overlay"][data-state="closed"],
+  [data-slot="alert-dialog-overlay"][data-state="closed"],
+  [data-slot="dialog-content"][data-state="closed"],
+  [data-slot="alert-dialog-content"][data-state="closed"] {
+    animation: dialog-fade-out 200ms ease;
+  }
+}
