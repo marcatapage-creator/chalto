@@ -300,6 +300,20 @@ export function ProjectPageClient({
   // ─── Scroll refs ─────────────────────────────────────────────────────────────
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const adminDossiersRef = useRef<HTMLDivElement>(null)
+  const colRef = useRef<HTMLDivElement>(null)
+
+  // Mesure la largeur de la scrollbar du body et l'expose en CSS var sur la colonne
+  // pour que les sections du header aient le même padding-right que le corps scrollable
+  useEffect(() => {
+    const body = scrollContainerRef.current
+    const col = colRef.current
+    if (!body || !col) return
+    const sync = () => col.style.setProperty("--sb-w", `${body.offsetWidth - body.clientWidth}px`)
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(body)
+    return () => ro.disconnect()
+  }, [])
 
   const [showScrollTop, setShowScrollTop] = useState(false)
   useEffect(() => {
@@ -371,11 +385,11 @@ export function ProjectPageClient({
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Contenu principal */}
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div ref={colRef} className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* En-tête fixe */}
         <div className="shrink-0 border-b bg-background">
           {/* Header */}
-          <div className="flex items-center gap-4 px-6 md:px-8 pt-6 pb-6">
+          <div className="flex items-center gap-4 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0px))] md:pr-[calc(2rem+var(--sb-w,0px))] pt-6 pb-6">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/projects">
                 <ArrowLeft className="h-4 w-4" />
@@ -485,7 +499,7 @@ export function ProjectPageClient({
                   <div className="hidden sm:block border-l" />
 
                   {/* Stepper phase — toujours dans le header (fixe = sticky sur mobile) */}
-                  <div className="flex-1 min-w-0 px-6 md:px-8 py-4">
+                  <div className="flex-1 min-w-0 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0px))] md:pr-[calc(2rem+var(--sb-w,0px))] py-4">
                     <ProjectStepper
                       projectId={project.id}
                       currentPhase={phase}
@@ -505,7 +519,11 @@ export function ProjectPageClient({
         </div>
 
         {/* Corps scrollable */}
-        <div ref={scrollContainerRef} className="relative flex-1 overflow-auto overscroll-contain">
+        <div
+          ref={scrollContainerRef}
+          className="relative flex-1 overflow-auto overscroll-contain"
+          style={{ scrollbarGutter: "stable" }}
+        >
           <div
             aria-hidden
             className="pointer-events-none sticky top-0 z-10 h-20.5 -mb-20.5 bg-linear-to-b from-neutral-50/40 dark:from-background/40 to-transparent"
