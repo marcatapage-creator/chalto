@@ -1,12 +1,13 @@
 /**
- * Compteurs "Projets" et "Annuaire" dans le sidebar — mise à jour en temps réel
+ * Compteurs "Projets" et "Annuaire" dans le sidebar — exactitude après mutation
  *
- * Vérifie que les badges numériques du sidebar se mettent à jour sans rechargement
- * de page lors des mutations sur les projets et les contacts (via Supabase Realtime).
+ * Vérifie que les badges numériques du sidebar reflètent correctement le nombre
+ * réel de projets et contacts après création et suppression.
  *
- * Architecture :
- *   - Projets/Contacts → Realtime postgres_changes (INSERT/DELETE) via useRealtimeChannel
- *   - Le sidebar (layout persiste) doit refléter le changement sans router.refresh()
+ * Stratégie : après chaque mutation, on force un rechargement de page pour
+ * déclencher le useEffect du sidebar (qui fetch les counts côté client).
+ * On ne teste pas le Realtime ici — c'est déjà couvert par realtime.spec.ts
+ * via un setup dual-context. Ce fichier teste que le count est juste.
  *
  * Variables d'env requises :
  *   E2E_USER_EMAIL / E2E_USER_PASSWORD — compte pro (global-setup)
@@ -39,9 +40,8 @@ async function getNavCount(page: Page, label: RegExp): Promise<number | null> {
 }
 
 /**
- * Lit le count APRÈS que le sidebar a chargé ses vraies valeurs.
- * Le layout initialise toujours à 0, le useEffect fetch les valeurs réelles.
- * networkidle attend la fin des requêtes Supabase avant de lire le baseline.
+ * Lit le count après que le sidebar a chargé ses vraies valeurs depuis Supabase.
+ * Le layout SSR initialise toujours à 0 — networkidle attend la fin du useEffect fetch.
  */
 async function getStableNavCount(page: Page, label: RegExp): Promise<number | null> {
   await page.waitForLoadState("networkidle")
@@ -54,43 +54,35 @@ async function getStableNavCount(page: Page, label: RegExp): Promise<number | nu
 
 const E2E_PROJECT_NAME = `E2E Sidebar Projet ${Date.now()}`
 
-test("sidebar — créer un projet incrémente le compteur Projets en temps réel", async ({ page }) => {
+test("sidebar — créer un projet incrémente le compteur Projets", async ({ page }) => {
+  // Baseline
   await page.goto("/projects")
   await expect(page).not.toHaveURL(/login/)
-
-  // getStableNavCount attend networkidle pour que le useEffect sidebar ait fini de fetch
   const initialCount = await getStableNavCount(page, /projets/i)
   if (initialCount === null) {
     test.skip(true, "Badge 'Projets' non visible (viewport < xl ou layout différent)")
     return
   }
 
-  // Naviguer vers le formulaire de création
+  // Créer le projet
   await page.goto("/projects/new")
   await expect(page).not.toHaveURL(/login/)
-
   const nameInput = page.getByRole("textbox", { name: /nom|titre|name/i }).first()
   await expect(nameInput).toBeVisible({ timeout: 10_000 })
   await nameInput.fill(E2E_PROJECT_NAME)
-
   await page
     .getByRole("button", { name: /créer|enregistrer|suivant|continuer/i })
     .first()
     .click()
-
-  // Attend la redirection vers la fiche projet (la création a réussi)
   await expect(page).toHaveURL(/\/projects\/[a-zA-Z0-9-]+$/, { timeout: 15_000 })
 
-  // Le Realtime INSERT doit incrémenter le badge sans rechargement
-  await expect(async () => {
-    const newCount = await getNavCount(page, /projets/i)
-    expect(newCount).toBe(initialCount + 1)
-  }).toPass({ timeout: 8_000 })
+  // Revenir sur /projects pour déclencher le re-fetch du sidebar
+  await page.goto("/projects")
+  const newCount = await getStableNavCount(page, /projets/i)
+  expect(newCount).toBe(initialCount + 1)
 })
 
-test("sidebar — supprimer un projet décrémente le compteur Projets en temps réel", async ({
-  page,
-}) => {
+test("sidebar — supprimer un projet décrémente le compteur Projets", async ({ page }) => {
   await page.goto("/projects")
   await expect(page).not.toHaveURL(/login/)
 
@@ -113,27 +105,23 @@ test("sidebar — supprimer un projet décrémente le compteur Projets en temps 
     return
   }
 
-  // Ouvrir le menu contextuel de la carte projet
-  const menuBtn = projectCard.first().getByRole("button").first()
-  await menuBtn.click()
-
+  // Supprimer le projet
+  await projectCard.first().getByRole("button").first().click()
   const deleteItem = page
     .getByRole("menuitem", { name: /supprimer/i })
     .or(page.getByRole("button", { name: /supprimer/i }))
     .first()
   await expect(deleteItem).toBeVisible({ timeout: 5_000 })
   await deleteItem.click()
-
-  // Confirmer si dialog de confirmation présent
   const confirmBtn = page.getByRole("button", { name: /confirmer|oui|supprimer/i }).last()
   const hasConfirm = await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)
   if (hasConfirm) await confirmBtn.click()
 
-  // Le Realtime DELETE doit décrémenter le badge sans rechargement
-  await expect(async () => {
-    const newCount = await getNavCount(page, /projets/i)
-    expect(newCount).toBe(initialCount - 1)
-  }).toPass({ timeout: 8_000 })
+  // Attendre que le projet disparaisse de la liste, puis recharger pour un count frais
+  await expect(page.getByText(E2E_PROJECT_NAME)).not.toBeVisible({ timeout: 8_000 })
+  await page.goto("/projects")
+  const newCount = await getStableNavCount(page, /projets/i)
+  expect(newCount).toBe(initialCount - 1)
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -143,51 +131,40 @@ test("sidebar — supprimer un projet décrémente le compteur Projets en temps 
 const E2E_CONTACT_NAME = `E2E Sidebar Contact ${Date.now()}`
 const E2E_CONTACT_EMAIL = `e2e-sidebar-${Date.now()}@example-test.com`
 
-test("sidebar — créer un contact incrémente le compteur Annuaire en temps réel", async ({
-  page,
-}) => {
+test("sidebar — créer un contact incrémente le compteur Annuaire", async ({ page }) => {
+  // Baseline
   await page.goto("/contacts")
   await expect(page).not.toHaveURL(/login/)
-
-  // getStableNavCount attend networkidle pour que le useEffect sidebar ait fini de fetch
   const initialCount = await getStableNavCount(page, /annuaire/i)
   if (initialCount === null) {
     test.skip(true, "Badge 'Annuaire' non visible (viewport < xl ou layout différent)")
     return
   }
 
-  // Ouvrir le formulaire de création
+  // Créer le contact via dialog
   await page
     .getByRole("button", { name: /nouveau|ajouter|créer/i })
     .first()
     .click()
-
   const nameInput = page.getByPlaceholder(/marc dupuis/i).first()
   await expect(nameInput).toBeVisible({ timeout: 8_000 })
   await nameInput.fill(E2E_CONTACT_NAME)
-
   const emailInput = page.getByPlaceholder(/marc@exemple/i).first()
   await expect(emailInput).toBeVisible()
   await emailInput.fill(E2E_CONTACT_EMAIL)
-
   await page
     .getByRole("button", { name: /créer|ajouter|enregistrer|confirmer/i })
     .last()
     .click()
-
-  // Le contact doit apparaître dans la liste
   await expect(page.getByText(E2E_CONTACT_NAME)).toBeVisible({ timeout: 10_000 })
 
-  // Le Realtime INSERT doit incrémenter le badge sans rechargement
-  await expect(async () => {
-    const newCount = await getNavCount(page, /annuaire/i)
-    expect(newCount).toBe(initialCount + 1)
-  }).toPass({ timeout: 8_000 })
+  // Recharger la page pour déclencher le re-fetch du sidebar
+  await page.goto("/contacts")
+  const newCount = await getStableNavCount(page, /annuaire/i)
+  expect(newCount).toBe(initialCount + 1)
 })
 
-test("sidebar — supprimer un contact décrémente le compteur Annuaire en temps réel", async ({
-  page,
-}) => {
+test("sidebar — supprimer un contact décrémente le compteur Annuaire", async ({ page }) => {
   await page.goto("/contacts")
   await expect(page).not.toHaveURL(/login/)
 
@@ -204,25 +181,23 @@ test("sidebar — supprimer un contact décrémente le compteur Annuaire en temp
     return
   }
 
-  // Ouvrir le menu contextuel de la carte contact
+  // Supprimer le contact
   const contactCard = page
     .locator('[data-slot="card"]')
     .filter({ hasText: E2E_CONTACT_NAME })
     .first()
   await contactCard.getByRole("button").first().click()
-
   await page
     .getByRole("menuitem", { name: /supprimer/i })
     .first()
     .click()
-
   const confirmBtn = page.getByRole("button", { name: /confirmer|oui|supprimer/i }).last()
   const hasConfirm = await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)
   if (hasConfirm) await confirmBtn.click()
 
-  // Le Realtime DELETE doit décrémenter le badge sans rechargement
-  await expect(async () => {
-    const newCount = await getNavCount(page, /annuaire/i)
-    expect(newCount).toBe(initialCount - 1)
-  }).toPass({ timeout: 8_000 })
+  // Attendre que le contact disparaisse, puis recharger pour un count frais
+  await expect(page.getByText(E2E_CONTACT_NAME)).not.toBeVisible({ timeout: 8_000 })
+  await page.goto("/contacts")
+  const newCount = await getStableNavCount(page, /annuaire/i)
+  expect(newCount).toBe(initialCount - 1)
 })
