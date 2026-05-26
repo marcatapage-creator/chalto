@@ -69,7 +69,9 @@ export function SendPageClient({
   )
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [selectedContributors, setSelectedContributors] = useState<string[]>([])
-  const [requestType, setRequestType] = useState<"validation" | "transmission">("validation")
+  const [requestType, setRequestType] = useState<"validation" | "transmission">(
+    document.status === "approved" ? "transmission" : "validation"
+  )
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -102,6 +104,9 @@ export function SendPageClient({
     setStepDir(-1)
     setStep(1)
   }
+
+  const isApproved = document.status === "approved"
+  const isApprovedContributor = isApproved && audience === "contributor"
 
   const handleSend = async () => {
     setLoading(true)
@@ -151,7 +156,7 @@ export function SendPageClient({
           selectedContributors.map((contributorId) => ({
             document_id: document.id,
             contributor_id: contributorId,
-            request_type: requestType,
+            request_type: isApprovedContributor ? "transmission" : requestType,
             pro_message: message || null,
           })),
           { onConflict: "document_id,contributor_id" }
@@ -166,7 +171,7 @@ export function SendPageClient({
             documentName: document.name,
             projectId,
             message: message || undefined,
-            requestType,
+            requestType: isApprovedContributor ? "transmission" : requestType,
           }),
         })
 
@@ -190,7 +195,6 @@ export function SendPageClient({
     }
   }
 
-  const isApproved = document.status === "approved"
   const pageTitle = isApproved ? "Partager avec un prestataire" : "Envoyer ce document"
   const canSend = audience === "client" || selectedContributors.length > 0
 
@@ -356,54 +360,67 @@ export function SendPageClient({
                 <div className="space-y-5">
                   <div>
                     <p className="text-sm font-semibold mb-1">Type de demande</p>
-                    <p className="text-xs text-muted-foreground">
-                      {audience === "client"
-                        ? `Envoi à ${clientName ?? "votre client"}`
-                        : `Envoi à ${selectedContributors.length} prestataire${selectedContributors.length > 1 ? "s" : ""}`}
-                    </p>
+                    {!isApprovedContributor && (
+                      <p className="text-xs text-muted-foreground">
+                        {audience === "client"
+                          ? `Envoi à ${clientName ?? "votre client"}`
+                          : `Envoi à ${selectedContributors.length} prestataire${selectedContributors.length > 1 ? "s" : ""}`}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Mobile : Select */}
-                  <div className="sm:hidden">
-                    <Select
-                      value={requestType}
-                      onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {REQUEST_TYPE_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {isApprovedContributor ? (
+                    <div className="p-3 rounded-lg bg-muted border">
+                      <p className="text-xs text-muted-foreground">
+                        Ce document a été approuvé par le client — il sera transmis pour information
+                        uniquement.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Mobile : Select */}
+                      <div className="sm:hidden">
+                        <Select
+                          value={requestType}
+                          onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {REQUEST_TYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* Desktop : radio stylisé */}
-                  <RadioGroup
-                    value={requestType}
-                    onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
-                    className="hidden sm:grid grid-cols-2 gap-2"
-                  >
-                    {REQUEST_TYPE_OPTIONS.map(({ value, label }) => (
-                      <Label
-                        key={value}
-                        htmlFor={`rt-${value}`}
-                        className={cn(
-                          "flex items-center gap-2.5 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none",
-                          requestType === value
-                            ? "border-primary bg-primary/5 font-medium"
-                            : "border-border hover:border-primary/50 font-normal text-muted-foreground"
-                        )}
+                      {/* Desktop : radio stylisé */}
+                      <RadioGroup
+                        value={requestType}
+                        onValueChange={(v) => setRequestType(v as "validation" | "transmission")}
+                        className="hidden sm:grid grid-cols-2 gap-2"
                       >
-                        <RadioGroupItem id={`rt-${value}`} value={value} />
-                        {label}
-                      </Label>
-                    ))}
-                  </RadioGroup>
+                        {REQUEST_TYPE_OPTIONS.map(({ value, label }) => (
+                          <Label
+                            key={value}
+                            htmlFor={`rt-${value}`}
+                            className={cn(
+                              "flex items-center gap-2.5 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none",
+                              requestType === value
+                                ? "border-primary bg-primary/5 font-medium"
+                                : "border-border hover:border-primary/50 font-normal text-muted-foreground"
+                            )}
+                          >
+                            <RadioGroupItem id={`rt-${value}`} value={value} />
+                            {label}
+                          </Label>
+                        ))}
+                      </RadioGroup>
+                    </>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Message (facultatif)</Label>

@@ -50,3 +50,6 @@ playwright-report/
 
 # Supabase CLI temp files
 supabase/.temp/
+
+# Claude Code (skills, memory, settings locaux)
+.claude/

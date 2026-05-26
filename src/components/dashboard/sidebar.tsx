@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
+import { useRealtimeChannel } from "@/hooks/use-realtime-channel"
 
 import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -233,18 +234,9 @@ export function Sidebar({
     return () => channel.close()
   }, [refreshDeadlines])
 
-  useEffect(() => {
-    let cancelled = false
-    let ch: ReturnType<typeof supabase.channel> | undefined
-
-    void (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (cancelled) return
-      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
-      ch = supabase
-        .channel(`sidebar-counts:${userId}`)
+  const setupSidebarChannel = useCallback(
+    (ch: ReturnType<typeof supabase.channel>) =>
+      ch
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "projects", filter: `user_id=eq.${userId}` },
@@ -264,15 +256,11 @@ export function Sidebar({
           "postgres_changes",
           { event: "DELETE", schema: "public", table: "contacts", filter: `user_id=eq.${userId}` },
           () => setLocalCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts - 1) }))
-        )
-        .subscribe()
-    })()
+        ),
+    [userId, supabase]
+  )
 
-    return () => {
-      cancelled = true
-      if (ch) void supabase.removeChannel(ch)
-    }
-  }, [supabase, userId])
+  useRealtimeChannel(supabase, `sidebar-counts:${userId}`, setupSidebarChannel)
 
   return (
     <>
