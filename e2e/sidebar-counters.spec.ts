@@ -64,17 +64,24 @@ test("sidebar — créer un projet incrémente le compteur Projets", async ({ pa
     return
   }
 
-  // Créer le projet
+  // Créer le projet (formulaire 2 étapes)
   await page.goto("/projects/new")
   await expect(page).not.toHaveURL(/login/)
   const nameInput = page.getByRole("textbox", { name: /nom|titre|name/i }).first()
   await expect(nameInput).toBeVisible({ timeout: 10_000 })
   await nameInput.fill(E2E_PROJECT_NAME)
+  // Étape 1 → 2
   await page
-    .getByRole("button", { name: /créer|enregistrer|suivant|continuer/i })
+    .getByRole("button", { name: /suivant/i })
     .first()
     .click()
-  await expect(page).toHaveURL(/\/projects\/[a-zA-Z0-9-]+$/, { timeout: 15_000 })
+  // Étape 2 : soumettre le formulaire
+  await page
+    .getByRole("button", { name: /créer le projet/i })
+    .first()
+    .click()
+  // Exclure /projects/new de la regex pour éviter un faux positif
+  await expect(page).toHaveURL(/\/projects\/(?!new)[a-zA-Z0-9-]+$/, { timeout: 15_000 })
 
   // Revenir sur /projects pour déclencher le re-fetch du sidebar
   await page.goto("/projects")
