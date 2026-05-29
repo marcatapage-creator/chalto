@@ -74,17 +74,27 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
   const supabase = createClient()
   const isMobile = !useMediaQuery("(min-width: 1280px)")
 
-  const [highlightedId, setHighlightedId] = useState<string | null>(() => {
-    const h = searchParams.get("highlight")
-    return h?.startsWith("contact_") ? h.slice("contact_".length) : null
+  const rawHighlightParam = searchParams.get("highlight")
+  const rawHighlightedId = rawHighlightParam?.startsWith("contact_")
+    ? rawHighlightParam.slice("contact_".length)
+    : null
+
+  const [{ dismissed, trackedHighlight }, setHighlightState] = useState({
+    dismissed: false,
+    trackedHighlight: rawHighlightedId,
   })
 
+  if (trackedHighlight !== rawHighlightedId) {
+    setHighlightState({ dismissed: false, trackedHighlight: rawHighlightedId })
+  }
+
+  const highlightedId = dismissed ? null : rawHighlightedId
+
   useEffect(() => {
-    if (!highlightedId) return
-    const t = setTimeout(() => setHighlightedId(null), 2500)
+    if (!rawHighlightedId) return
+    const t = setTimeout(() => setHighlightState((s) => ({ ...s, dismissed: true })), 2500)
     return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [rawHighlightedId])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
