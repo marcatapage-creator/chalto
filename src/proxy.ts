@@ -98,8 +98,11 @@ export async function proxy(request: NextRequest) {
   ]
   const isPublic = publicRoutes.some((r) => (r === "/" ? pathname === "/" : pathname.startsWith(r)))
 
-  // Non connecté → login
+  // Non connecté → 401 JSON pour les API routes, redirect login pour les pages
   if (!user && !isPublic) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    }
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     return NextResponse.redirect(url)

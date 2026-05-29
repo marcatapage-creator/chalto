@@ -24,7 +24,7 @@ test.beforeEach(({}, testInfo) => {
 
 // ─── 3.7 : Guards ─────────────────────────────────────────────────────────────
 
-// Fetch natif Node.js (sans cookies Playwright) pour tester le guard 401
+// Le middleware proxy.ts retourne 401 JSON pour les API routes non authentifiées
 test.describe("guard 401", () => {
   test("3.7 — sans authentification retourne 401", async ({ baseURL }) => {
     const url = `${baseURL ?? "http://localhost:3000"}/api/remind-validation`
