@@ -16,7 +16,10 @@ import {
   Users,
   LifeBuoy,
   CalendarDays,
+  Zap,
 } from "lucide-react"
+import { PLAN_LIMITS, PLAN_LABEL, type Plan } from "@/types/index"
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal"
 import { cn } from "@/lib/utils"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -29,9 +32,126 @@ type Profile = {
   id: string
   full_name?: string | null
   email?: string | null
+  plan?: string | null
 }
 
 type Counts = { projects: number; contacts: number; deadlines: number }
+
+function PlanWidget({ userId }: { userId: string }) {
+  const supabase = useMemo(() => createClient(), [])
+  const [activeProjects, setActiveProjects] = useState<number | null>(null)
+  const [aiDocsThisMonth, setAiDocsThisMonth] = useState<number | null>(null)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+
+  useEffect(() => {
+    void (async () => {
+      const startOfMonth = new Date()
+      startOfMonth.setDate(1)
+      startOfMonth.setHours(0, 0, 0, 0)
+
+      const [{ count: projCount }, { data: userProjects }] = await Promise.all([
+        supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("status", "active"),
+        supabase.from("projects").select("id").eq("user_id", userId),
+      ])
+
+      setActiveProjects(projCount ?? 0)
+
+      if (!userProjects?.length) {
+        setAiDocsThisMonth(0)
+        return
+      }
+      const projectIds = userProjects.map((p) => p.id)
+      const { count: aiCount } = await supabase
+        .from("documents")
+        .select("id", { count: "exact", head: true })
+        .in("project_id", projectIds)
+        .eq("ai_generated", true)
+        .gte("created_at", startOfMonth.toISOString())
+      setAiDocsThisMonth(aiCount ?? 0)
+    })()
+  }, [userId, supabase])
+
+  const limits = PLAN_LIMITS["free" as Plan]
+  const projectPct =
+    activeProjects !== null ? Math.min((activeProjects / limits.maxActiveProjects) * 100, 100) : 0
+  const aiPct =
+    aiDocsThisMonth !== null ? Math.min((aiDocsThisMonth / limits.maxAiDocsPerMonth) * 100, 100) : 0
+  const atLimit = projectPct >= 100 || aiPct >= 100
+
+  return (
+    <>
+      <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
+      <div
+        className={cn(
+          "rounded-lg border p-3 space-y-2.5 text-xs",
+          atLimit
+            ? "border-amber-400/60 bg-amber-50/60 dark:bg-amber-950/30"
+            : "border-border bg-muted/40"
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">
+            {PLAN_LABEL["free"]}
+          </span>
+          <button
+            onClick={() => setUpgradeOpen(true)}
+            className={cn(
+              "flex items-center gap-1 font-medium transition-colors",
+              atLimit
+                ? "text-amber-600 dark:text-amber-400 hover:text-amber-700"
+                : "text-primary hover:text-primary/80"
+            )}
+          >
+            <Zap className="h-3 w-3" />
+            Passer à Solo
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-muted-foreground">
+            <span>Projets actifs</span>
+            <span
+              className={cn(projectPct >= 100 && "text-amber-600 dark:text-amber-400 font-medium")}
+            >
+              {activeProjects ?? "…"} / {limits.maxActiveProjects}
+            </span>
+          </div>
+          <div className="h-1 rounded-full bg-border overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                projectPct >= 100 ? "bg-amber-500" : "bg-primary"
+              )}
+              style={{ width: `${projectPct}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-muted-foreground">
+            <span>IA ce mois</span>
+            <span className={cn(aiPct >= 100 && "text-amber-600 dark:text-amber-400 font-medium")}>
+              {aiDocsThisMonth ?? "…"} / {limits.maxAiDocsPerMonth}
+            </span>
+          </div>
+          <div className="h-1 rounded-full bg-border overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                aiPct >= 100 ? "bg-amber-500" : "bg-primary"
+              )}
+              style={{ width: `${aiPct}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
 
 type NotifProps = ReturnType<typeof useNotifications>
 
@@ -159,6 +279,9 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="p-4 space-y-3">
+        {/* Plan widget — visible only for free plan */}
+        {(!profile.plan || profile.plan === "free") && <PlanWidget userId={profile.id} />}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-7 w-7">

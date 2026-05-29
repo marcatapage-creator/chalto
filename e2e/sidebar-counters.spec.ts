@@ -112,20 +112,25 @@ test("sidebar — supprimer un projet décrémente le compteur Projets", async (
     return
   }
 
-  // Supprimer le projet
+  // Ouvrir le menu contextuel du projet
   await projectCard.first().getByRole("button").first().click()
-  const deleteItem = page
-    .getByRole("menuitem", { name: /supprimer/i })
-    .or(page.getByRole("button", { name: /supprimer/i }))
-    .first()
-  await expect(deleteItem).toBeVisible({ timeout: 5_000 })
-  await deleteItem.click()
-  const confirmBtn = page.getByRole("button", { name: /confirmer|oui|supprimer/i }).last()
-  const hasConfirm = await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)
-  if (hasConfirm) await confirmBtn.click()
 
-  // Attendre que le projet disparaisse de la liste, puis recharger pour un count frais
-  await expect(page.getByText(E2E_PROJECT_NAME)).not.toBeVisible({ timeout: 8_000 })
+  // Cliquer sur "Supprimer" dans le menu
+  const deleteMenuItem = page.getByRole("menuitem", { name: /supprimer/i })
+  await expect(deleteMenuItem).toBeVisible({ timeout: 5_000 })
+  await deleteMenuItem.click()
+
+  // Attendre que la dialog de confirmation s'ouvre (300ms setTimeout + render)
+  const confirmDialog = page.getByRole("dialog")
+  await expect(confirmDialog).toBeVisible({ timeout: 3_000 })
+  const confirmDeleteBtn = confirmDialog.getByRole("button", { name: /supprimer/i })
+  await expect(confirmDeleteBtn).toBeVisible({ timeout: 2_000 })
+  await confirmDeleteBtn.click()
+
+  // Attendre que le projet disparaisse de la liste
+  await expect(page.locator("main").getByText(E2E_PROJECT_NAME)).not.toBeVisible({
+    timeout: 10_000,
+  })
   await page.goto("/projects")
   const newCount = await getStableNavCount(page, /projets/i)
   expect(newCount).toBe(initialCount - 1)

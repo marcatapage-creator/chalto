@@ -415,6 +415,53 @@ export default async function globalSetup(config: FullConfig) {
     console.warn("[e2e seed] validation_token_expires_at indisponible — migration non appliquée")
   }
 
+  // ── 2i-bis. Documents pour tests de relance client (document-reminders.spec.ts) ──
+  // Les colonnes sent_at / reminder_count sont ajoutées par migration 20260528000001.
+  // Si la migration n'est pas encore appliquée, le seed est ignoré (tests skippés).
+  let docRemindClient: { id: string } | null = null
+  let docRemindMaxed: { id: string } | null = null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: remind } = await (admin as any)
+      .from("documents")
+      .insert({
+        project_id: project.id,
+        name: "Document E2E – relance client",
+        type: "Plan",
+        status: "sent",
+        version: 1,
+        audience: "client",
+        request_type: "validation",
+        sent_at: new Date().toISOString(),
+        reminder_count: 0,
+      })
+      .select("id")
+      .single()
+    docRemindClient = remind
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: maxed } = await (admin as any)
+      .from("documents")
+      .insert({
+        project_id: project.id,
+        name: "Document E2E – relance client épuisée",
+        type: "Plan",
+        status: "sent",
+        version: 1,
+        audience: "client",
+        request_type: "validation",
+        sent_at: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),
+        reminder_count: 3,
+      })
+      .select("id")
+      .single()
+    docRemindMaxed = maxed
+  } catch {
+    console.warn(
+      "[e2e seed] sent_at/reminder_count indisponible — migration 20260528000001 non appliquée"
+    )
+  }
+
   // ── 2i. Situation de test (en_attente, pour tests architecte) ────────────
   const { data: seedSituation } = await admin
     .from("situations")
@@ -460,6 +507,9 @@ export default async function globalSetup(config: FullConfig) {
     E2E_VALIDATION_TOKEN_APPROVED: docApprovedGuard?.validation_token ?? "",
     E2E_VALIDATION_TOKEN_EXPIRED: docExpiredToken?.validation_token ?? "",
     E2E_DOC_SENT_CLIENT_ID: docValidation.id,
+    E2E_DOC_REMIND_CLIENT_ID: docRemindClient?.id ?? "",
+    E2E_DOC_REMIND_MAXED_ID: docRemindMaxed?.id ?? "",
+    E2E_DOC_TRANSMISSION_CLIENT_ID: docTransmissionClient?.id ?? "",
   }
 
   fs.writeFileSync(SEED_FILE, JSON.stringify(seed, null, 2))
@@ -484,8 +534,11 @@ export default async function globalSetup(config: FullConfig) {
   process.env.E2E_VALIDATION_TOKEN_APPROVED = docApprovedGuard?.validation_token ?? ""
   process.env.E2E_VALIDATION_TOKEN_EXPIRED = docExpiredToken?.validation_token ?? ""
   process.env.E2E_DOC_SENT_CLIENT_ID = docValidation.id
+  process.env.E2E_DOC_REMIND_CLIENT_ID = docRemindClient?.id ?? ""
+  process.env.E2E_DOC_REMIND_MAXED_ID = docRemindMaxed?.id ?? ""
+  process.env.E2E_DOC_TRANSMISSION_CLIENT_ID = docTransmissionClient?.id ?? ""
 
-  console.log(
+  console.warn(
     `[e2e seed] Projet ${project.id} | contributor ${contributor.id} | ${sentDocs.length} docs sent | 4 docs contrib | 3 drafts | 5 tâches`
   )
 }

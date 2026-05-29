@@ -5,9 +5,12 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Send, Users, ChevronDown } from "lucide-react"
+import { Send, Users, ChevronDown, Video } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { AnimatePresence, motion } from "framer-motion"
+import { MeetingRecorder } from "@/components/projects/meeting-recorder"
+import { MeetingReportCard } from "@/components/projects/meeting-report-card"
+import type { Meeting } from "@/types/index"
 
 interface Message {
   id: string
@@ -16,6 +19,8 @@ interface Message {
   content: string
   created_at: string
 }
+
+type FeedItem = { kind: "message"; data: Message } | { kind: "meeting"; data: Meeting }
 
 interface ProjectDiscussionProps {
   projectId: string
@@ -54,6 +59,11 @@ export function ProjectDiscussion({
 }: ProjectDiscussionProps) {
   const PAGE_SIZE = 50
   const [messages, setMessages] = useState<Message[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [internalContributors, setInternalContributors] = useState<
+    Array<{ id: string; name: string }>
+  >([])
+  const [recorderOpen, setRecorderOpen] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
@@ -152,6 +162,60 @@ export function ProjectDiscussion({
     }
   }, [projectId, supabase])
 
+  // Fetch contributors for the meeting recorder
+  useEffect(() => {
+    if (authorRole !== "pro") return
+    supabase
+      .from("contributors")
+      .select("id, name")
+      .eq("project_id", projectId)
+      .then(({ data }) => {
+        if (data) setInternalContributors(data as Array<{ id: string; name: string }>)
+      })
+  }, [projectId, supabase, authorRole])
+
+  // Fetch meeting reports
+  useEffect(() => {
+    supabase
+      .from("meeting_reports")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) setMeetings(data as unknown as Meeting[])
+      })
+
+    const channel = supabase
+      .channel(`meeting-reports:${projectId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "meeting_reports",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setMeetings((prev) => {
+              const incoming = payload.new as Meeting
+              return prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]
+            })
+          } else if (payload.eventType === "UPDATE") {
+            setMeetings((prev) =>
+              prev.map((m) => (m.id === payload.new.id ? (payload.new as Meeting) : m))
+            )
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      void channel.unsubscribe()
+      supabase.removeChannel(channel)
+    }
+  }, [projectId, supabase])
+
   const handleLoadMore = useCallback(async () => {
     setLoadingMore(true)
     const { data: older } = await supabase
@@ -218,6 +282,17 @@ export function ProjectDiscussion({
     setLoading(false)
   }
 
+  // Fil fusionné messages + CRs, trié chronologiquement
+  const feed = useMemo<FeedItem[]>(() => {
+    const items: FeedItem[] = [
+      ...messages.map((m) => ({ kind: "message" as const, data: m })),
+      ...meetings.map((m) => ({ kind: "meeting" as const, data: m })),
+    ]
+    return items.sort(
+      (a, b) => new Date(a.data.created_at).getTime() - new Date(b.data.created_at).getTime()
+    )
+  }, [messages, meetings])
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -239,173 +314,220 @@ export function ProjectDiscussion({
   }
 
   return (
-    <div ref={containerRef} className="space-y-2">
-      <div className="flex items-center group cursor-pointer" onClick={handleToggle}>
-        <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
-          <ChevronDown
-            className={cn(
-              "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-              !open && "-rotate-90"
-            )}
-          />
-          <span className="font-semibold">Discussion chantier</span>
-          <span
-            className={cn(
-              "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
-              localUnread > 0
-                ? "bg-destructive text-destructive-foreground font-semibold"
-                : "bg-muted text-muted-foreground"
-            )}
+    <>
+      {authorRole === "pro" && (
+        <MeetingRecorder
+          open={recorderOpen}
+          onClose={() => setRecorderOpen(false)}
+          projectId={projectId}
+          authorName={authorName}
+          contributors={internalContributors}
+          onMeetingCreated={(meeting) => {
+            setMeetings((prev) =>
+              prev.some((m) => m.id === meeting.id) ? prev : [...prev, meeting]
+            )
+          }}
+        />
+      )}
+
+      <div ref={containerRef} className="space-y-2">
+        <div className="flex items-center justify-between group">
+          <div
+            className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors cursor-pointer"
+            onClick={handleToggle}
           >
-            {messages.length}
-          </span>
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                !open && "-rotate-90"
+              )}
+            />
+            <span className="font-semibold">Discussion chantier</span>
+            <span
+              className={cn(
+                "inline-flex items-center justify-center text-xs h-5 min-w-5 rounded-full transition-colors",
+                localUnread > 0
+                  ? "bg-destructive text-destructive-foreground font-semibold"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {messages.length}
+            </span>
+          </div>
+          {authorRole === "pro" && !readOnly && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setRecorderOpen(true)}
+            >
+              <Video className="h-3.5 w-3.5" />
+              Nouvelle réunion
+            </Button>
+          )}
         </div>
-        {messages.length > 0 && !open && (
-          <span className="hidden sm:inline text-xs text-muted-foreground italic truncate max-w-37.5 ml-1.5">
-            — {messages[messages.length - 1].content}
-          </span>
-        )}
-      </div>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="discussion"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <div className="p-1">
-              <div
-                className={cn(
-                  "border rounded-xl overflow-hidden bg-white dark:bg-card max-w-2xl transition-all duration-500",
-                  highlighted && "border-ring ring-3 ring-ring/50"
-                )}
-              >
-                <div className="p-4 space-y-4">
-                  <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
-                    {hasMore && (
-                      <div className="flex justify-center pb-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleLoadMore}
-                          loading={loadingMore}
-                          className="text-xs text-muted-foreground"
-                        >
-                          Charger les messages précédents
-                        </Button>
-                      </div>
-                    )}
-                    {messages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Users className="h-6 w-6 text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">
-                          Aucun message pour l&apos;instant
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Échangez avec votre équipe ici
-                        </p>
-                      </div>
-                    ) : (
-                      messages.map((msg, index) => {
-                        const isPro = msg.author_role === "pro"
-                        const isFirst =
-                          index === 0 ||
-                          messages[index - 1].author_name !== msg.author_name ||
-                          messages[index - 1].author_role !== msg.author_role
-
-                        return (
-                          <div
-                            key={msg.id}
-                            className={cn("flex gap-3", isPro ? "flex-row" : "flex-row-reverse")}
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              key="discussion"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-1">
+                <div
+                  className={cn(
+                    "border rounded-xl overflow-hidden bg-white dark:bg-card max-w-2xl transition-all duration-500",
+                    highlighted && "border-ring ring-3 ring-ring/50"
+                  )}
+                >
+                  <div className="p-4 space-y-4">
+                    <div className="space-y-3 max-h-87.5 overflow-y-auto pr-1">
+                      {hasMore && (
+                        <div className="flex justify-center pb-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleLoadMore}
+                            loading={loadingMore}
+                            className="text-xs text-muted-foreground"
                           >
-                            {isFirst ? (
-                              <Avatar className="h-7 w-7 shrink-0 mt-0.5">
-                                <AvatarFallback
-                                  className={cn(
-                                    "text-xs font-medium",
-                                    isPro
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-muted text-muted-foreground"
-                                  )}
-                                >
-                                  {initials(msg.author_name)}
-                                </AvatarFallback>
-                              </Avatar>
-                            ) : (
-                              <div className="w-7 shrink-0" />
-                            )}
+                            Charger les messages précédents
+                          </Button>
+                        </div>
+                      )}
+                      {feed.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <Users className="h-6 w-6 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Aucun message pour l&apos;instant
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Échangez avec votre équipe ici
+                          </p>
+                        </div>
+                      ) : (
+                        feed.map((item, index) => {
+                          if (item.kind === "meeting") {
+                            return (
+                              <MeetingReportCard
+                                key={`meeting-${item.data.id}`}
+                                meeting={item.data}
+                                onUpdated={(updated) =>
+                                  setMeetings((prev) =>
+                                    prev.map((m) => (m.id === updated.id ? updated : m))
+                                  )
+                                }
+                              />
+                            )
+                          }
 
+                          const msg = item.data
+                          const isPro = msg.author_role === "pro"
+
+                          // Calcul isFirst en ignorant les réunions
+                          const prevMsg = feed
+                            .slice(0, index)
+                            .reverse()
+                            .find((f) => f.kind === "message")
+                          const isFirst =
+                            !prevMsg ||
+                            (prevMsg.data as Message).author_name !== msg.author_name ||
+                            (prevMsg.data as Message).author_role !== msg.author_role
+
+                          return (
                             <div
-                              className={cn(
-                                "flex flex-col gap-1 max-w-[75%]",
-                                isPro ? "items-start" : "items-end"
-                              )}
+                              key={msg.id}
+                              className={cn("flex gap-3", isPro ? "flex-row" : "flex-row-reverse")}
                             >
-                              {isFirst && (
-                                <div className="flex items-center gap-2 px-1">
-                                  <span className="text-xs font-medium">{msg.author_name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(msg.created_at)}
-                                  </span>
-                                </div>
+                              {isFirst ? (
+                                <Avatar className="h-7 w-7 shrink-0 mt-0.5">
+                                  <AvatarFallback
+                                    className={cn(
+                                      "text-xs font-medium",
+                                      isPro
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-muted text-muted-foreground"
+                                    )}
+                                  >
+                                    {initials(msg.author_name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              ) : (
+                                <div className="w-7 shrink-0" />
                               )}
+
                               <div
                                 className={cn(
-                                  "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
-                                  isPro
-                                    ? "bg-muted text-foreground rounded-tl-sm"
-                                    : "bg-primary text-primary-foreground rounded-tr-sm"
+                                  "flex flex-col gap-1 max-w-[75%]",
+                                  isPro ? "items-start" : "items-end"
                                 )}
                               >
-                                {msg.content}
+                                {isFirst && (
+                                  <div className="flex items-center gap-2 px-1">
+                                    <span className="text-xs font-medium">{msg.author_name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDate(msg.created_at)}
+                                    </span>
+                                  </div>
+                                )}
+                                <div
+                                  className={cn(
+                                    "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                                    isPro
+                                      ? "bg-muted text-foreground rounded-tl-sm"
+                                      : "bg-primary text-primary-foreground rounded-tr-sm"
+                                  )}
+                                >
+                                  {msg.content}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )
-                      })
-                    )}
-                    <div ref={bottomRef} />
-                  </div>
-
-                  {!readOnly && (
-                    <div ref={inputRef} className="border-t pt-3 space-y-2">
-                      <Textarea
-                        placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        onFocus={(e) => {
-                          const el = e.currentTarget
-                          setTimeout(
-                            () => el.scrollIntoView({ behavior: "smooth", block: "nearest" }),
-                            300
                           )
-                        }}
-                        rows={2}
-                        className="resize-none text-sm"
-                      />
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={handleSend}
-                          disabled={loading || !content.trim()}
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          Envoyer
-                        </Button>
-                      </div>
+                        })
+                      )}
+                      <div ref={bottomRef} />
                     </div>
-                  )}
+
+                    {!readOnly && (
+                      <div ref={inputRef} className="border-t pt-3 space-y-2">
+                        <Textarea
+                          placeholder="Écrire à l'équipe... (Entrée pour envoyer)"
+                          value={content}
+                          onChange={(e) => setContent(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          onFocus={(e) => {
+                            const el = e.currentTarget
+                            setTimeout(
+                              () => el.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+                              300
+                            )
+                          }}
+                          rows={2}
+                          className="resize-none text-sm"
+                        />
+                        <div className="flex justify-end">
+                          <Button
+                            size="sm"
+                            onClick={handleSend}
+                            disabled={loading || !content.trim()}
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            Envoyer
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   )
 }

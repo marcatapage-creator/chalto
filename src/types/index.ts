@@ -83,6 +83,27 @@ export const CLOUD_PROVIDER_LABEL: Record<CloudProvider, string> = {
   gdrive: "Google Drive",
 }
 
+// Plans tarifaires
+export const PLAN = {
+  FREE: "free",
+  SOLO: "solo",
+  TEAM: "team",
+} as const
+
+export type Plan = (typeof PLAN)[keyof typeof PLAN]
+
+export const PLAN_LABEL: Record<Plan, string> = {
+  free: "Gratuit",
+  solo: "Solo",
+  team: "Équipe",
+}
+
+export const PLAN_LIMITS: Record<Plan, { maxActiveProjects: number; maxAiDocsPerMonth: number }> = {
+  free: { maxActiveProjects: 1, maxAiDocsPerMonth: 3 },
+  solo: { maxActiveProjects: Infinity, maxAiDocsPerMonth: Infinity },
+  team: { maxActiveProjects: Infinity, maxAiDocsPerMonth: Infinity },
+}
+
 // Statuts tâches
 export const TASK_STATUS = {
   TODO: "todo",
@@ -93,6 +114,49 @@ export const TASK_STATUS = {
 } as const
 
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS]
+
+// Statuts réunion de chantier
+export const MEETING_STATUS = {
+  PROCESSING: "processing",
+  READY: "ready",
+  SENT: "sent",
+} as const
+
+export type MeetingStatus = (typeof MEETING_STATUS)[keyof typeof MEETING_STATUS]
+
+export interface MeetingAction {
+  titre: string
+  responsable: string | null
+  echeance: string | null
+}
+
+export interface MeetingProchaine {
+  date: string | null
+  lieu: string | null
+  ordre_du_jour: string | null
+}
+
+export interface MeetingReport {
+  decisions: string[]
+  actions: MeetingAction[]
+  points_en_suspens: string[]
+  prochaine_reunion: MeetingProchaine | null
+}
+
+export interface Meeting {
+  id: string
+  project_id: string
+  user_id: string
+  meeting_date: string
+  participants: string[]
+  notes: string | null
+  audio_url: string | null
+  transcript: string | null
+  report: MeetingReport | null
+  status: MeetingStatus
+  meeting_number: number | null
+  created_at: string
+}
 
 // Fréquence notifications
 export const NOTIF_FREQUENCY = {

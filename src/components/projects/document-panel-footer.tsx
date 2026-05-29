@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { DocumentActions } from "@/components/projects/document-actions"
-import { Clock, Link2, RotateCcw, RefreshCw } from "lucide-react"
+import { Bell, Clock, Link2, RotateCcw, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import type { AudienceInfo } from "./document-panel-types"
@@ -19,6 +19,7 @@ interface DocumentPanelFooterProps {
   cloudFileId?: string | null
   onProposeV2: () => void
   onCopyLink: () => void
+  onRemind?: () => void
   onResynced?: (version: number, fileUrl: string) => void
   onStatusChange?: (status: string) => void
   onOpenSend?: () => void
@@ -38,11 +39,13 @@ export function DocumentPanelFooter({
   cloudFileId,
   onProposeV2,
   onCopyLink,
+  onRemind,
   onResynced,
   onStatusChange,
   onOpenSend,
 }: DocumentPanelFooterProps) {
   const [resyncing, setResyncing] = useState(false)
+  const [reminding, setReminding] = useState(false)
 
   const handleResync = async () => {
     setResyncing(true)
@@ -128,6 +131,19 @@ export function DocumentPanelFooter({
   }
 
   if (localStatus === "sent") {
+    const isValidationForClient =
+      audienceInfo.requestType === "validation" && audienceInfo.names.length === 0
+
+    const handleRemind = async () => {
+      if (!onRemind) return
+      setReminding(true)
+      try {
+        await onRemind()
+      } finally {
+        setReminding(false)
+      }
+    }
+
     return (
       <div className="shrink-0 border-t px-4 py-4 space-y-3 bg-popover">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -147,6 +163,18 @@ export function DocumentPanelFooter({
           <Link2 className="h-4 w-4 mr-2" />
           Copier le lien
         </Button>
+        {isValidationForClient && onRemind && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={handleRemind}
+            loading={reminding}
+          >
+            <Bell className="h-4 w-4 mr-2" />
+            {reminding ? "Envoi..." : "Relancer le client"}
+          </Button>
+        )}
       </div>
     )
   }

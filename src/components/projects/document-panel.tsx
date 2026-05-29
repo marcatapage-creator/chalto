@@ -385,6 +385,20 @@ export function DocumentPanel({
     toast.success(`Version ${newVersion} créée — uploadez le nouveau fichier`)
   }
 
+  const handleRemind = async () => {
+    const res = await fetch("/api/remind-validation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documentId: document.id }),
+    })
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string }
+      toast.error(data.error ?? "Erreur lors de la relance")
+      return
+    }
+    toast.success("Relance envoyée au client")
+  }
+
   const handleCopyLink = () => {
     const isContributor = document.audience === "contributor"
     const url =
@@ -521,6 +535,7 @@ export function DocumentPanel({
         cloudFileId={document.cloud_file_id}
         onProposeV2={handleProposeV2}
         onCopyLink={handleCopyLink}
+        onRemind={handleRemind}
         onStatusChange={(newStatus) => {
           setLocalStatus(newStatus)
           onStatusChangeRef.current?.(document.id, newStatus)

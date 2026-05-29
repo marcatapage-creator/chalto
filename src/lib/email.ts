@@ -540,6 +540,88 @@ export async function sendSituationReviewedEmail({
   })
 }
 
+export async function sendReminderEmail({
+  clientEmail,
+  clientName,
+  proName,
+  projectName,
+  documentName,
+  validationUrl,
+  reminderCount,
+  logoUrl,
+  companyName,
+}: {
+  clientEmail: string
+  clientName: string
+  proName: string
+  projectName: string
+  documentName: string
+  validationUrl: string
+  reminderCount: number
+  logoUrl?: string | null
+  companyName?: string | null
+}) {
+  const brandHeader = buildBrandHeader({
+    logo_url: logoUrl,
+    company_name: companyName,
+    branding_enabled: !!logoUrl,
+  })
+
+  const senderName = companyName ?? proName
+  const ordinal = reminderCount === 1 ? "1er" : `${reminderCount}ème`
+
+  return getResend().emails.send({
+    from: FROM,
+    to: clientEmail,
+    subject: `Rappel (${ordinal}) — ${senderName} attend votre validation`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111; background: #fff;">
+
+          <div style="margin-bottom: 32px;">
+            ${brandHeader}
+          </div>
+
+          <div style="display: inline-block; background: #f59e0b; color: #fff; font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;">
+            Rappel ${ordinal}
+          </div>
+
+          <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">
+            Document en attente de validation
+          </h1>
+
+          <p style="color: #555; margin: 0 0 32px; font-size: 15px;">
+            Bonjour ${escapeHtml(clientName)},
+          </p>
+
+          <p style="color: #333; line-height: 1.7; font-size: 15px; margin: 0 0 24px;">
+            <strong>${escapeHtml(proName)}</strong> attend toujours votre réponse
+            sur le document soumis dans le cadre du projet <strong>${escapeHtml(projectName)}</strong>.
+          </p>
+
+          <a href="${validationUrl}"
+             style="display: inline-block; background: #3b5fdb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin: 0 0 32px;">
+            Consulter et valider →
+          </a>
+
+          <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 20px; margin: 0 0 24px;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Document</p>
+            <p style="margin: 0; font-weight: 600; font-size: 16px;">${escapeHtml(documentName)}</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #666;">Projet : ${escapeHtml(projectName)}</p>
+          </div>
+
+          <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0; border-top: 1px solid #eee; padding-top: 24px;">
+            Ce lien est personnel et sécurisé. Il vous a été envoyé par votre professionnel via Chalto.<br/>
+            Si vous avez déjà répondu, ignorez ce message.
+          </p>
+
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendDeadlineAlertEmail({
   userEmail,
   userName,

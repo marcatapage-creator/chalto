@@ -15,6 +15,13 @@ const EnvSchema = z.object({
   DROPBOX_APP_SECRET: z.string().min(1).optional(),
   // Vercel Cron — requis en production pour protéger /api/cron/*
   CRON_SECRET: z.string().min(16).optional(),
+  // OpenAI Whisper — requis pour la feature "Réunion de chantier"
+  OPENAI_API_KEY: z.string().startsWith("sk-", "doit commencer par sk-").optional(),
+  // Stripe — requis pour le système de paiement
+  STRIPE_SECRET_KEY: z.string().startsWith("sk_", "doit commencer par sk_").optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_", "doit commencer par whsec_").optional(),
+  STRIPE_PRICE_SOLO: z.string().startsWith("price_").optional(),
+  STRIPE_PRICE_TEAM: z.string().startsWith("price_").optional(),
 })
 
 export async function register() {

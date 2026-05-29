@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
 import { getProfessionConfig } from "@/lib/profession-config"
 import { motion, AnimatePresence } from "framer-motion"
+import { PLAN_LIMITS, type Plan } from "@/types/index"
 
 type ProfessionOption = { id: string; slug: string; label: string }
 
@@ -102,6 +103,25 @@ export default function NewProjectPage() {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) return
+
+    // Vérification de la limite de projets actifs selon le plan
+    const [{ data: profileData }, { count: activeCount }] = await Promise.all([
+      supabase.from("profiles").select("plan").eq("id", user.id).single(),
+      supabase
+        .from("projects")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "active"),
+    ])
+    const plan = (profileData?.plan as Plan) ?? "free"
+    const limits = PLAN_LIMITS[plan]
+    if ((activeCount ?? 0) >= limits.maxActiveProjects) {
+      setError(
+        `Votre offre gratuite est limitée à ${limits.maxActiveProjects} projet actif. Passez à Solo pour des projets illimités.`
+      )
+      setLoading(false)
+      return
+    }
 
     const { data, error } = await supabase
       .from("projects")

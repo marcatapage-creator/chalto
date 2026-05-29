@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -32,6 +33,10 @@ function scrollToSection(id: string) {
 
 export function LandingNav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const isLanding = pathname === "/"
+
+  const anchorHref = (id: string) => (isLanding ? `#${id}` : `/#${id}`)
 
   return (
     <motion.header
@@ -46,10 +51,13 @@ export function LandingNav() {
           <span className="font-bold">Chalto</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#screenshots" className="hover:text-foreground transition-colors">
-            Comment ça marche
+          <a href={anchorHref("features")} className="hover:text-foreground transition-colors">
+            Fonctionnalités
           </a>
-          <a href="#faq" className="hover:text-foreground transition-colors">
+          <a href={anchorHref("pricing")} className="hover:text-foreground transition-colors">
+            Tarifs
+          </a>
+          <a href={anchorHref("faq")} className="hover:text-foreground transition-colors">
             FAQ
           </a>
           <Link href="/blog" className="hover:text-foreground transition-colors">
@@ -62,7 +70,7 @@ export function LandingNav() {
             <Link href="/login">Connexion</Link>
           </Button>
           <Button size="sm" asChild className="hidden md:inline-flex">
-            <a href="#waitlist">Rejoindre la bêta</a>
+            <Link href="/register">S&apos;inscrire</Link>
           </Button>
           <button
             className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
@@ -129,21 +137,32 @@ export function LandingNav() {
           >
             <nav className="flex flex-col px-6 py-4 gap-1">
               {[
-                { label: "Comment ça marche", id: "screenshots" },
+                { label: "Fonctionnalités", id: "features" },
+                { label: "Tarifs", id: "pricing" },
                 { label: "FAQ", id: "faq" },
-                { label: "Rejoindre la bêta", id: "waitlist" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    scrollToSection(item.id)
-                    setMenuOpen(false)
-                  }}
-                  className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
-                >
-                  {item.label}
-                </button>
-              ))}
+              ].map((item) =>
+                isLanding ? (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      scrollToSection(item.id)
+                      setMenuOpen(false)
+                    }}
+                    className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.id}
+                    href={`/#${item.id}`}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-left py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-border/50"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
               <Link
                 href="/blog"
                 onClick={() => setMenuOpen(false)}
@@ -158,9 +177,9 @@ export function LandingNav() {
                   </Link>
                 </Button>
                 <Button size="sm" className="flex-1" asChild>
-                  <a href="#waitlist" onClick={() => setMenuOpen(false)}>
-                    Rejoindre la bêta
-                  </a>
+                  <Link href="/register" onClick={() => setMenuOpen(false)}>
+                    S&apos;inscrire
+                  </Link>
                 </Button>
               </div>
             </nav>

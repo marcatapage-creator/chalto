@@ -1,41 +1,25 @@
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
-// Above-fold — static imports (LCP critical path)
 import { LandingNav } from "@/components/landing/landing-nav"
-import { LandingAnimatedWord } from "@/components/landing/landing-animated-word"
+import { LandingCounterHours } from "@/components/landing/landing-counter-hours"
+import { LandingPainSection } from "@/components/landing/landing-pain-section"
+import { LandingFeaturesSection } from "@/components/landing/landing-features-section"
+import { LandingRolesSection } from "@/components/landing/landing-roles-section"
+import { LandingPricingSection } from "@/components/landing/landing-pricing-section"
+import { LandingCtaSection } from "@/components/landing/landing-cta-section"
+
 // Below-fold — dynamic imports (code-split framer-motion hors du bundle critique)
-const LandingPainStickers = dynamic(() =>
-  import("@/components/landing/landing-pain-stickers").then((m) => ({
-    default: m.LandingPainStickers,
-  }))
-)
-const LandingSolutionSection = dynamic(() =>
-  import("@/components/landing/landing-solution-section").then((m) => ({
-    default: m.LandingSolutionSection,
-  }))
-)
 const LandingScreenshotsSection = dynamic(() =>
   import("@/components/landing/landing-screenshots-section").then((m) => ({
     default: m.LandingScreenshotsSection,
   }))
 )
-const LandingArchitectSection = dynamic(() =>
-  import("@/components/landing/landing-architect-section").then((m) => ({
-    default: m.LandingArchitectSection,
-  }))
-)
 const LandingFaqSection = dynamic(() =>
   import("@/components/landing/landing-faq-section").then((m) => ({ default: m.LandingFaqSection }))
-)
-const LandingBetaSection = dynamic(() =>
-  import("@/components/landing/landing-beta-section").then((m) => ({
-    default: m.LandingBetaSection,
-  }))
 )
 const LandingLegalDialogs = dynamic(() =>
   import("@/components/landing/landing-legal-dialogs").then((m) => ({
@@ -43,74 +27,75 @@ const LandingLegalDialogs = dynamic(() =>
   }))
 )
 
-export default async function LandingPage() {
-  const admin = createAdminClient()
-  const { count: waitlistCount } = await admin
-    .from("waitlist")
-    .select("*", { count: "exact", head: true })
-
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "Chalto est-il gratuit ?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Oui, Chalto propose un plan Starter gratuit avec 2 projets et 5 documents. Les plans Pro (29€/mois) et Agence (79€/mois) offrent des fonctionnalités illimitées.",
-        },
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Quelle est la différence entre Starter et Solo ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Le plan Starter est gratuit avec 1 projet et 3 documents IA/mois. Le plan Solo à 29€/mois offre projets illimités, IA illimitée, validations automatiques et alertes. 14 jours offerts sans carte bancaire.",
       },
-      {
-        "@type": "Question",
-        name: "Chalto fonctionne-t-il sur mobile ?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Oui, Chalto est une PWA installable sur iPhone et Android. L'interface est optimisée pour une utilisation sur chantier depuis votre téléphone.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Mon client a-t-il besoin d'un compte pour valider un document ?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Non. Votre client reçoit un lien sécurisé par email et peut approuver ou commenter vos documents sans créer de compte.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Quels métiers peuvent utiliser Chalto ?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Chalto s'adapte à tous les corps de métier du bâtiment : architectes, plombiers, électriciens, menuisiers, entrepreneurs généraux et plus encore.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Mes données sont-elles sécurisées ?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Oui. Chalto utilise Supabase avec Row Level Security, HTTPS et des tokens sécurisés pour protéger toutes vos données et documents.",
-        },
-      },
-    ],
-  }
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Chalto",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web, iOS, Android",
-    description: "Plateforme de gestion de projets pour les professionnels du bâtiment",
-    url: "https://chalto.fr",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
     },
-  }
+    {
+      "@type": "Question",
+      name: "Chalto fonctionne-t-il sur mobile ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Oui, Chalto est une PWA installable sur iPhone et Android. L'interface est optimisée pour une utilisation sur chantier depuis votre téléphone.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Mon client a-t-il besoin d'un compte pour valider un document ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Non. Votre client reçoit un lien sécurisé par email et peut approuver ou commenter vos documents sans créer de compte.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Quels métiers peuvent utiliser Chalto ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Chalto s'adapte à tous les corps de métier du bâtiment : architectes, plombiers, électriciens, menuisiers, entrepreneurs généraux et plus encore.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Mes données sont-elles sécurisées ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Oui. Chalto utilise Supabase avec Row Level Security, HTTPS et des tokens sécurisés pour protéger toutes vos données et documents. Hébergé en Europe.",
+      },
+    },
+  ],
+}
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Chalto",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web, iOS, Android",
+  description:
+    "Plateforme de gestion de projets pour les professionnels du bâtiment — architectes, artisans, entrepreneurs.",
+  url: "https://chalto.fr",
+  offers: [
+    { "@type": "Offer", name: "Starter", price: "0", priceCurrency: "EUR" },
+    {
+      "@type": "Offer",
+      name: "Solo",
+      price: "29",
+      priceCurrency: "EUR",
+      billingDuration: "P1M",
+    },
+  ],
+}
+
+export default function LandingPage() {
   return (
     <>
       <script
@@ -126,96 +111,79 @@ export default async function LandingPage() {
         <LandingNav />
 
         <main>
-          {/* Hero — statique, pas de motion.h1, texte visible immédiatement */}
-          <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden">
-            {/* Fond décoratif desktop uniquement (blur-3xl coûteux sur mobile) */}
+          {/* ── HERO ── bg-background */}
+          <section className="relative pt-32 pb-20 px-6 md:px-4 overflow-hidden bg-background text-foreground">
             <div className="absolute inset-0 pointer-events-none hidden md:block">
               <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
               <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
             </div>
             <div className="max-w-4xl mx-auto text-center space-y-6 relative">
-              {/* Logo flottant — client island, pas LCP */}
               <div className="flex justify-center mb-10">
                 <AnimatedLogo width={75} height={75} className="md:hidden" />
                 <AnimatedLogo width={95} height={95} className="hidden md:block" />
               </div>
-              {/* H1 — SERVER RENDERED, texte visible au premier paint = LCP element */}
-              <h1 className="font-bold tracking-tight leading-tight">
-                <span className="block text-primary text-3xl md:text-4xl xl:text-5xl">
-                  Votre client n&apos;a
-                  <br />
-                  toujours pas validé
+              <h1 className="font-bold tracking-tight leading-[1.05]">
+                <span className="inline-flex items-center gap-3 text-primary text-5xl md:text-7xl xl:text-8xl uppercase tracking-tight">
+                  <span>
+                    <LandingCounterHours />H
+                  </span>
+                  <span>/</span>
+                  <span>SEMAINE</span>
                 </span>
-                <LandingAnimatedWord
-                  words={[
-                    "le plan masse",
-                    "l'estimation APD",
-                    "la notice",
-                    "le CCTP",
-                    "le PV de réception",
-                  ]}
-                  className="text-[22px] md:text-[32px] font-semibold text-foreground mt-6"
-                />
+                <span className="block text-2xl md:text-4xl text-muted-foreground font-medium mt-3">
+                  économisées grâce à l&apos;IA.
+                </span>
               </h1>
-              {/* Subtitle — SERVER RENDERED */}
               <p
                 className="text-lg md:text-xl text-muted-foreground mx-auto"
                 style={{ maxWidth: "560px" }}
               >
-                Les architectes jonglent en moyenne entre 6 outils qui ne se parlent pas. Chalto les
-                relie et trace chaque décision, de l&apos;esquisse à la réception.
+                Chalto centralise vos échanges clients, automatise vos validations et rédige à votre
+                place. Conçu pour les architectes, les indépendants et les petites agences du BTP.
               </p>
-              {/* CTA buttons — liens statiques, pas de motion */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <Button size="lg" asChild>
-                  <a href="#waitlist">
-                    Rejoindre la bêta gratuite <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
+                  <Link href="/register">
+                    Commencer gratuitement <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="/demo">Voir la démo</Link>
+                  <a href="#features">Voir les fonctionnalités</a>
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground flex items-center justify-center gap-3 flex-wrap">
-                <span>✓ Gratuit</span>
-                <span>✓ Sans engagement</span>
-                <span>✓ Accès immédiat</span>
+                <span>✓ 14 jours gratuits</span>
+                <span>✓ Sans carte bancaire</span>
+                <span>✓ Annulation en 1 clic</span>
               </p>
             </div>
           </section>
 
-          <LandingPainStickers />
-
-          <LandingSolutionSection />
-
+          {/* ── SCREENSHOTS ── bg-muted/30 */}
           <LandingScreenshotsSection />
 
-          <LandingArchitectSection />
+          {/* ── DOULEUR ── bg-primary */}
+          <LandingPainSection />
 
-          <LandingFaqSection />
+          {/* ── FEATURES ── bg-background */}
+          <LandingFeaturesSection />
 
-          {/* CTA Final — statique */}
-          <section className="py-20 px-6 md:px-4">
-            <div className="max-w-2xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl font-bold tracking-tight">
-                Prêt à simplifier votre activité ?
-              </h2>
-              <p className="text-muted-foreground">
-                Rejoignez les professionnels du bâtiment qui font confiance à Chalto
-              </p>
-              <Button size="lg" asChild className="mt-4">
-                <a href="#waitlist">
-                  Rejoindre la liste d&apos;attente
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-          </section>
+          {/* ── RÔLES ── bg-primary */}
+          <LandingRolesSection />
 
-          <LandingBetaSection initialCount={waitlistCount ?? 0} />
+          {/* ── PRICING ── bg-background */}
+          <LandingPricingSection />
+
+          {/* ── FAQ ── bg-muted/30 */}
+          <div className="bg-muted/30">
+            <LandingFaqSection />
+          </div>
+
+          {/* ── CTA FINAL ── bg-primary */}
+          <LandingCtaSection />
         </main>
 
-        {/* Footer — 3 colonnes */}
+        {/* ── FOOTER ── */}
         <footer className="border-t pt-12 pb-6 px-6 md:px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pb-10">
@@ -226,8 +194,9 @@ export default async function LandingPage() {
                   <span className="font-semibold text-foreground text-base">Chalto</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  L&apos;outil de gestion de projets pensé pour les architectes. Validations client,
-                  coordination prestataires, traçabilité des décisions — tout au même endroit.
+                  L&apos;outil de gestion de projets pensé pour les architectes et artisans du BTP.
+                  Validations client, coordination prestataires, traçabilité des décisions — tout au
+                  même endroit.
                 </p>
                 <div className="flex items-center gap-3 pt-1">
                   <a
@@ -270,13 +239,13 @@ export default async function LandingPage() {
                     </a>
                   </li>
                   <li>
-                    <a href="#testimonials" className="hover:text-foreground transition-colors">
-                      Témoignages
+                    <a href="#faq" className="hover:text-foreground transition-colors">
+                      FAQ
                     </a>
                   </li>
                   <li>
-                    <Link href="/demo" className="hover:text-foreground transition-colors">
-                      Démo
+                    <Link href="/blog" className="hover:text-foreground transition-colors">
+                      Blog
                     </Link>
                   </li>
                 </ul>
@@ -304,7 +273,6 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Barre copyright */}
             <div className="border-t pt-6 text-center text-xs text-muted-foreground">
               © 2026 Chalto — Tous droits réservés
             </div>

@@ -13,6 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     id: user.id,
     full_name: profile?.full_name,
     email: profile?.email ?? user.email,
+    plan: (profile?.plan ?? "free") as string,
   }
 
   return (

@@ -13,7 +13,7 @@ export const getCachedProfile = (userId: string) =>
       const { data } = await supabase
         .from("profiles")
         .select(
-          "full_name, email, logo_url, company_name, branding_enabled, professions!profession_id(slug)"
+          "full_name, email, logo_url, company_name, branding_enabled, plan, professions!profession_id(slug)"
         )
         .eq("id", userId)
         .single()

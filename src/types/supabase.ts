@@ -208,6 +208,7 @@ export type Database = {
       }
       documents: {
         Row: {
+          ai_generated: boolean
           audience: string | null
           content: string | null
           created_at: string | null
@@ -226,6 +227,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          ai_generated?: boolean
           audience?: string | null
           content?: string | null
           created_at?: string | null
@@ -244,6 +246,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          ai_generated?: boolean
           audience?: string | null
           content?: string | null
           created_at?: string | null
@@ -393,7 +396,9 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_step: number | null
           phone: string | null
+          plan: string
           profession_id: string | null
+          stripe_customer_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -414,7 +419,9 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
+          plan?: string
           profession_id?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -435,7 +442,9 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
+          plan?: string
           profession_id?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -451,6 +460,59 @@ export type Database = {
             columns: ["profession_id"]
             isOneToOne: false
             referencedRelation: "professions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_reports: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          meeting_date: string
+          participants: string[]
+          notes: string | null
+          audio_url: string | null
+          transcript: string | null
+          report: Record<string, unknown> | null
+          status: string
+          meeting_number: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          meeting_date?: string
+          participants?: string[]
+          notes?: string | null
+          audio_url?: string | null
+          transcript?: string | null
+          report?: Record<string, unknown> | null
+          status?: string
+          meeting_number?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          meeting_date?: string
+          participants?: string[]
+          notes?: string | null
+          audio_url?: string | null
+          transcript?: string | null
+          report?: Record<string, unknown> | null
+          status?: string
+          meeting_number?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

@@ -46,8 +46,8 @@ function PhoneFrame({ src, alt }: { src: string; alt: string }) {
       </div>
       {/* Bottom shadow */}
       <div
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 rounded-full blur-xl opacity-30 dark:opacity-20"
-        style={{ width: 200, height: 24, background: "#000" }}
+        className="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full blur-xl opacity-10 dark:opacity-10"
+        style={{ width: 160, height: 16, background: "#000" }}
       />
     </div>
   )

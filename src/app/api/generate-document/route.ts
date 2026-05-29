@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { generateDocumentSchema } from "@/lib/api-schemas"
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from "docx"
+import { getUserPlan, getMonthlyAiDocCount, canGenerateAiDoc } from "@/lib/plan-limits"
 
 type NiveauPrestation = "economique" | "standard" | "premium"
 
@@ -489,6 +490,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Projet introuvable ou accès refusé" }, { status: 403 })
   }
 
+  // Vérification du quota IA mensuel selon le plan
+  const [plan, monthlyAiDocs] = await Promise.all([
+    getUserPlan(supabase, user.id),
+    getMonthlyAiDocCount(supabase, user.id),
+  ])
+  if (!canGenerateAiDoc(plan, monthlyAiDocs)) {
+    return NextResponse.json(
+      { error: "quota_exceeded", message: "Quota de génération IA atteint pour ce mois" },
+      { status: 403 }
+    )
+  }
+
   const admin = createAdminClient()
 
   // 1. Créer l'entrée document en brouillon — via le client user pour que
@@ -505,6 +518,7 @@ export async function POST(req: Request) {
       audience: "client",
       version: 1,
       validation_token: crypto.randomUUID(),
+      ai_generated: true,
     })
     .select("id")
     .single()

@@ -81,13 +81,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const { error: updateError } = await supabase
-      .from("documents")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: updateError } = await (supabase.from("documents") as any)
       .update({
         status: DOCUMENT_STATUS.SENT,
         pro_message: message ?? null,
         request_type: requestType,
         audience: "client",
+        sent_at: new Date().toISOString(),
+        reminder_count: 0,
+        last_reminded_at: null,
       })
       .eq("id", documentId)
 

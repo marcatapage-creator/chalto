@@ -11,6 +11,10 @@ export const sendValidationSchema = z.object({
   requestType: z.enum(["validation", "transmission"]).optional(),
 })
 
+export const remindValidationSchema = z.object({
+  documentId: uuid,
+})
+
 export const sendInviteSchema = z.object({
   contactId: uuid,
   projectId: uuid,
@@ -180,6 +184,35 @@ export const updateAdminDossierSchema = z.object({
 // POST /api/dropbox/resync
 export const dropboxResyncSchema = z.object({
   documentId: uuid,
+})
+
+// ─── Réunions de chantier ─────────────────────────────────────────────────────
+
+// PATCH /api/meetings/[id] — mise à jour du CR après édition
+export const updateMeetingReportSchema = z.object({
+  report: z.object({
+    decisions: z.array(z.string()),
+    actions: z.array(
+      z.object({
+        titre: z.string(),
+        responsable: z.string().nullable(),
+        echeance: z.string().nullable(),
+      })
+    ),
+    points_en_suspens: z.array(z.string()),
+    prochaine_reunion: z
+      .object({
+        date: z.string().nullable(),
+        lieu: z.string().nullable(),
+        ordre_du_jour: z.string().nullable(),
+      })
+      .nullable(),
+  }),
+})
+
+// POST /api/meetings/[id]/tasks — création des tâches depuis le CR
+export const createMeetingTasksSchema = z.object({
+  projectId: uuid,
 })
 
 // POST /api/generate-document
