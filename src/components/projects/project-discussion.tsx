@@ -331,11 +331,11 @@ export function ProjectDiscussion({
       )}
 
       <div ref={containerRef} className="space-y-2">
-        <div className="flex items-center justify-between group">
-          <div
-            className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-muted transition-colors cursor-pointer"
-            onClick={handleToggle}
-          >
+        <div
+          className="flex items-center justify-between group cursor-pointer active:opacity-75"
+          onClick={handleToggle}
+        >
+          <div className="flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md group-hover:bg-muted transition-colors">
             <ChevronDown
               className={cn(
                 "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
@@ -355,15 +355,17 @@ export function ProjectDiscussion({
             </span>
           </div>
           {authorRole === "pro" && !readOnly && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setRecorderOpen(true)}
-            >
-              <Video className="h-3.5 w-3.5" />
-              Nouvelle réunion
-            </Button>
+            <div className="pl-3" onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setRecorderOpen(true)}
+              >
+                <Video className="h-3.5 w-3.5" />
+                Nouvelle réunion
+              </Button>
+            </div>
           )}
         </div>
 

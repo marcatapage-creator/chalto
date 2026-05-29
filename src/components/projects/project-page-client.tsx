@@ -389,7 +389,7 @@ export function ProjectPageClient({
         {/* En-tête fixe */}
         <div className="shrink-0 border-b bg-background">
           {/* Header */}
-          <div className="flex items-center gap-4 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0px))] md:pr-[calc(2rem+var(--sb-w,0px))] pt-6 pb-6">
+          <div className="flex items-center gap-4 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0))] md:pr-[calc(2rem+var(--sb-w,0))] pt-6 pb-6">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/projects">
                 <ArrowLeft className="h-4 w-4" />
@@ -499,7 +499,7 @@ export function ProjectPageClient({
                   <div className="hidden sm:block border-l" />
 
                   {/* Stepper phase — toujours dans le header (fixe = sticky sur mobile) */}
-                  <div className="flex-1 min-w-0 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0px))] md:pr-[calc(2rem+var(--sb-w,0px))] py-4">
+                  <div className="flex-1 min-w-0 pl-6 md:pl-8 pr-[calc(1.5rem+var(--sb-w,0))] md:pr-[calc(2rem+var(--sb-w,0))] py-4">
                     <ProjectStepper
                       projectId={project.id}
                       currentPhase={phase}

@@ -31,9 +31,12 @@ export function BillingClient({
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
 
-  const isPaid = plan !== "free"
-  const planLabel = PLAN_LABEL[plan as Plan] ?? plan
-  const limits = PLAN_LIMITS[plan as Plan] ?? PLAN_LIMITS["free"]
+  // Si Stripe vient de confirmer un paiement, on affiche le nouveau plan
+  // immédiatement sans attendre que le webhook ait mis à jour la DB
+  const effectivePlan = successPlan ?? plan
+  const isPaid = effectivePlan !== "free"
+  const planLabel = PLAN_LABEL[effectivePlan as Plan] ?? effectivePlan
+  const limits = PLAN_LIMITS[effectivePlan as Plan] ?? PLAN_LIMITS["free"]
 
   const handlePortal = async () => {
     setPortalLoading(true)

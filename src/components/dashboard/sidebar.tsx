@@ -39,6 +39,7 @@ type Counts = { projects: number; contacts: number; deadlines: number }
 
 function PlanWidget({ userId }: { userId: string }) {
   const supabase = useMemo(() => createClient(), [])
+  const [plan, setPlan] = useState<string | null>(null)
   const [activeProjects, setActiveProjects] = useState<number | null>(null)
   const [aiDocsThisMonth, setAiDocsThisMonth] = useState<number | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
@@ -49,15 +50,18 @@ function PlanWidget({ userId }: { userId: string }) {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const [{ count: projCount }, { data: userProjects }] = await Promise.all([
-        supabase
-          .from("projects")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("status", "active"),
-        supabase.from("projects").select("id").eq("user_id", userId),
-      ])
+      const [{ data: profileData }, { count: projCount }, { data: userProjects }] =
+        await Promise.all([
+          supabase.from("profiles").select("plan").eq("id", userId).single(),
+          supabase
+            .from("projects")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("status", "active"),
+          supabase.from("projects").select("id").eq("user_id", userId),
+        ])
 
+      setPlan(profileData?.plan ?? "free")
       setActiveProjects(projCount ?? 0)
 
       if (!userProjects?.length) {
@@ -74,6 +78,26 @@ function PlanWidget({ userId }: { userId: string }) {
       setAiDocsThisMonth(aiCount ?? 0)
     })()
   }, [userId, supabase])
+
+  // Polling : si le plan est encore "free", on re-vérifie toutes les 2s
+  // pendant 30s max — couvre le délai entre le redirect Stripe et le webhook
+  useEffect(() => {
+    if (plan !== "free") return
+    let attempts = 0
+    const interval = setInterval(async () => {
+      attempts++
+      const { data } = await supabase.from("profiles").select("plan").eq("id", userId).single()
+      if (data?.plan && data.plan !== "free") {
+        setPlan(data.plan)
+        clearInterval(interval)
+      }
+      if (attempts >= 15) clearInterval(interval)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [plan, userId, supabase])
+
+  // Plan pas encore chargé ou user payant → ne rien afficher
+  if (plan === null || plan !== "free") return null
 
   const limits = PLAN_LIMITS["free" as Plan]
   const projectPct =
@@ -279,8 +303,8 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="p-4 space-y-3">
-        {/* Plan widget — visible only for free plan */}
-        {(!profile.plan || profile.plan === "free") && <PlanWidget userId={profile.id} />}
+        {/* Plan widget — se cache lui-même si l'user est payant */}
+        <PlanWidget userId={profile.id} />
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
