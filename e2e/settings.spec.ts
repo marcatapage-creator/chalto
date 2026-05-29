@@ -18,6 +18,9 @@ test.beforeEach(({}, testInfo) => {
 })
 
 test("settings — /settings se charge sans redirection login", async ({ page }) => {
+  // Aller sur /projects d'abord pour initialiser la session Supabase côté client
+  await page.goto("/projects")
+  await expect(page).not.toHaveURL(/login/)
   await page.goto("/settings")
   await expect(page).not.toHaveURL(/login/)
   await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 10_000 })

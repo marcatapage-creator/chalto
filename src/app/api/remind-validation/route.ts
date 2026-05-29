@@ -9,6 +9,12 @@ const MIN_HOURS_BETWEEN_REMINDERS = 24
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+
     if (!(await checkRateLimit(request)))
       return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
 
@@ -16,12 +22,6 @@ export async function POST(request: Request) {
     if (!parsed.success)
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
     const { documentId } = parsed.data
-
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
 
     const [{ data: document }, { data: profile }] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

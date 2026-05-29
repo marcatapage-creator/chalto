@@ -103,6 +103,14 @@ export default async function globalSetup(config: FullConfig) {
     await admin.from("profiles").update({ profession_id: profession.id }).eq("id", userId)
   }
 
+  // Passe le profil E2E en plan "solo" pour ne pas bloquer sur les quotas (ex: max 1 projet actif)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  try {
+    await (admin as any).from("profiles").update({ plan: "solo" }).eq("id", userId)
+  } catch {
+    console.warn("[e2e seed] plan column unavailable — migration 20260528000002 non appliquée")
+  }
+
   // Crée un projet de test
   const { data: project } = await admin
     .from("projects")
