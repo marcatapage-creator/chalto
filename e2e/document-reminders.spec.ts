@@ -24,10 +24,13 @@ test.beforeEach(({}, testInfo) => {
 
 // ─── 3.7 : Guards ─────────────────────────────────────────────────────────────
 
-// Contexte API frais (sans cookies) pour tester le guard 401
+// Contexte API explicitement sans auth pour tester le guard 401
 test.describe("guard 401", () => {
   test("3.7 — sans authentification retourne 401", async ({ playwright, baseURL }) => {
-    const ctx = await playwright.request.newContext({ baseURL })
+    const ctx = await playwright.request.newContext({
+      baseURL,
+      storageState: { cookies: [], origins: [] },
+    })
     const res = await ctx.post("/api/remind-validation", {
       data: { documentId: "00000000-0000-0000-0000-000000000000" },
       headers: { "Content-Type": "application/json" },
