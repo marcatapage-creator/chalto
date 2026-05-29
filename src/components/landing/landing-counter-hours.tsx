@@ -1,33 +1,50 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useRef } from "react"
 
-const START = 1
-const END = 6
-const TICK_MS = 130
+// Délais discrets entre chaque chiffre — décélération naturelle vers 6
+const TICK_DELAYS = [0, 130, 260, 410, 580, 800]
 
 export function LandingCounterHours() {
-  const [value, setValue] = useState(START)
+  const [current, setCurrent] = useState(1)
+  const [animKey, setAnimKey] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const started = useRef(false)
 
   useEffect(() => {
-    if (value >= END) return
-    const t = setTimeout(() => setValue((v) => v + 1), TICK_MS)
-    return () => clearTimeout(t)
-  }, [value])
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || started.current) return
+        started.current = true
+
+        TICK_DELAYS.forEach((delay, i) => {
+          setTimeout(() => {
+            setCurrent(i + 1)
+            setAnimKey((k) => k + 1)
+          }, delay)
+        })
+      },
+      { rootMargin: "-50px" }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.span
-        key={value}
-        initial={{ opacity: 0, y: "0.15em" }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: "-0.15em" }}
-        transition={{ duration: 0.1, ease: "easeOut" }}
-        style={{ display: "inline-block", fontVariantNumeric: "tabular-nums" }}
+    <span ref={ref} style={{ display: "inline-block", fontVariantNumeric: "tabular-nums" }}>
+      <span
+        key={animKey}
+        style={{
+          display: "inline-block",
+          animation: "digitIn 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
       >
-        {value}
-      </motion.span>
-    </AnimatePresence>
+        {current}
+      </span>
+    </span>
   )
 }

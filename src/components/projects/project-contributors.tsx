@@ -87,6 +87,7 @@ export function ProjectContributors({
       .from("contributors")
       .select("id, name, invite_token, contact_id, professions(label)")
       .eq("project_id", projectId)
+      .limit(100)
       .then(({ data }) => {
         if (data) {
           const list = data as unknown as Contributor[]

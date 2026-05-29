@@ -25,7 +25,9 @@ export async function POST(request: Request) {
     const [{ data: document }, { data: profile }] = await Promise.all([
       supabase
         .from("documents")
-        .select("*, projects!inner(name, client_email, client_name, user_id)")
+        .select(
+          "id, status, name, validation_token, project_id, projects!inner(name, client_email, client_name, user_id)"
+        )
         .eq("id", documentId)
         .single(),
       supabase
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Document introuvable" }, { status: 404 })
     }
 
-    const projectData = document.projects as {
+    const projectData = document.projects as unknown as {
       name: string
       client_email: string | null
       client_name: string | null
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ce document est déjà approuvé" }, { status: 409 })
     }
 
-    if (!document.projects?.client_email) {
+    if (!projectData?.client_email) {
       return NextResponse.json({ error: "Pas d'email client" }, { status: 400 })
     }
 
@@ -61,10 +63,10 @@ export async function POST(request: Request) {
     const validationUrl = `${baseUrl}/validate/${document.validation_token}`
 
     const { error: emailError } = await sendValidationEmail({
-      clientEmail: document.projects.client_email,
-      clientName: document.projects.client_name ?? "Client",
+      clientEmail: projectData.client_email,
+      clientName: projectData.client_name ?? "Client",
       proName: profile?.full_name ?? profile?.email ?? "Votre professionnel",
-      projectName: document.projects.name,
+      projectName: projectData.name,
       documentName: document.name,
       validationUrl,
       message: message ?? undefined,

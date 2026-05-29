@@ -218,9 +218,9 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter>
               <p className="text-sm text-muted-foreground text-center w-full">
-                Accès sur invitation uniquement.{" "}
-                <Link href="/#waitlist" className="text-primary hover:underline">
-                  Rejoindre la liste d&apos;attente
+                Pas encore de compte ?{" "}
+                <Link href="/register" className="text-primary hover:underline">
+                  S&apos;inscrire gratuitement
                 </Link>
               </p>
             </CardFooter>

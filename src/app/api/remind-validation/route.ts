@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     const [{ data: document }, { data: profile }] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase.from("documents") as any)
-        .select("*, projects!inner(name, client_email, client_name, user_id)")
+        .select(
+          "id, status, audience, request_type, reminder_count, last_reminded_at, name, validation_token, project_id, projects!inner(name, client_email, client_name, user_id)"
+        )
         .eq("id", documentId)
         .single(),
       supabase

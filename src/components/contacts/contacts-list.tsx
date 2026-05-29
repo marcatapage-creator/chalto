@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
@@ -169,12 +170,20 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
     router.refresh()
   }
 
-  const filtered = contacts.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.company_name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.professions?.label.toLowerCase().includes(search.toLowerCase())
+  const filtered = useMemo(
+    () =>
+      contacts.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.company_name?.toLowerCase().includes(search.toLowerCase()) ||
+          c.professions?.label.toLowerCase().includes(search.toLowerCase())
+      ),
+    [contacts, search]
   )
+
+  const { visibleCount, sentinelRef, hasMore } = useInfiniteScroll(filtered.length, search)
+
+  const visibleContacts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
 
   const initials = (name: string) =>
     name
@@ -294,92 +303,100 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
 
       {/* Liste */}
       {filtered.length > 0 ? (
-        <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((contact) => (
-            <StaggerItem key={contact.id}>
-              <Card
-                className={cn(
-                  "transition-all duration-150 hover:shadow-sm hover:bg-muted/50",
-                  highlightedId === contact.id && "ring-2 ring-primary ring-offset-1 bg-primary/5"
-                )}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-semibold text-primary">
-                          {initials(contact.name)}
-                        </span>
+        <>
+          <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visibleContacts.map((contact) => (
+              <StaggerItem key={contact.id}>
+                <Card
+                  className={cn(
+                    "transition-all duration-150 hover:shadow-sm hover:bg-muted/50",
+                    highlightedId === contact.id && "ring-2 ring-primary ring-offset-1 bg-primary/5"
+                  )}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-semibold text-primary">
+                            {initials(contact.name)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{contact.name}</p>
+                          {contact.company_name && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {contact.company_name}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{contact.name}</p>
-                        {contact.company_name && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
-                            {contact.company_name}
-                          </p>
-                        )}
-                      </div>
+                      <ActionMenu
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 max-lg:h-11 max-lg:w-11"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        }
+                        items={[
+                          {
+                            label: "Modifier",
+                            icon: <Pencil className="h-4 w-4" />,
+                            onClick: () =>
+                              isMobile
+                                ? router.push(`/contacts/${contact.id}/edit`)
+                                : setTimeout(() => openEdit(contact), 300),
+                          },
+                          {
+                            label: "Supprimer",
+                            icon: <Trash2 className="h-4 w-4" />,
+                            onClick: () => handleDelete(contact.id),
+                            destructive: true,
+                            separator: true,
+                          },
+                        ]}
+                      />
                     </div>
-                    <ActionMenu
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 max-lg:h-11 max-lg:w-11"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      }
-                      items={[
-                        {
-                          label: "Modifier",
-                          icon: <Pencil className="h-4 w-4" />,
-                          onClick: () =>
-                            isMobile
-                              ? router.push(`/contacts/${contact.id}/edit`)
-                              : setTimeout(() => openEdit(contact), 300),
-                        },
-                        {
-                          label: "Supprimer",
-                          icon: <Trash2 className="h-4 w-4" />,
-                          onClick: () => handleDelete(contact.id),
-                          destructive: true,
-                          separator: true,
-                        },
-                      ]}
-                    />
-                  </div>
 
-                  <div className="mt-3 space-y-1.5">
-                    {contact.professions && (
-                      <Badge variant="outline" className="text-xs">
-                        {contact.professions.label}
-                      </Badge>
-                    )}
-                    {contact.email && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <Mail className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{contact.email}</span>
-                      </p>
-                    )}
-                    {contact.phone && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <Phone className="h-3 w-3 shrink-0" />
-                        {contact.phone}
-                      </p>
-                    )}
-                    {contact.notes && (
-                      <p className="text-xs text-muted-foreground italic truncate">
-                        {contact.notes}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </StaggerItem>
-          ))}
-        </StaggerList>
+                    <div className="mt-3 space-y-1.5">
+                      {contact.professions && (
+                        <Badge variant="outline" className="text-xs">
+                          {contact.professions.label}
+                        </Badge>
+                      )}
+                      {contact.email && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{contact.email}</span>
+                        </p>
+                      )}
+                      {contact.phone && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Phone className="h-3 w-3 shrink-0" />
+                          {contact.phone}
+                        </p>
+                      )}
+                      {contact.notes && (
+                        <p className="text-xs text-muted-foreground italic truncate">
+                          {contact.notes}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+            ))}
+          </StaggerList>
+          {hasMore && <div ref={sentinelRef} className="h-1" />}
+          {!hasMore && filtered.length > 10 && (
+            <p className="text-center text-xs text-muted-foreground pt-2">
+              {filtered.length} contact{filtered.length > 1 ? "s" : ""}
+            </p>
+          )}
+        </>
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">

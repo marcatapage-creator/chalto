@@ -39,10 +39,10 @@ export function LandingPainSection() {
     <section className="py-24 px-6 md:px-4 bg-primary dark:bg-muted/40 text-primary-foreground dark:text-foreground">
       <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-14"
         >
           <p className="text-xs font-semibold tracking-widest uppercase text-primary-foreground/50 dark:text-muted-foreground mb-4">
@@ -63,10 +63,10 @@ export function LandingPainSection() {
           {pains.map(({ Icon, title, before, after }, i) => (
             <motion.div
               key={title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
+              transition={{ duration: 0.35, delay: i * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="bg-[hsl(224_79%_42%)] dark:bg-card rounded-2xl p-8 flex flex-col gap-5"
             >
               <div className="w-10 h-10 rounded-lg bg-white/10 dark:bg-primary/10 flex items-center justify-center shrink-0">

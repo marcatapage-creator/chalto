@@ -35,8 +35,9 @@ export async function checkRateLimit(request: Request): Promise<boolean> {
   try {
     const { success } = await ratelimit.limit(getIp(request))
     return success
-  } catch {
-    return true
+  } catch (err) {
+    console.error("[rate-limit] Upstash indisponible — requête bloquée par précaution", err)
+    return false
   }
 }
 
@@ -45,7 +46,8 @@ export async function checkStrictRateLimit(request: Request): Promise<boolean> {
   try {
     const { success } = await strictRatelimit.limit(getIp(request))
     return success
-  } catch {
-    return true
+  } catch (err) {
+    console.error("[rate-limit] Upstash indisponible — requête bloquée par précaution", err)
+    return false
   }
 }

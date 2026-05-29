@@ -38,7 +38,7 @@ export function ContributorCTA() {
           ))}
         </div>
         <Button className="w-full" asChild>
-          <Link href="/#waitlist">
+          <Link href="/register">
             Créer mon compte gratuitement
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

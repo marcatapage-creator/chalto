@@ -198,18 +198,17 @@ export function DocumentPanel({
   useEffect(() => {
     supabase
       .from("document_contributors")
-      .select("contributor_id")
+      .select("contributors!contributor_id(id, name)")
       .eq("document_id", document.id)
       .eq("request_type", "validation")
       .limit(20)
-      .then(async ({ data: dcs }) => {
-        if (!dcs?.length) return
-        const ids = dcs.map((d) => d.contributor_id)
-        const { data: contribs } = await supabase
-          .from("contributors")
-          .select("id, name")
-          .in("id", ids)
-        setValidatorContributors(contribs ?? [])
+      .then(({ data }) => {
+        if (!data) return
+        setValidatorContributors(
+          (data as unknown as Array<{ contributors: ContributorValidator }>)
+            .map((d) => d.contributors)
+            .filter(Boolean)
+        )
       })
   }, [document.id, supabase])
 

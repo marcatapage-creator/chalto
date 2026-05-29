@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Send, Users, ChevronDown, Video } from "lucide-react"
+import { Send, Users, ChevronDown, Mic } from "lucide-react"
 import { cn, initials } from "@/lib/utils"
 import { AnimatePresence, motion } from "framer-motion"
 import { MeetingRecorder } from "@/components/projects/meeting-recorder"
@@ -356,14 +356,9 @@ export function ProjectDiscussion({
           </div>
           {authorRole === "pro" && !readOnly && (
             <div className="pl-3" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setRecorderOpen(true)}
-              >
-                <Video className="h-3.5 w-3.5" />
-                Nouvelle réunion
+              <Button size="sm" className="gap-1.5" onClick={() => setRecorderOpen(true)}>
+                <Mic className="h-4 w-4" />
+                <span className="hidden sm:inline">Nouvelle réunion</span>
               </Button>
             </div>
           )}

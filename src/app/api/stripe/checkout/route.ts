@@ -2,11 +2,7 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { z } from "zod"
-
-const schema = z.object({
-  plan: z.enum(["solo", "team"]),
-})
+import { stripeCheckoutSchema } from "@/lib/api-schemas"
 
 const PRICE_IDS: Record<string, string | undefined> = {
   solo: process.env.STRIPE_PRICE_SOLO,
@@ -24,7 +20,7 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
 
-  const parsed = schema.safeParse(await req.json())
+  const parsed = stripeCheckoutSchema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: "Plan invalide" }, { status: 400 })
   const { plan } = parsed.data
 
@@ -61,11 +57,12 @@ export async function POST(req: Request) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/settings/billing?success=true&plan=${plan}`,
-    cancel_url: `${appUrl}/settings/billing?canceled=true`,
+    success_url: `${appUrl}/settings?tab=compte&success=true&plan=${plan}`,
+    cancel_url: `${appUrl}/settings?tab=compte&canceled=true`,
     metadata: { supabase_user_id: user.id, plan },
     subscription_data: {
       metadata: { supabase_user_id: user.id, plan },
+      ...(plan === "solo" && { trial_period_days: 14 }),
     },
     allow_promotion_codes: true,
     locale: "fr",

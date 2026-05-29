@@ -5,7 +5,6 @@ import {
   validateSchema,
   validateContributorSchema,
   taskStatusSchema,
-  waitlistSchema,
 } from "../api-schemas"
 
 const uuid = "123e4567-e89b-12d3-a456-426614174000"
@@ -122,21 +121,5 @@ describe("taskStatusSchema", () => {
       taskStatusSchema.safeParse({ taskId: uuid, status: "cancelled", contributorToken: "tok" })
         .success
     ).toBe(false)
-  })
-})
-
-describe("waitlistSchema", () => {
-  it("accepte un email valide", () => {
-    expect(waitlistSchema.safeParse({ email: "test@example.com" }).success).toBe(true)
-  })
-
-  it("rejette un email invalide", () => {
-    expect(waitlistSchema.safeParse({ email: "pas-un-email" }).success).toBe(false)
-  })
-
-  it("accepte avec name et profession optionnels", () => {
-    expect(
-      waitlistSchema.safeParse({ email: "a@b.com", name: "Marc", profession: "Architecte" }).success
-    ).toBe(true)
   })
 })

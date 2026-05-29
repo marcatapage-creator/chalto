@@ -25,8 +25,9 @@ const PAGE_SIZE = 200
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret) {
-    console.warn("[cron/deadline-alerts] CRON_SECRET non défini — endpoint non protégé")
-  } else if (request.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "CRON_SECRET non configuré" }, { status: 503 })
+  }
+  if (request.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

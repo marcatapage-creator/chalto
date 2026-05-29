@@ -6,17 +6,34 @@ import { ArrowRight } from "lucide-react"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { LandingNav } from "@/components/landing/landing-nav"
 import { LandingCounterHours } from "@/components/landing/landing-counter-hours"
-import { LandingPainSection } from "@/components/landing/landing-pain-section"
-import { LandingFeaturesSection } from "@/components/landing/landing-features-section"
-import { LandingRolesSection } from "@/components/landing/landing-roles-section"
-import { LandingPricingSection } from "@/components/landing/landing-pricing-section"
-import { LandingCtaSection } from "@/components/landing/landing-cta-section"
-
-// Below-fold — dynamic imports (code-split framer-motion hors du bundle critique)
+// Tout ce qui est below-fold est en dynamic import → framer-motion hors du bundle critique
 const LandingScreenshotsSection = dynamic(() =>
   import("@/components/landing/landing-screenshots-section").then((m) => ({
     default: m.LandingScreenshotsSection,
   }))
+)
+const LandingPainSection = dynamic(() =>
+  import("@/components/landing/landing-pain-section").then((m) => ({
+    default: m.LandingPainSection,
+  }))
+)
+const LandingFeaturesSection = dynamic(() =>
+  import("@/components/landing/landing-features-section").then((m) => ({
+    default: m.LandingFeaturesSection,
+  }))
+)
+const LandingRolesSection = dynamic(() =>
+  import("@/components/landing/landing-roles-section").then((m) => ({
+    default: m.LandingRolesSection,
+  }))
+)
+const LandingPricingSection = dynamic(() =>
+  import("@/components/landing/landing-pricing-section").then((m) => ({
+    default: m.LandingPricingSection,
+  }))
+)
+const LandingCtaSection = dynamic(() =>
+  import("@/components/landing/landing-cta-section").then((m) => ({ default: m.LandingCtaSection }))
 )
 const LandingFaqSection = dynamic(() =>
   import("@/components/landing/landing-faq-section").then((m) => ({ default: m.LandingFaqSection }))
@@ -123,7 +140,7 @@ export default function LandingPage() {
                 <AnimatedLogo width={95} height={95} className="hidden md:block" />
               </div>
               <h1 className="font-bold tracking-tight leading-[1.05]">
-                <span className="inline-flex items-center gap-3 text-primary text-5xl md:text-7xl xl:text-8xl uppercase tracking-tight">
+                <span className="inline-flex items-center gap-3 text-primary text-4xl md:text-6xl xl:text-7xl uppercase tracking-tight">
                   <span>
                     <LandingCounterHours />H
                   </span>

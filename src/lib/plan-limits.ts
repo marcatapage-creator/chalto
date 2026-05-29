@@ -22,20 +22,13 @@ export async function getMonthlyAiDocCount(
   supabase: SupabaseClient,
   userId: string
 ): Promise<number> {
-  const startOfMonth = new Date()
-  startOfMonth.setDate(1)
-  startOfMonth.setHours(0, 0, 0, 0)
-
-  const { data: userProjects } = await supabase.from("projects").select("id").eq("user_id", userId)
-
-  if (!userProjects?.length) return 0
-
-  const projectIds = userProjects.map((p) => p.id)
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
   const { count } = await supabase
     .from("documents")
-    .select("id", { count: "exact", head: true })
-    .in("project_id", projectIds)
+    .select("id, projects!inner(user_id)", { count: "exact", head: true })
+    .eq("projects.user_id", userId)
     .eq("ai_generated", true)
     .gte("created_at", startOfMonth.toISOString())
 

@@ -40,7 +40,14 @@ function PhoneFrame({ src, alt }: { src: string; alt: string }) {
         <div className="rounded-[41px] overflow-hidden bg-black">
           {/* Screenshot */}
           <div className="relative w-full" style={{ aspectRatio: "9/19.5" }}>
-            <Image src={src} alt={alt} fill className="object-cover object-top" sizes="260px" />
+            <Image
+              src={src}
+              alt={alt}
+              fill
+              className="object-cover object-top"
+              sizes="(max-width: 768px) 80vw, 260px"
+              loading="lazy"
+            />
           </div>
         </div>
       </div>

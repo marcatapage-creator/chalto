@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -54,21 +55,29 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
     return list.filter((p) => p.status === statusFilter)
   }, [projects, statusFilter, professionFilter])
 
+  const { visibleCount, sentinelRef, hasMore } = useInfiniteScroll(
+    filtered.length,
+    `${statusFilter}:${professionFilter}`
+  )
+
+  const visibleItems = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
+
   const groups = useMemo(() => {
     if (!isMultiProfession || professionFilter) return null
     const seen = new Map<string, { label: string; items: ProjectWithCounts[] }>()
-    for (const p of filtered) {
+    for (const p of visibleItems) {
       const key = p.professionSlug ?? ""
       if (!seen.has(key)) seen.set(key, { label: p.professionLabel ?? "Autres", items: [] })
       seen.get(key)!.items.push(p)
     }
     return [...seen.values()]
-  }, [filtered, isMultiProfession, professionFilter])
+  }, [visibleItems, isMultiProfession, professionFilter])
 
   const activeProfessionLabel =
     availableProfessions.find((p) => p.slug === professionFilter)?.label ?? "Tous"
 
   const empty = filtered.length === 0
+  const showCount = visibleCount < filtered.length
 
   return (
     <div className="relative flex-1 flex flex-col min-h-0">
@@ -190,12 +199,18 @@ export function ProjectsPageClient({ projects }: { projects: ProjectWithCounts[]
             </div>
           ) : (
             <StaggerList className="space-y-3">
-              {filtered.map((project) => (
+              {visibleItems.map((project) => (
                 <StaggerItem key={project.id} pressable>
                   <ProjectCard project={project} />
                 </StaggerItem>
               ))}
             </StaggerList>
+          )}
+          {hasMore && <div ref={sentinelRef} className="h-1" />}
+          {showCount && !hasMore && (
+            <p className="text-center text-xs text-muted-foreground pt-4">
+              {filtered.length} projet{filtered.length > 1 ? "s" : ""}
+            </p>
           )}
         </div>
         <div className="pointer-events-none sticky bottom-0 h-62.5 bg-linear-to-t from-neutral-50/80 dark:from-background/80 to-transparent" />

@@ -78,6 +78,16 @@
   box-sizing: border-box;
 }
 
+@keyframes digitIn {
+  from { transform: translateY(0.25em); opacity: 0; }
+  to   { transform: translateY(0);      opacity: 1; }
+}
+
+@keyframes navSlideDown {
+  from { transform: translateY(-60px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));

@@ -7,19 +7,25 @@ import { getProfessions } from "@/lib/cached-queries"
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; error?: string }>
+  searchParams: Promise<{
+    tab?: string
+    error?: string
+    success?: string
+    canceled?: string
+    plan?: string
+  }>
 }) {
   const user = await getAuthUser()
   if (!user) redirect("/login")
   const supabase = await createClient()
 
-  const { tab, error } = await searchParams
+  const { tab, error, success, canceled, plan: successPlan } = await searchParams
 
   const [{ data: profile }, professions, { data: userProfessionsRows }, { data: integration }] =
     await Promise.all([
       supabase
         .from("profiles")
-        .select("*, professions!profession_id(id, label, slug)")
+        .select("*, plan, professions!profession_id(id, label, slug)")
         .eq("id", user.id)
         .single(),
       getProfessions(),
@@ -59,6 +65,9 @@ export default async function SettingsPage({
           defaultTab={tab}
           dropboxIntegration={integration}
           integrationError={error}
+          plan={profile?.plan ?? "free"}
+          successPlan={success === "true" ? (successPlan ?? null) : null}
+          canceled={canceled === "true"}
           notifProfile={{
             id: profile?.id ?? "",
             notif_email_approved: profile?.notif_email_approved !== false,

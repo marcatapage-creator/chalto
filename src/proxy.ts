@@ -75,7 +75,6 @@ export async function proxy(request: NextRequest) {
   // Routes publiques — toujours accessibles
   const publicRoutes = [
     "/",
-    "/demo",
     "/login",
     "/register",
     "/onboarding",
@@ -84,7 +83,6 @@ export async function proxy(request: NextRequest) {
     "/invite",
     "/blog",
     "/api/auth/google",
-    "/api/waitlist",
     "/api/send-welcome",
     "/api/validate",
     "/api/validate-contributor",

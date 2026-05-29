@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Building2, Sofa } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { analytics } from "@/lib/analytics"
-import { createDemoProject } from "@/lib/create-demo-project"
 
 const professions = [
   {
@@ -58,8 +57,6 @@ export default function OnboardingPage() {
         .eq("id", user.id)
 
       if (updateError) throw updateError
-
-      await createDemoProject(supabase, user.id, selected).catch(() => null)
 
       analytics.onboardingCompleted(selected)
       window.location.href = "/dashboard"

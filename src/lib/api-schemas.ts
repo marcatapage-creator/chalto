@@ -90,12 +90,6 @@ export const projectMessageSchema = z.object({
   contributorToken: token,
 })
 
-export const waitlistSchema = z.object({
-  email: z.email(),
-  name: z.string().optional(),
-  profession: z.string().optional(),
-})
-
 // ─── Situations de travaux ────────────────────────────────────────────────────
 
 // POST /api/situations — soumission par le prestataire (via token)
@@ -231,4 +225,11 @@ export const generateDocumentSchema = z.object({
     contraintes: z.string(),
     niveau: z.enum(["economique", "standard", "premium"]),
   }),
+})
+
+// ─── Facturation Stripe ───────────────────────────────────────────────────────
+
+// POST /api/stripe/checkout
+export const stripeCheckoutSchema = z.object({
+  plan: z.enum(["solo", "team"]),
 })

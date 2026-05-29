@@ -46,10 +46,10 @@ export function LandingFeaturesSection() {
     <section id="features" className="py-24 px-6 md:px-4 bg-background">
       <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-14"
         >
           <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-4">
@@ -70,10 +70,10 @@ export function LandingFeaturesSection() {
           {features.map((f, i) => (
             <motion.div
               key={f.num}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.45, delay: i * 0.07 }}
+              transition={{ duration: 0.35, delay: i * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="group bg-card border border-border rounded-2xl p-7 flex flex-col gap-4 hover:border-primary/40 hover:shadow-sm transition-all duration-200"
             >
               <p className="text-sm italic text-primary font-medium">{f.num}</p>
