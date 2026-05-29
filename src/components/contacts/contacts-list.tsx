@@ -183,7 +183,10 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
 
   const { visibleCount, sentinelRef, hasMore } = useInfiniteScroll(filtered.length, search)
 
-  const visibleContacts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
+  const visibleContacts = useMemo(
+    () => (highlightedId ? filtered : filtered.slice(0, visibleCount)),
+    [filtered, visibleCount, highlightedId]
+  )
 
   const initials = (name: string) =>
     name
