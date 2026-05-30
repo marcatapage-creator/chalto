@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { createDemoProject } from "@/lib/create-demo-project"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -57,6 +58,8 @@ export default function OnboardingPage() {
         .eq("id", user.id)
 
       if (updateError) throw updateError
+
+      await createDemoProject(supabase, user.id, selected).catch(() => null)
 
       analytics.onboardingCompleted(selected)
       window.location.href = "/dashboard"
