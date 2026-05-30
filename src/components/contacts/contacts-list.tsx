@@ -127,6 +127,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
       toast.success("Contact ajouté ✅")
       setOpen(false)
       setForm({ name: "", email: "", phone: "", company_name: "", profession_id: "", notes: "" })
+      new BroadcastChannel("chalto:contacts").postMessage({ delta: 1 })
       router.push(`/contacts?highlight=contact_${data.id}`)
       router.refresh()
     }
@@ -177,6 +178,7 @@ export function ContactsList({ contacts, professions, userId }: ContactsListProp
   const handleDelete = async (id: string) => {
     await supabase.from("contacts").delete().eq("id", id)
     toast.success("Contact supprimé")
+    new BroadcastChannel("chalto:contacts").postMessage({ delta: -1 })
     router.refresh()
   }
 

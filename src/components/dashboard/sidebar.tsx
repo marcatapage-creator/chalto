@@ -382,6 +382,14 @@ export function Sidebar({
     return () => channel.close()
   }, [refreshDeadlines])
 
+  useEffect(() => {
+    const channel = new BroadcastChannel("chalto:contacts")
+    channel.onmessage = (e: MessageEvent<{ delta: number }>) => {
+      setLocalCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts + e.data.delta) }))
+    }
+    return () => channel.close()
+  }, [])
+
   const setupSidebarChannel = useCallback(
     (ch: ReturnType<typeof supabase.channel>) =>
       ch
