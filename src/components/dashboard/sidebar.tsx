@@ -79,22 +79,23 @@ function PlanWidget({ userId }: { userId: string }) {
     })()
   }, [userId, supabase])
 
-  // Polling : si le plan est encore "free", on re-vérifie toutes les 2s
-  // pendant 30s max — couvre le délai entre le redirect Stripe et le webhook
+  // Realtime : se met à jour dès que le webhook Stripe change profiles.plan
   useEffect(() => {
-    if (plan !== "free") return
-    let attempts = 0
-    const interval = setInterval(async () => {
-      attempts++
-      const { data } = await supabase.from("profiles").select("plan").eq("id", userId).single()
-      if (data?.plan && data.plan !== "free") {
-        setPlan(data.plan)
-        clearInterval(interval)
-      }
-      if (attempts >= 15) clearInterval(interval)
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [plan, userId, supabase])
+    const channel = supabase
+      .channel(`plan-widget:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
+        (payload) => {
+          const newPlan = (payload.new as { plan?: string }).plan
+          if (newPlan) setPlan(newPlan)
+        }
+      )
+      .subscribe()
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [userId, supabase])
 
   // Plan pas encore chargé ou user payant → ne rien afficher
   if (plan === null || plan !== "free") return null
