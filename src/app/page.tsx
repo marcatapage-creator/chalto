@@ -3,10 +3,13 @@ import Image from "next/image"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
-import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { LandingNav } from "@/components/landing/landing-nav"
-import { LandingCounterHours } from "@/components/landing/landing-counter-hours"
 // Tout ce qui est below-fold est en dynamic import → framer-motion hors du bundle critique
+const LandingStatsSection = dynamic(() =>
+  import("@/components/landing/landing-stats-section").then((m) => ({
+    default: m.LandingStatsSection,
+  }))
+)
 const LandingScreenshotsSection = dynamic(() =>
   import("@/components/landing/landing-screenshots-section").then((m) => ({
     default: m.LandingScreenshotsSection,
@@ -135,36 +138,38 @@ export default function LandingPage() {
               <div className="absolute top-40 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
             </div>
             <div className="max-w-4xl mx-auto text-center space-y-6 relative">
-              <div className="flex justify-center mb-10">
-                <AnimatedLogo width={75} height={75} className="md:hidden" />
-                <AnimatedLogo width={95} height={95} className="hidden md:block" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 text-sm text-primary font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                Votre temps est précieux
               </div>
-              <h1 className="font-bold tracking-tight leading-[1.05]">
-                <span className="inline-flex items-center gap-3 text-primary text-4xl md:text-6xl xl:text-7xl uppercase tracking-tight">
-                  <span>
-                    <LandingCounterHours />H
-                  </span>
-                  <span>/</span>
-                  <span>SEMAINE</span>
+
+              <h1 className="font-bold tracking-tight leading-[1.1] uppercase">
+                <span className="block text-4xl md:text-6xl xl:text-7xl text-foreground">
+                  Un outil pensé par des architectes,
                 </span>
-                <span className="block text-2xl md:text-4xl text-muted-foreground font-medium mt-3">
-                  économisées grâce à l&apos;IA.
+                <span className="block text-4xl md:text-6xl xl:text-7xl text-primary mt-1">
+                  pour des architectes.
                 </span>
               </h1>
               <p
                 className="text-lg md:text-xl text-muted-foreground mx-auto"
-                style={{ maxWidth: "560px" }}
+                style={{ maxWidth: "580px" }}
               >
-                Chalto centralise vos échanges clients, automatise vos validations et rédige à votre
-                place. Conçu pour les architectes, les indépendants et les petites agences du BTP.
+                Chalto centralise vos échanges clients, automatise vos validations et génère vos
+                documents en 30 secondes. Pour les indépendants et petites agences.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <Button size="lg" asChild>
+                <Button size="lg" className="md:h-12! md:px-4! md:text-lg" asChild>
                   <Link href="/register">
                     Commencer gratuitement <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="md:h-12! md:px-4! md:text-lg"
+                  asChild
+                >
                   <a href="#features">Voir les fonctionnalités</a>
                 </Button>
               </div>
@@ -175,6 +180,9 @@ export default function LandingPage() {
               </p>
             </div>
           </section>
+
+          {/* ── STATS ── bg-muted/30 */}
+          <LandingStatsSection />
 
           {/* ── SCREENSHOTS ── bg-muted/30 */}
           <LandingScreenshotsSection />

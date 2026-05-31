@@ -75,114 +75,78 @@ export function LandingPricingSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={cn(
-                "relative rounded-2xl border p-8 flex flex-col gap-6",
-                plan.featured
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-card border-border"
-              )}
-            >
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap">
-                    {plan.badge}
-                  </span>
-                </div>
-              )}
-
-              <div>
-                <p
-                  className={cn(
-                    "text-xs font-semibold tracking-widest uppercase mb-4",
-                    plan.featured ? "text-background/50" : "text-muted-foreground"
-                  )}
-                >
-                  {plan.name}
-                </p>
-                <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                  {plan.price !== "0" && (
-                    <span
-                      className={cn(
-                        "text-sm",
-                        plan.featured ? "text-background/60" : "text-muted-foreground"
-                      )}
-                    >
-                      €
-                    </span>
-                  )}
-                  {plan.price === "0" && (
-                    <span
-                      className={cn(
-                        "text-sm",
-                        plan.featured ? "text-background/60" : "text-muted-foreground"
-                      )}
-                    >
-                      €
-                    </span>
-                  )}
-                </div>
-                <p
-                  className={cn(
-                    "text-sm",
-                    plan.featured ? "text-background/50" : "text-muted-foreground"
-                  )}
-                >
-                  {plan.period}
-                </p>
-              </div>
-
-              <div className={cn("h-px", plan.featured ? "bg-background/10" : "bg-border")} />
-
-              <ul className="flex flex-col gap-3 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm leading-relaxed">
-                    <Check
-                      className={cn(
-                        "h-4 w-4 shrink-0 mt-0.5",
-                        plan.featured ? "text-primary" : "text-primary"
-                      )}
-                    />
-                    <span
-                      className={plan.featured ? "text-background/80" : "text-muted-foreground"}
-                    >
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex flex-col gap-2">
-                {plan.featured ? (
-                  <Button
-                    asChild
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <Link href={plan.href}>{plan.cta}</Link>
-                  </Button>
-                ) : plan.href.startsWith("mailto") ? (
-                  <Button asChild variant="outline" className="w-full">
-                    <a href={plan.href}>{plan.cta}</a>
-                  </Button>
-                ) : (
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={plan.href}>{plan.cta}</Link>
-                  </Button>
+          {plans.map((plan) => {
+            const cardContent = (
+              <div
+                className={cn(
+                  "relative rounded-2xl p-8 flex flex-col gap-6 h-full bg-card",
+                  !plan.featured && "border border-border"
                 )}
-                <p
-                  className={cn(
-                    "text-xs text-center",
-                    plan.featured ? "text-background/40" : "text-muted-foreground"
+              >
+                {plan.badge && (
+                  <div
+                    className={cn(
+                      "absolute -top-3 left-1/2 -translate-x-1/2",
+                      plan.featured && "z-10"
+                    )}
+                  >
+                    <span className="bg-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-muted-foreground">
+                    {plan.name}
+                  </p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground">€</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{plan.period}</p>
+                </div>
+
+                <div className="h-px bg-border" />
+
+                <ul className="flex flex-col gap-3 flex-1">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm leading-relaxed">
+                      <Check className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                      <span className="text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex flex-col gap-2">
+                  {plan.featured ? (
+                    <Button asChild className="w-full">
+                      <Link href={plan.href}>{plan.cta}</Link>
+                    </Button>
+                  ) : plan.href.startsWith("mailto") ? (
+                    <Button asChild variant="outline" className="w-full">
+                      <a href={plan.href}>{plan.cta}</a>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={plan.href}>{plan.cta}</Link>
+                    </Button>
                   )}
-                >
-                  {plan.note}
-                </p>
+                  <p className="text-xs text-center text-muted-foreground">{plan.note}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+
+            if (plan.featured) {
+              return (
+                <div key={plan.name} className="relative ai-btn-border rounded-2xl p-px">
+                  {cardContent}
+                </div>
+              )
+            }
+
+            return <div key={plan.name}>{cardContent}</div>
+          })}
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-12">

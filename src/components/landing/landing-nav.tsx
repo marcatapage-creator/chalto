@@ -35,7 +35,7 @@ export function LandingNav() {
   const anchorHref = (id: string) => (isLanding ? `#${id}` : `/#${id}`)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm animate-[navSlideDown_0.45s_ease-out]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background animate-[navSlideDown_0.45s_ease-out]">
       <div className="max-w-6xl mx-auto px-6 md:px-4 h-18.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AnimatedLogo width={24} height={24} />
