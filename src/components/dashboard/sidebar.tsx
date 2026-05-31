@@ -79,23 +79,20 @@ function PlanWidget({ userId }: { userId: string }) {
     })()
   }, [userId, supabase])
 
-  // Realtime : se met à jour dès que le webhook Stripe change profiles.plan
-  useEffect(() => {
-    const channel = supabase
-      .channel(`plan-widget:${userId}`)
-      .on(
+  const handlePlanUpdate = useCallback(
+    (channel: ReturnType<typeof supabase.channel>) =>
+      channel.on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
         (payload) => {
           const newPlan = (payload.new as { plan?: string }).plan
           if (newPlan) setPlan(newPlan)
         }
-      )
-      .subscribe()
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [userId, supabase])
+      ),
+    [userId]
+  )
+
+  useRealtimeChannel(supabase, `plan-widget:${userId}`, handlePlanUpdate)
 
   // Plan pas encore chargé ou user payant → ne rien afficher
   if (plan === null || plan !== "free") return null

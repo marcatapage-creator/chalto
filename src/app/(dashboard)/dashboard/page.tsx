@@ -98,7 +98,7 @@ export default async function DashboardPage() {
       .limit(100),
     supabase
       .from("profiles")
-      .select("demo_project_id, onboarding_completed")
+      .select("demo_project_id, onboarding_completed, professions(slug)")
       .eq("id", user.id)
       .single(),
   ])
@@ -146,6 +146,8 @@ export default async function DashboardPage() {
   const demoProjectId =
     profile?.demo_project_id ?? projects?.find((p) => p.name?.includes("Projet démo"))?.id ?? null
 
+  const professionSlug = (profile?.professions as unknown as { slug: string } | null)?.slug ?? null
+
   const initialCounts = {
     activeProjects: projects?.filter((p) => p.status === "active").length ?? 0,
     totalDocs: allDocs.length,
@@ -183,6 +185,7 @@ export default async function DashboardPage() {
           <OnboardingChecklist
             userId={user.id}
             demoProjectId={demoProjectId}
+            professionSlug={professionSlug}
             documentSentCount={documentSentCount ?? 0}
             onboardingCompleted={profile?.onboarding_completed ?? false}
           />

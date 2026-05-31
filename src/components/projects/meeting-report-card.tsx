@@ -26,7 +26,9 @@ interface MeetingReportCardProps {
 export function MeetingReportCard({ meeting, onUpdated }: MeetingReportCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [editingSection, setEditingSection] = useState<string | null>(null)
-  const [draftReport, setDraftReport] = useState<MeetingReport | null>(meeting.report)
+  const [draftReport, setDraftReport] = useState<MeetingReport>(
+    meeting.report ?? { decisions: [], actions: [], points_en_suspens: [], prochaine_reunion: null }
+  )
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [creatingTasks, setCreatingTasks] = useState(false)
@@ -150,7 +152,7 @@ export function MeetingReportCard({ meeting, onUpdated }: MeetingReportCardProps
             </div>
           )}
 
-          {report && (
+          {meeting.status !== "processing" && (
             <>
               {/* Présents */}
               <Section
@@ -389,7 +391,7 @@ export function MeetingReportCard({ meeting, onUpdated }: MeetingReportCardProps
           )}
 
           {/* Actions bar */}
-          {report && meeting.status !== "processing" && (
+          {meeting.status !== "processing" && (
             <div className="flex flex-wrap gap-2 pt-2 border-t">
               <Button
                 size="sm"

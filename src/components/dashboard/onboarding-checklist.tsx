@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { createDemoProject } from "@/lib/create-demo-project"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Circle, ChevronRight, X } from "lucide-react"
@@ -23,17 +24,21 @@ interface Step {
 interface OnboardingChecklistProps {
   userId: string
   demoProjectId?: string | null
+  professionSlug?: string | null
   documentSentCount: number
   onboardingCompleted?: boolean
 }
 
 export function OnboardingChecklist({
   userId,
-  demoProjectId,
+  demoProjectId: initialDemoProjectId,
+  professionSlug,
   documentSentCount,
   onboardingCompleted,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(false)
+  const [demoProjectId, setDemoProjectId] = useState(initialDemoProjectId)
+  const [creatingDemo, setCreatingDemo] = useState(false)
   const [projectVisited, setProjectVisited] = useState(
     () => typeof window !== "undefined" && !!localStorage.getItem(`demo_visited_${userId}`)
   )
@@ -50,14 +55,14 @@ export function OnboardingChecklist({
     {
       id: "demo",
       label: "Explorez votre projet démo",
-      description: "Découvrez comment Chalto fonctionne avec un projet exemple",
+      description: creatingDemo
+        ? "Création du projet démo…"
+        : "Découvrez comment Chalto fonctionne avec un projet exemple",
       completed: projectVisited,
-      action: demoProjectId
-        ? {
-            label: "Voir le projet démo",
-            href: `/projects/${demoProjectId}`,
-          }
-        : undefined,
+      action: {
+        label: demoProjectId ? "Voir le projet démo" : "Créer le projet démo",
+        href: demoProjectId ? `/projects/${demoProjectId}` : "#",
+      },
     },
     {
       id: "send",
@@ -75,8 +80,24 @@ export function OnboardingChecklist({
   const progress = Math.round((completedCount / steps.length) * 100)
   const allCompleted = completedCount === steps.length
 
-  const handleStepClick = (step: Step) => {
+  const handleStepClick = async (step: Step) => {
     if (!step.action) return
+
+    if (step.id === "demo" && !demoProjectId) {
+      setCreatingDemo(true)
+      try {
+        const project = await createDemoProject(supabase, userId, professionSlug ?? "architecte")
+        const newId = project?.id ?? null
+        setDemoProjectId(newId)
+        localStorage.setItem(`demo_visited_${userId}`, "true")
+        setProjectVisited(true)
+        if (newId) router.push(`/projects/${newId}`)
+      } finally {
+        setCreatingDemo(false)
+      }
+      return
+    }
+
     if (step.id === "demo") {
       localStorage.setItem(`demo_visited_${userId}`, "true")
       setProjectVisited(true)
@@ -130,9 +151,12 @@ export function OnboardingChecklist({
                 key={step.id}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg transition-colors",
-                  !step.completed && step.action ? "cursor-pointer hover:bg-background/60" : ""
+                  !step.completed && step.action && !creatingDemo
+                    ? "cursor-pointer hover:bg-background/60"
+                    : "",
+                  step.id === "demo" && creatingDemo ? "opacity-60" : ""
                 )}
-                onClick={() => !step.completed && handleStepClick(step)}
+                onClick={() => !step.completed && !creatingDemo && handleStepClick(step)}
               >
                 {step.completed ? (
                   <CheckCircle className="h-5 w-5 text-primary shrink-0" />
