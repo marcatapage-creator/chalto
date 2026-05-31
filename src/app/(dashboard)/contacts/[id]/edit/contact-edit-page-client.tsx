@@ -106,7 +106,7 @@ export function ContactEditPageClient({ contact, professions }: ContactEditPageC
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nom *</Label>
               <Input
@@ -146,7 +146,7 @@ export function ContactEditPageClient({ contact, professions }: ContactEditPageC
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
