@@ -29,7 +29,7 @@ export function LandingStatsSection() {
   return (
     <section className="bg-muted/30 border-y">
       <div className="max-w-5xl mx-auto px-6 md:px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden shadow-sm shadow-black/8">
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}

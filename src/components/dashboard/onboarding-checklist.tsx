@@ -108,6 +108,7 @@ export function OnboardingChecklist({
   const handleDismiss = async () => {
     setDismissed(true)
     await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", userId)
+    router.refresh()
   }
 
   if (onboardingCompleted || dismissed) return null

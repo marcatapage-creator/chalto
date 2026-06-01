@@ -34,7 +34,7 @@ const plans = [
     ],
     cta: "Essayer 14 jours gratuits",
     href: "/register",
-    note: "Sans CB · Annulation 1 clic",
+    note: "Sans engagement · Annulation 1 clic",
     featured: true,
     badge: "Le plus populaire",
   },
@@ -139,7 +139,7 @@ export function LandingPricingSection() {
 
             if (plan.featured) {
               return (
-                <div key={plan.name} className="relative ai-btn-border rounded-2xl p-px">
+                <div key={plan.name} className="relative ai-btn-border rounded-2xl p-0.5">
                   {cardContent}
                 </div>
               )
