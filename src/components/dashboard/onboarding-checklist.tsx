@@ -36,7 +36,9 @@ export function OnboardingChecklist({
   documentSentCount,
   onboardingCompleted,
 }: OnboardingChecklistProps) {
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(
+    () => typeof window !== "undefined" && !!localStorage.getItem(`onboarding_dismissed_${userId}`)
+  )
   const [demoProjectId, setDemoProjectId] = useState(initialDemoProjectId)
   const [creatingDemo, setCreatingDemo] = useState(false)
   const [projectVisited, setProjectVisited] = useState(
@@ -106,6 +108,7 @@ export function OnboardingChecklist({
   }
 
   const handleDismiss = async () => {
+    localStorage.setItem(`onboarding_dismissed_${userId}`, "true")
     setDismissed(true)
     await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", userId)
     router.refresh()
