@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { chromium, type FullConfig } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
 import dotenv from "dotenv"
@@ -104,7 +105,7 @@ export default async function globalSetup(config: FullConfig) {
   }
 
   // Passe le profil E2E en plan "solo" pour ne pas bloquer sur les quotas (ex: max 1 projet actif)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   try {
     await (admin as any).from("profiles").update({ plan: "solo" }).eq("id", userId)
   } catch {
@@ -404,7 +405,6 @@ export default async function globalSetup(config: FullConfig) {
   // Si la migration n'est pas encore appliquée, le doc est seedé sans expiration (test skipé).
   let docExpiredToken: { id: string; validation_token: string | null } | null = null
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await (admin as any)
       .from("documents")
       .insert({
@@ -429,7 +429,6 @@ export default async function globalSetup(config: FullConfig) {
   let docRemindClient: { id: string } | null = null
   let docRemindMaxed: { id: string } | null = null
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: remind } = await (admin as any)
       .from("documents")
       .insert({
@@ -447,7 +446,6 @@ export default async function globalSetup(config: FullConfig) {
       .single()
     docRemindClient = remind
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: maxed } = await (admin as any)
       .from("documents")
       .insert({
