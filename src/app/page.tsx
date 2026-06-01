@@ -20,6 +20,11 @@ const LandingPainSection = dynamic(() =>
     default: m.LandingPainSection,
   }))
 )
+const LandingAnimatedShowcase = dynamic(() =>
+  import("@/components/landing/landing-animated-showcase").then((m) => ({
+    default: m.LandingAnimatedShowcase,
+  }))
+)
 const LandingFeaturesSection = dynamic(() =>
   import("@/components/landing/landing-features-section").then((m) => ({
     default: m.LandingFeaturesSection,
@@ -189,6 +194,9 @@ export default function LandingPage() {
 
           {/* ── DOULEUR ── bg-primary */}
           <LandingPainSection />
+
+          {/* ── SHOWCASE ANIMÉ ── bg-muted/30 */}
+          <LandingAnimatedShowcase />
 
           {/* ── FEATURES ── bg-background */}
           <LandingFeaturesSection />
