@@ -41,6 +41,7 @@ function tableChain(result: unknown): Record<string, unknown> {
   const chain = (): Record<string, unknown> => ({
     select: () => chain(),
     eq: () => chain(),
+    gte: () => chain(),
     update: () => chain(),
     insert: () => chain(),
     delete: () => chain(),

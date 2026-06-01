@@ -42,26 +42,25 @@ describe("GET /api/cron/deadline-alerts", () => {
     expect(res.status).toBe(401)
   })
 
-  it("passe sans Authorization si CRON_SECRET absent", async () => {
+  it("retourne 503 si CRON_SECRET absent", async () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin([]) as unknown as ReturnType<typeof adminModule.createAdminClient>
     )
     const res = await GET(req())
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
-    expect(body.alertsSent).toBe(0)
+    expect(res.status).toBe(503)
   })
 
   it("retourne 500 si erreur DB", async () => {
+    process.env.CRON_SECRET = "test-secret"
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin(null, true) as unknown as ReturnType<typeof adminModule.createAdminClient>
     )
-    const res = await GET(req())
+    const res = await GET(req("test-secret"))
     expect(res.status).toBe(500)
   })
 
   it("envoie une alerte pour un dossier à J-7 non notifié", async () => {
+    process.env.CRON_SECRET = "test-secret"
     const deadline = new Date()
     deadline.setDate(deadline.getDate() + 6)
     const dossier = {
@@ -77,13 +76,14 @@ describe("GET /api/cron/deadline-alerts", () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin([dossier]) as unknown as ReturnType<typeof adminModule.createAdminClient>
     )
-    const res = await GET(req())
+    const res = await GET(req("test-secret"))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.alertsSent).toBeGreaterThan(0)
   })
 
   it("ne renvoie pas d'alerte pour un seuil déjà notifié", async () => {
+    process.env.CRON_SECRET = "test-secret"
     const deadline = new Date()
     deadline.setDate(deadline.getDate() + 6)
     const dossier = {
@@ -99,7 +99,7 @@ describe("GET /api/cron/deadline-alerts", () => {
     vi.mocked(adminModule.createAdminClient).mockReturnValue(
       makeAdmin([dossier]) as unknown as ReturnType<typeof adminModule.createAdminClient>
     )
-    const res = await GET(req())
+    const res = await GET(req("test-secret"))
     const body = await res.json()
     expect(body.alertsSent).toBe(0)
   })

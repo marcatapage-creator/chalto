@@ -111,6 +111,16 @@ export async function POST(request: Request) {
       resolvedEmail = authUser?.user?.email ?? null
     }
 
+    if (isTransmission) {
+      await admin
+        .from("document_contributors")
+        .update({ acknowledged_at: new Date().toISOString() })
+        .eq("id", docContributor.id)
+        .then(({ error }) => {
+          if (error) console.warn("[validate-contributor] acknowledged_at update failed:", error)
+        })
+    }
+
     if (docUpdateError) {
       console.error("[validate-contributor] documents update error:", docUpdateError)
       return NextResponse.json({ error: "Erreur mise à jour statut document" }, { status: 500 })

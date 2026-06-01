@@ -73,6 +73,7 @@ type DocRow = {
   document_id: string
   request_type?: "validation" | "transmission" | null
   pro_message?: string | null
+  acknowledged_at?: string | null
   documents: {
     id: string
     name: string
@@ -224,7 +225,11 @@ export function ContributorSpace({
       const alreadyRead: Record<string, boolean> = {}
       for (const dc of initialDocs) {
         const doc = dc.documents as { id?: string; status?: string } | null
-        if (dc.request_type === "transmission" && doc?.status === "commented" && doc.id) {
+        if (
+          dc.request_type === "transmission" &&
+          doc?.id &&
+          (dc.acknowledged_at != null || doc?.status === "commented")
+        ) {
           alreadyRead[doc.id] = true
         }
       }
