@@ -72,7 +72,6 @@ export function TaskNewPageClient({ project, contacts, userId }: TaskNewPageClie
     } else {
       toast.success("Tâche créée ✅")
       router.push(`/projects/${project.id}?highlight=task_${newTask.id}`)
-      router.refresh()
     }
     setLoading(false)
   }
