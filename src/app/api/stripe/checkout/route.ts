@@ -29,44 +29,57 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Price ID manquant pour le plan "${plan}"` }, { status: 503 })
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-  const admin = createAdminClient()
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+    const admin = createAdminClient()
 
-  // Récupère ou crée le Stripe Customer lié à ce user
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("stripe_customer_id, email, full_name")
-    .eq("id", user.id)
-    .single()
+    // Récupère ou crée le Stripe Customer lié à ce user
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("stripe_customer_id, email, full_name")
+      .eq("id", user.id)
+      .single()
 
-  let customerId = profile?.stripe_customer_id ?? null
+    if (profileError) {
+      return NextResponse.json(
+        { error: `Profil introuvable: ${profileError.message}` },
+        { status: 500 }
+      )
+    }
 
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: profile?.email ?? user.email,
-      name: profile?.full_name ?? undefined,
-      metadata: { supabase_user_id: user.id },
-    })
-    customerId = customer.id
-    await admin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id)
-  }
+    let customerId = profile?.stripe_customer_id ?? null
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: profile?.email ?? user.email,
+        name: profile?.full_name ?? undefined,
+        metadata: { supabase_user_id: user.id },
+      })
+      customerId = customer.id
+      await admin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id)
+    }
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/settings?tab=compte&success=true&plan=${plan}`,
-    cancel_url: `${appUrl}/settings?tab=compte&canceled=true`,
-    metadata: { supabase_user_id: user.id, plan },
-    subscription_data: {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${appUrl}/settings?tab=compte&success=true&plan=${plan}`,
+      cancel_url: `${appUrl}/settings?tab=compte&canceled=true`,
       metadata: { supabase_user_id: user.id, plan },
-      ...(plan === "solo" && { trial_period_days: 14 }),
-    },
-    allow_promotion_codes: true,
-    locale: "fr",
-  })
+      subscription_data: {
+        metadata: { supabase_user_id: user.id, plan },
+        ...(plan === "solo" && { trial_period_days: 14 }),
+      },
+      allow_promotion_codes: true,
+      locale: "fr",
+    })
 
-  return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[stripe/checkout]", message)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

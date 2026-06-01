@@ -5,6 +5,7 @@ import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Button } from "@/components/ui/button"
 import { Check, Zap, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 const PLANS = [
   {
@@ -57,14 +58,17 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: planKey }),
       })
-      const { url, error } = await res.json()
-      if (url) {
-        window.location.assign(url)
+      const data = await res.json()
+      if (data.url) {
+        window.location.assign(data.url)
       } else {
-        console.error("Checkout error:", error)
+        console.error("Checkout error:", data.error)
+        toast.error(`Erreur : ${data.error ?? "impossible d'ouvrir le paiement"}`)
         setLoadingPlan(null)
       }
-    } catch {
+    } catch (e) {
+      console.error("Checkout fetch error:", e)
+      toast.error("Erreur réseau, réessayez.")
       setLoadingPlan(null)
     }
   }
