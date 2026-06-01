@@ -106,6 +106,8 @@ test("11.3 — la section notifications est présente", async ({ page }) => {
 })
 
 test("11.3 — le toggle notifications email peut être modifié sans erreur", async ({ page }) => {
+  await page.goto("/projects")
+  await expect(page).not.toHaveURL(/login/)
   await page.goto("/settings")
   await expect(page).not.toHaveURL(/login/)
   await page.getByRole("tab", { name: /notif/i }).click()
