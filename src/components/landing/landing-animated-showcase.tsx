@@ -474,7 +474,7 @@ function FeatureRow({
 
 export function LandingAnimatedShowcase() {
   return (
-    <section className="py-24 px-6 md:px-4 bg-muted/30">
+    <section className="py-24 px-6 md:px-4 bg-muted/30 overflow-x-hidden">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
