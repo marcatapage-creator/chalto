@@ -12,7 +12,127 @@ export const metadata: Metadata = {
   description: "Conseils et guides pour les professionnels du bâtiment.",
 }
 
+const FRENCH_MONTHS: Record<string, string> = {
+  janvier: "Janvier",
+  février: "Février",
+  mars: "Mars",
+  avril: "Avril",
+  mai: "Mai",
+  juin: "Juin",
+  juillet: "Juillet",
+  août: "Août",
+  septembre: "Septembre",
+  octobre: "Octobre",
+  novembre: "Novembre",
+  décembre: "Décembre",
+}
+
+function getMonthYear(dateStr: string): string {
+  const parts = dateStr.split(" ")
+  const month = FRENCH_MONTHS[parts[1]?.toLowerCase() ?? ""] ?? parts[1]
+  return `${month} ${parts[2]}`
+}
+
 const articles = [
+  {
+    slug: "ia-metier-architecte-2027",
+    title: "Comment l'IA va changer le métier d'architecte d'ici 2027",
+    description:
+      "Génération de documents, détection d'incohérences, optimisation de plans... L'IA entre dans les agences d'architecture. Ce que ça change concrètement.",
+    category: "IA & Innovation",
+    date: "28 juillet 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "gerer-conflit-chantier",
+    title: "Client mécontent sur chantier : comment gérer le conflit sans perdre le contrat ?",
+    description:
+      "Un client insatisfait, ça arrive même aux meilleurs. Les méthodes concrètes pour désamorcer la tension, protéger votre marge et terminer le chantier sereinement.",
+    category: "Relation client",
+    date: "21 juillet 2026",
+    readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "phases-projet-renovation",
+    title: "Les 5 phases d'un projet de rénovation (et les erreurs à chaque transition)",
+    description:
+      "Cadrage, conception, validation, chantier, réception : chaque transition est un risque. Comment éviter les erreurs classiques qui font déraper un projet.",
+    category: "Gestion de chantier",
+    date: "14 juillet 2026",
+    readTime: "8 min",
+    image:
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "planning-chantier-retroplanning",
+    title: "Planning de chantier : comment créer un rétroplanning réaliste ?",
+    description:
+      "Un planning irréaliste est pire que pas de planning du tout. Les bases pour construire un rétroplanning que les artisans respecteront vraiment.",
+    category: "Gestion de chantier",
+    date: "7 juillet 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "assurance-decennale-btp",
+    title: "Assurance décennale, RC Pro, dommages-ouvrage : ce que tout artisan doit savoir",
+    description:
+      "Quelles assurances sont obligatoires, lesquelles sont facultatives, et que couvrent-elles vraiment ? Le guide complet pour ne pas se retrouver sans filet.",
+    category: "Réglementation",
+    date: "30 juin 2026",
+    readTime: "8 min",
+    image:
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "permis-construire-declaration-prealable",
+    title: "Permis de construire vs déclaration préalable : lequel pour votre projet ?",
+    description:
+      "Extension, surélévation, véranda, abri de jardin... Selon la surface et la nature des travaux, les règles changent du tout au tout. Le guide pour ne pas se tromper.",
+    category: "Réglementation",
+    date: "23 juin 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "situation-travaux-facturation",
+    title: "Situation de travaux : comment facturer en cours de chantier ?",
+    description:
+      "La situation de travaux permet d'être payé au fil de l'avancement. Comment la rédiger, à quelle fréquence l'envoyer, et comment éviter les contestations.",
+    category: "Facturation",
+    date: "16 juin 2026",
+    readTime: "6 min",
+    image:
+      "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "avenant-chantier",
+    title: "Avenant de chantier : quand et comment le rédiger ?",
+    description:
+      "Un client qui change d'avis, une mauvaise surprise dans les murs... L'avenant est l'outil contractuel qui protège l'artisan. Comment le rédiger sans conflit.",
+    category: "Documents",
+    date: "9 juin 2026",
+    readTime: "5 min",
+    image:
+      "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&q=80&auto=format&fit=crop",
+  },
+  {
+    slug: "rediger-devis-travaux",
+    title: "Comment rédiger un devis de travaux qui protège l'artisan ?",
+    description:
+      "Un devis mal rédigé, c'est une porte ouverte aux litiges. Les mentions obligatoires, les erreurs à éviter et les clauses qui font la différence.",
+    category: "Facturation",
+    date: "2 juin 2026",
+    readTime: "7 min",
+    image:
+      "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80&auto=format&fit=crop",
+  },
   {
     slug: "cahier-des-charges-renovation-interieure",
     title: "Cahier des charges rénovation intérieure : modèle et conseils",
@@ -159,6 +279,13 @@ const articles = [
 ]
 
 export default function BlogPage() {
+  const grouped = new Map<string, typeof articles>()
+  for (const article of articles) {
+    const key = getMonthYear(article.date)
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key)!.push(article)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-16 space-y-12">
@@ -169,39 +296,48 @@ export default function BlogPage() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {articles.map((article) => (
-            <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
-              <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden py-0">
-                <div className="flex flex-col sm:flex-row">
-                  <div className="relative h-48 sm:h-auto sm:w-48 sm:shrink-0 sm:self-stretch">
-                    <Image
-                      src={article.image}
-                      alt={article.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, 192px"
-                    />
-                  </div>
-                  <CardContent className="p-6 space-y-3 flex flex-col justify-center">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{article.category}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {article.date} · {article.readTime} de lecture
-                      </span>
-                    </div>
-                    <h2 className="font-bold text-xl leading-tight">{article.title}</h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {article.description}
-                    </p>
-                    <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                      Lire l&apos;article
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  </CardContent>
-                </div>
-              </Card>
-            </Link>
+        <div className="space-y-10">
+          {[...grouped.entries()].map(([month, monthArticles]) => (
+            <div key={month} className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-2">
+                {month}
+              </h2>
+              <div className="flex flex-col gap-4">
+                {monthArticles.map((article) => (
+                  <Link key={article.slug} href={`/blog/${article.slug}`} className="block">
+                    <Card className="hover:border-primary/50 transition-colors duration-200 cursor-pointer overflow-hidden py-0">
+                      <div className="flex flex-col sm:flex-row">
+                        <div className="relative h-48 sm:h-auto sm:w-48 sm:shrink-0 sm:self-stretch">
+                          <Image
+                            src={article.image}
+                            alt={article.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, 192px"
+                          />
+                        </div>
+                        <CardContent className="p-6 space-y-3 flex flex-col justify-center">
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline">{article.category}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {article.date} · {article.readTime} de lecture
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-xl leading-tight">{article.title}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {article.description}
+                          </p>
+                          <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                            Lire l&apos;article
+                            <ArrowRight className="h-4 w-4" />
+                          </div>
+                        </CardContent>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

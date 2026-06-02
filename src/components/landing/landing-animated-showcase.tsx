@@ -12,15 +12,6 @@ import {
   Loader2,
 } from "lucide-react"
 
-const TAB_MS = 4500
-
-const TABS = [
-  { id: "validation", label: "Validation client", icon: CheckCircle2 },
-  { id: "ia", label: "Génération IA", icon: Sparkles },
-  { id: "delais", label: "Alertes délais", icon: AlarmClock },
-  { id: "taches", label: "Board tâches", icon: LayoutGrid },
-]
-
 /* ── Mockup 1 : Validation client ─────────────────────────────── */
 
 function ValidationMockup() {
@@ -323,64 +314,174 @@ function TasksMockup() {
   )
 }
 
-/* ── Section principale ───────────────────────────────────────── */
+/* ── Données features ─────────────────────────────────────────── */
 
-export function LandingAnimatedShowcase() {
-  const [activeTab, setActiveTab] = useState(0)
+const FEATURES = [
+  {
+    id: "validation",
+    label: "Validation client",
+    icon: CheckCircle2,
+    headline: "Vos clients valident en 1 clic",
+    body: "Envoyez plans, devis et documents directement depuis Chalto. Votre client reçoit un lien sécurisé, approuve ou laisse un commentaire — sans compte, sans friction.",
+    bullets: [
+      "Lien de validation sécurisé et tokenisé",
+      "Historique horodaté disponible en cas de litige",
+      "Notification instantanée à l'approbation",
+    ],
+    Mockup: ValidationMockup,
+  },
+  {
+    id: "ia",
+    label: "Génération IA",
+    icon: Sparkles,
+    headline: "Un CCTP complet en 30 secondes",
+    body: "Renseignez les lots et le type de projet. Chalto génère un cahier des clauses techniques précis et personnalisé, prêt à être envoyé à vos prestataires.",
+    bullets: [
+      "Adapté aux lots : électricité, plomberie, menuiserie…",
+      "Conforme aux exigences techniques BTP",
+      "Entièrement modifiable après génération",
+    ],
+    Mockup: IAMockup,
+  },
+  {
+    id: "delais",
+    label: "Alertes délais",
+    icon: AlarmClock,
+    headline: "Plus aucune échéance manquée",
+    body: "Déclaration d'ouverture de chantier, assurance décennale, permis de construire... Chalto surveille vos délais réglementaires et vous alerte avant qu'il soit trop tard.",
+    bullets: [
+      "Alertes automatiques à J-30, J-7 et J-1",
+      "Couvre les obligations réglementaires BTP",
+      "Notifications email et tableau de bord",
+    ],
+    Mockup: DelaisMockup,
+  },
+  {
+    id: "taches",
+    label: "Board tâches",
+    icon: LayoutGrid,
+    headline: "Le chantier coordonné, sans réunion",
+    body: "Un board kanban pensé pour le BTP. Assignez, suivez et déplacez les tâches entre intervenants en temps réel — tout le monde reste aligné, sur le chantier comme au bureau.",
+    bullets: [
+      "Vue par phase de projet",
+      "Accessible aux prestataires et sous-traitants",
+      "Mise à jour en temps réel",
+    ],
+    Mockup: TasksMockup,
+  },
+]
+
+/* ── Feature row (layout alterné) ────────────────────────────── */
+
+function FeatureRow({
+  feature,
+  moduleLeft,
+}: {
+  feature: (typeof FEATURES)[0]
+  moduleLeft: boolean
+}) {
+  const [inView, setInView] = useState(false)
   const [runKey, setRunKey] = useState(0)
-  const [running, setRunning] = useState(false)
-  const [intervalKey, setIntervalKey] = useState(0)
-  const sectionRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const startedRef = useRef(false)
 
   useEffect(() => {
-    const el = sectionRef.current
+    const el = ref.current
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !startedRef.current) {
           startedRef.current = true
-          setRunning(true)
+          setInView(true)
+          setRunKey((k) => k + 1)
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
-  useEffect(() => {
-    if (!running) return
-    const t = setInterval(() => {
-      setActiveTab((prev) => (prev + 1) % TABS.length)
-      setRunKey((k) => k + 1)
-    }, TAB_MS)
-    return () => clearInterval(t)
-  }, [running, intervalKey])
+  const { icon: Icon, Mockup } = feature
 
-  const handleTab = (i: number) => {
-    setActiveTab(i)
-    setRunKey((k) => k + 1)
-    setIntervalKey((k) => k + 1)
-    if (!running) setRunning(true)
-  }
+  const textPanel = (
+    <motion.div
+      initial={{ opacity: 0, x: moduleLeft ? 24 : -24 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      className="flex flex-col justify-center"
+    >
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+        <span className="text-xs font-semibold tracking-widest uppercase text-primary">
+          {feature.label}
+        </span>
+      </div>
+      <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 leading-tight">
+        {feature.headline}
+      </h3>
+      <p className="text-muted-foreground leading-relaxed mb-6 text-sm md:text-base">
+        {feature.body}
+      </p>
+      <ul className="space-y-3">
+        {feature.bullets.map((bullet, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm">
+            <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center mt-0.5 shrink-0">
+              <Check className="h-2.5 w-2.5 text-primary" />
+            </div>
+            <span className="text-foreground/80">{bullet}</span>
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  )
 
-  const mockups = [
-    <ValidationMockup key={`v-${runKey}`} />,
-    <IAMockup key={`ia-${runKey}`} />,
-    <DelaisMockup key={`d-${runKey}`} />,
-    <TasksMockup key={`t-${runKey}`} />,
-  ]
+  const mockupPanel = (
+    <motion.div
+      initial={{ opacity: 0, x: moduleLeft ? -24 : 24 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="bg-card border border-border rounded-2xl shadow-sm"
+    >
+      <div className="p-6 min-h-64 flex items-center justify-center">
+        {inView && <Mockup key={runKey} />}
+      </div>
+    </motion.div>
+  )
 
   return (
-    <section ref={sectionRef} className="py-24 px-6 md:px-4 bg-muted/30">
-      <div className="max-w-2xl mx-auto">
+    <div ref={ref} className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+      {moduleLeft ? (
+        <>
+          <div className="order-2 md:order-1">{mockupPanel}</div>
+          <div className="order-1 md:order-2">{textPanel}</div>
+        </>
+      ) : (
+        <>
+          <div className="order-1">{textPanel}</div>
+          <div className="order-2">{mockupPanel}</div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ── Section principale ───────────────────────────────────────── */
+
+export function LandingAnimatedShowcase() {
+  return (
+    <section className="py-24 px-6 md:px-4 bg-muted/30">
+      <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-12"
+          className="text-center mb-20"
         >
           <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-4">
             Chalto en action
@@ -392,70 +493,11 @@ export function LandingAnimatedShowcase() {
           </h2>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
-        >
-          {/* Tabs */}
-          <div className="grid grid-cols-4 border-b border-border">
-            {TABS.map((tab, i) => {
-              const Icon = tab.icon
-              const isActive = activeTab === i
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTab(i)}
-                  className={`relative flex flex-col items-center gap-1 py-3 px-2 text-[10px] sm:text-xs font-medium transition-colors ${
-                    isActive
-                      ? "text-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="leading-tight text-center">{tab.label.split(" ")[0]}</span>
-                  <span className="hidden sm:block leading-tight text-center text-[9px] text-muted-foreground">
-                    {tab.label.split(" ").slice(1).join(" ")}
-                  </span>
-                  {/* Progress bar */}
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-border">
-                    {isActive && (
-                      <motion.div
-                        key={`${i}-${runKey}`}
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: 1 }}
-                        transition={{
-                          duration: running ? TAB_MS / 1000 : 0.15,
-                          ease: "linear",
-                        }}
-                        style={{ transformOrigin: "left", height: "100%" }}
-                        className="bg-primary"
-                      />
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Content */}
-          <div className="p-6 min-h-65 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`tab-${activeTab}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.22 }}
-                className="w-full"
-              >
-                {mockups[activeTab]}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.div>
+        <div className="space-y-24 md:space-y-32">
+          {FEATURES.map((feature, i) => (
+            <FeatureRow key={feature.id} feature={feature} moduleLeft={i % 2 === 0} />
+          ))}
+        </div>
       </div>
     </section>
   )
