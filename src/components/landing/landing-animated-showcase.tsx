@@ -27,7 +27,7 @@ function ValidationMockup() {
   }, [])
 
   return (
-    <div className="space-y-3 max-w-xs mx-auto w-full">
+    <div className="space-y-3 w-full sm:max-w-xs sm:mx-auto">
       <div className="bg-background rounded-xl border border-border p-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -125,7 +125,7 @@ function IAMockup() {
   }, [])
 
   return (
-    <div className="max-w-xs mx-auto w-full">
+    <div className="w-full sm:max-w-xs sm:mx-auto">
       <AnimatePresence mode="wait">
         {phase < 2 ? (
           <motion.div
@@ -228,7 +228,7 @@ function DelaisMockup() {
   }, [])
 
   return (
-    <div className="max-w-xs mx-auto w-full space-y-2">
+    <div className="w-full sm:max-w-xs sm:mx-auto space-y-2">
       {DOSSIERS.map((d, i) => {
         const isUrgent = d.urgency === 2
         return (
@@ -284,7 +284,7 @@ function TasksMockup() {
   }
 
   return (
-    <div className="max-w-xs mx-auto w-full grid grid-cols-3 gap-2">
+    <div className="w-full sm:max-w-xs sm:mx-auto grid grid-cols-3 gap-2">
       {COL_DEF.map((col) => (
         <div key={col.key} className="rounded-xl bg-muted/50 p-2">
           <div className="flex items-center gap-1.5 mb-2">
@@ -447,7 +447,7 @@ function FeatureRow({
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="bg-card border border-border rounded-2xl shadow-sm"
     >
-      <div className="p-6 min-h-64 flex items-center justify-center">
+      <div className="p-4 sm:p-6 flex items-center justify-center">
         {inView && <Mockup key={runKey} />}
       </div>
     </motion.div>
